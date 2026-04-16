@@ -38,6 +38,10 @@ export default function App() {
     const saved = localStorage.getItem('cached_events');
     return saved ? JSON.parse(saved) : [];
   });
+  const [lastFetch, setLastFetch] = useState<number>(() => {
+    const saved = localStorage.getItem('last_fetch_time');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [loading, setLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isFallback, setIsFallback] = useState(false);
@@ -120,7 +124,17 @@ export default function App() {
     }, 5000);
   }, []);
 
-  const loadInitialData = async () => {
+  const loadInitialData = async (force: boolean = false) => {
+    const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+    const now = Date.now();
+    
+    // Skip if we have data and it's not expired, unless forced
+    if (!force && events.length > 0 && (now - lastFetch < CACHE_DURATION)) {
+      const minutesLeft = Math.round((CACHE_DURATION - (now - lastFetch)) / 60000);
+      console.log("Using cached data to save API usage. Next update in:", minutesLeft, "minutes");
+      return;
+    }
+
     // Only show loading if we have no cached events
     if (events.length === 0) {
       setLoading(true);
@@ -150,7 +164,9 @@ export default function App() {
         }
 
         setEvents(data);
+        setLastFetch(now);
         localStorage.setItem('cached_events', JSON.stringify(data));
+        localStorage.setItem('last_fetch_time', now.toString());
       }
     } catch (err) {
       console.error("Failed to fetch events:", err);
@@ -228,9 +244,9 @@ export default function App() {
       });
       
       // Send Email Notification via EmailJS (Free Tier)
-      const serviceId = process.env.VITE_EMAILJS_SERVICE_ID;
-      const templateId = process.env.VITE_EMAILJS_TEMPLATE_ID;
-      const publicKey = process.env.VITE_EMAILJS_PUBLIC_KEY;
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
       if (serviceId && templateId && publicKey) {
         try {
@@ -244,9 +260,16 @@ export default function App() {
             },
             publicKey
           );
+          console.log("Email notification sent successfully via EmailJS");
         } catch (emailErr) {
           console.error("Email notification failed:", emailErr);
         }
+      } else {
+        console.warn("EmailJS credentials missing. Check your environment variables.", {
+          hasServiceId: !!serviceId,
+          hasTemplateId: !!templateId,
+          hasPublicKey: !!publicKey
+        });
       }
 
       addToast("Subscribed!", "You've been added to our newsletter.", "success");
@@ -420,9 +443,21 @@ export default function App() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const data = await fetchEventsAndSchemes(searchQuery, profile || undefined);
-    setEvents(data);
-    setLoading(false);
+    try {
+      const data = await fetchEventsAndSchemes(searchQuery, profile || undefined);
+      if (data && data.length > 0) {
+        setEvents(data);
+        const now = Date.now();
+        setLastFetch(now);
+        localStorage.setItem('cached_events', JSON.stringify(data));
+        localStorage.setItem('last_fetch_time', now.toString());
+      }
+    } catch (err) {
+      console.error("Search error:", err);
+      addToast("Search Failed", "Could not fetch results. Please try again.", "warning");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -1090,6 +1125,20 @@ export default function App() {
                 <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-bold border border-amber-100">
                   <AlertTriangle className="w-3 h-3" />
                   FEATURED
+                </span>
+              )}
+              <button 
+                onClick={() => loadInitialData(true)}
+                disabled={isUpdating || loading}
+                className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full text-[10px] font-bold transition-all disabled:opacity-50"
+                title="Refresh from AI"
+              >
+                <RefreshCw className={cn("w-3 h-3", (isUpdating || loading) && "animate-spin")} />
+                REFRESH
+              </button>
+              {lastFetch > 0 && (
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
+                  Last updated: {new Date(lastFetch).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
             </div>
