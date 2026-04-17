@@ -41,6 +41,7 @@ export async function fetchEventsAndSchemes(query: string = "", profile?: UserPr
     const currentDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const prompt = `Current Date: ${currentDate}. 
       Find 8-10 ACTIVE corporate hackathons, government schemes, or programs. 
+      ${query ? `PRIORITY FOCUS: Search specifically for "${query}". If "${query}" refers to a specific known program (like PM-KUSUM, PM-JAY, Google Hash Code, etc.), ensure it is the first item if found.` : ''}
       ONLY include events with deadlines AFTER ${currentDate}.
       ${profileContext}
       Format as JSON array:
@@ -56,7 +57,7 @@ export async function fetchEventsAndSchemes(query: string = "", profile?: UserPr
         "price": "string",
         "coordinates": { "lat": number, "lng": number }
       }
-      Query: ${query}`;
+      Search Query or Keywords: ${query}`;
 
     let response;
     try {
@@ -108,5 +109,38 @@ export async function fetchEventsAndSchemes(query: string = "", profile?: UserPr
     });
     // Return high-quality fallback events if API fails
     return FALLBACK_EVENTS;
+  }
+}
+
+export async function getSearchSuggestions(partialQuery: string): Promise<string[]> {
+  if (!partialQuery || partialQuery.length < 2) return [];
+  
+  try {
+    const ai = getAiClient();
+    if (!ai) return [];
+
+    const prompt = `Based on the partial search query: "${partialQuery}", suggest 4-5 highly relevant search terms related to corporate hackathons, government student schemes (like scholarship, PMKVY, etc.), internships, and educational programs in India. 
+    Return as a simple JSON array of strings. 
+    Examples: if "hack" -> ["Hackathons in India", "Frontend Hackathon", "Corporate Coding Challenges", "ML Hackathons"]
+    Example: if "scheme" -> ["Govt Scholarship Schemes", "Skill Development Schemes", "State Education Loans", "Startup India Scheme"]`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-flash-latest",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
+
+    const text = response.text;
+    if (!text) return [];
+    
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    const jsonString = jsonMatch ? jsonMatch[0] : text;
+    
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error("Suggestion error:", error);
+    return [];
   }
 }

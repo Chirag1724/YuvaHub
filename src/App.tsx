@@ -12,7 +12,7 @@ import {
   Bookmark, BookmarkCheck, Trash2, Wifi, WifiOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { fetchEventsAndSchemes } from './services/geminiService';
+import { fetchEventsAndSchemes, getSearchSuggestions } from './services/geminiService';
 import { Event, UserLocation, UserProfile, Notification } from './types';
 import { cn } from './lib/utils';
 import { auth, signInWithGoogle, signInWithApple, logout, db } from './lib/firebase';
@@ -46,6 +46,9 @@ export default function App() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isFallback, setIsFallback] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'hackathon' | 'scheme' | 'program'>('all');
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [nearbyEvents, setNearbyEvents] = useState<Event[]>([]);
@@ -134,9 +137,18 @@ export default function App() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('form')) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [profile, isFallback]);
 
@@ -512,11 +524,30 @@ export default function App() {
     });
   }, [events, searchQuery, filterType]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.length >= 2 && !isUpdating && !loading) {
+        setIsFetchingSuggestions(true);
+        const results = await getSearchSuggestions(searchQuery);
+        setSuggestions(results);
+        setShowSuggestions(results.length > 0);
+        setIsFetchingSuggestions(false);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearch = async (e: React.FormEvent | string) => {
+    if (typeof e !== 'string') e.preventDefault();
+    const query = typeof e === 'string' ? e : searchQuery;
+    setShowSuggestions(false);
     setLoading(true);
     try {
-      const data = await fetchEventsAndSchemes(searchQuery, profile || undefined);
+      const data = await fetchEventsAndSchemes(query, profile || undefined);
       if (data && data.length > 0) {
         setEvents(data);
         const now = Date.now();
@@ -1265,8 +1296,41 @@ export default function App() {
                 placeholder="Search hackathons, schemes, programs, or companies..."
                 className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm text-sm sm:text-base"
                 value={searchQuery}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+
+              <AnimatePresence>
+                {showSuggestions && suggestions.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden"
+                  >
+                    <div className="p-2">
+                      <p className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 italic">
+                        Related searches
+                      </p>
+                      {suggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setSearchQuery(suggestion);
+                            handleSearch(suggestion);
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-indigo-50 rounded-xl transition-colors flex items-center gap-3 group/item border border-transparent hover:border-indigo-100"
+                        >
+                          <Search className="w-4 h-4 text-slate-400 group-hover/item:text-indigo-500 transition-colors" />
+                          <span className="text-sm font-bold text-slate-700 group-hover/item:text-indigo-700">{suggestion}</span>
+                          <ArrowRight className="w-3.5 h-3.5 text-slate-300 ml-auto opacity-0 group-hover/item:opacity-100 -translate-x-2 group-hover/item:translate-x-0 transition-all" />
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </form>
             
             <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
