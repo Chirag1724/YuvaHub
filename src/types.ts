@@ -7,14 +7,28 @@ export interface Event {
   location: string;
   date: string;
   link: string;
-  price?: string; // e.g., "Free", "Paid", "₹500"
+  applyLink?: string;
+  price?: string;
+  isPaid: boolean;
   coordinates?: {
     lat: number;
     lng: number;
   };
+  language?: string;
+  field?: string;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }
 
+export type ApplicationStatus = 'Interested' | 'Applied' | 'Rejected' | 'Selected';
+
 export interface UserProfile {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  dob?: string;
+  college?: string;
+  skills?: string[];
   location: string;
   age: number | '';
   interests: string[];
@@ -22,6 +36,15 @@ export interface UserProfile {
   bookmarkedEventIds?: string[];
   registeredEventIds?: string[];
   messages?: Message[];
+  // New Onboarding & Filtering Fields
+  onboardingComplete?: boolean;
+  currentClass?: string;
+  grades?: string;
+  fieldOfStudy?: string;
+  preferredLanguage?: string;
+  budgetPreference?: 'free' | 'paid' | 'any';
+  deadlinePreference?: 'any' | 'next-7-days' | 'next-30-days';
+  preferredDomains?: string[];
 }
 
 export interface Message {
@@ -37,11 +60,22 @@ export interface UserRegistration {
   id: string;
   userId: string;
   userEmail: string;
+  userName?: string;
+  userPhone?: string;
+  userAddress?: string;
+  userDob?: string;
+  userCollege?: string;
+  userSkills?: string[];
   userLocation: string;
   userAge: number | '';
   eventId: string;
   eventTitle: string;
   registeredAt: any;
+  // Tracker Fields
+  status: ApplicationStatus;
+  dueDate?: string;
+  checklist?: { item: string; completed: boolean }[];
+  notes?: string;
 }
 
 export interface UserLocation {
@@ -57,13 +91,25 @@ export interface Notification {
   read: boolean;
   type: 'new_event' | 'deadline' | 'system';
   link?: string;
+  eventId?: string; // To allow navigating to detail
 }
 
-export interface TopicDeepDive {
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+  isSuggestedOpportunity?: boolean;
+}
+
+export interface RelatedDomain {
+  title: string;
+  description: string;
+  relevance: string;
+  marketTrend: string;
+}
+
+export interface RelatedDomains {
   topic: string;
-  summary: string;
-  keySkills: string[];
-  trendingOpportunities: { title: string; desc: string }[];
-  marketOutlook: string;
-  relatedTags: string[];
+  domains: RelatedDomain[];
 }

@@ -1,5 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
-import { Event, UserProfile, TopicDeepDive } from "../types";
+import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
+import { Event, UserProfile, RelatedDomains } from "../types";
 import { FALLBACK_EVENTS } from "../constants";
 
 let aiClient: GoogleGenAI | null = null;
@@ -18,6 +18,42 @@ function getAiClient(): GoogleGenAI | null {
   } catch (err) {
     console.error("Failed to initialize AI client:", err);
     return null;
+  }
+}
+
+/**
+ * Robustly parses a string that might contain JSON wrapped in conversational text
+ */
+function safeJsonParse<T>(text: string, defaultValue: T): T {
+  try {
+    // 1. Try direct parse first
+    return JSON.parse(text.trim());
+  } catch (e) {
+    try {
+      // 2. Try to find the first '{' or '[' and the last '}' or ']'
+      const firstCurly = text.indexOf('{');
+      const firstSquare = text.indexOf('[');
+      
+      let start = -1;
+      let end = -1;
+      
+      if (firstCurly !== -1 && (firstSquare === -1 || firstCurly < firstSquare)) {
+        start = firstCurly;
+        end = text.lastIndexOf('}') + 1;
+      } else if (firstSquare !== -1) {
+        start = firstSquare;
+        end = text.lastIndexOf(']') + 1;
+      }
+      
+      if (start !== -1 && end !== -1) {
+        const potentialJson = text.substring(start, end);
+        return JSON.parse(potentialJson);
+      }
+    } catch (innerError) {
+      console.warn("Deeper JSON extraction failed:", innerError);
+    }
+    console.error("Failed to parse AI response as JSON:", text.substring(0, 100) + "...");
+    return defaultValue;
   }
 }
 
@@ -41,73 +77,71 @@ export async function fetchEventsAndSchemes(query: string = "", profile?: UserPr
     const currentDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const prompt = `Current Date: ${currentDate}. 
       Find 8-10 ACTIVE corporate hackathons, government schemes, or programs. 
-      ${query ? `PRIORITY FOCUS: Search specifically for "${query}". If "${query}" refers to a specific known program (like PM-KUSUM, PM-JAY, Google Hash Code, etc.), ensure it is the first item if found.` : ''}
+      ${query ? `PRIORITY FOCUS: Search specifically for "${query}". If "${query}" refers to a specific known program, ensure it is in the results.` : ''}
       ONLY include events with deadlines AFTER ${currentDate}.
       ${profileContext}
-      Format as JSON array:
-      {
-        "id": "string",
-        "title": "string",
-        "organization": "string",
-        "type": "hackathon" | "scheme" | "program",
-        "description": "string",
-        "location": "string",
-        "date": "string",
-        "link": "string",
-        "price": "string",
-        "coordinates": { "lat": number, "lng": number }
+      STRICT REQUIREMENT: Return ONLY a JSON array of objects.`;
+
+    const schema = {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          id: { type: Type.STRING },
+          title: { type: Type.STRING },
+          organization: { type: Type.STRING },
+          type: { type: Type.STRING, description: "hackathon, scheme, or program" },
+          description: { type: Type.STRING },
+          location: { type: Type.STRING },
+          date: { type: Type.STRING },
+          link: { type: Type.STRING },
+          applyLink: { type: Type.STRING },
+          price: { type: Type.STRING },
+          isPaid: { type: Type.BOOLEAN },
+          coordinates: {
+            type: Type.OBJECT,
+            properties: {
+              lat: { type: Type.NUMBER },
+              lng: { type: Type.NUMBER }
+            },
+            required: ["lat", "lng"]
+          }
+        },
+        required: ["id", "title", "organization", "type", "description", "location", "date", "link", "applyLink", "price", "isPaid", "coordinates"]
       }
-      Search Query or Keywords: ${query}`;
+    };
 
     let response;
     try {
-      // First attempt with Google Search tool - increased to 30s for reliability
-      const searchPromise = ai.models.generateContent({
-        model: "gemini-flash-latest",
+      response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
         contents: prompt,
         config: {
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
           tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
+          responseSchema: schema,
         },
       });
-
-      // Race against a timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Search timeout")), 30000)
-      );
-
-      response = await Promise.race([searchPromise, timeoutPromise]) as any;
-    } catch (searchError: any) {
-      console.info("Gemini search tool timed out, using internal knowledge fallback:", searchError.message);
-      // Fallback attempt without tools - much faster
+    } catch (error: any) {
+      if (error.message?.includes('429') || error.message?.includes('RESOURCE_EXHAUSTED')) {
+        return FALLBACK_EVENTS;
+      }
+      // Fallback attempt without tools - optimized for speed
       response = await ai.models.generateContent({
-        model: "gemini-flash-latest",
-        contents: prompt + "\n\nNote: Use your internal knowledge to provide the most recent and accurate information possible.",
+        model: "gemini-3-flash-preview",
+        contents: prompt + "\n\nNote: Use internal knowledge. Speed is priority. JSON ONLY.",
         config: {
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
           responseMimeType: "application/json",
+          responseSchema: schema,
         },
       });
     }
 
-    const text = response.text;
-    if (!text) {
-      console.warn("Gemini returned empty response text.");
-      return [];
-    }
-    
-    // Handle potential markdown code blocks
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    const jsonString = jsonMatch ? jsonMatch[0] : text;
-    
-    return JSON.parse(jsonString);
+    return safeJsonParse(response.text, FALLBACK_EVENTS);
   } catch (error: any) {
-    console.error("Detailed Gemini Error:", {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      cause: error.cause
-    });
-    // Return high-quality fallback events if API fails
+    console.error("Detailed Gemini Error:", error);
     return FALLBACK_EVENTS;
   }
 }
@@ -119,72 +153,128 @@ export async function getSearchSuggestions(partialQuery: string): Promise<string
     const ai = getAiClient();
     if (!ai) return [];
 
-    const prompt = `Based on the partial search query: "${partialQuery}", suggest 4-5 highly relevant search terms related to corporate hackathons, government student schemes (like scholarship, PMKVY, etc.), internships, and educational programs in India. 
-    Return as a simple JSON array of strings. 
-    Examples: if "hack" -> ["Hackathons in India", "Frontend Hackathon", "Corporate Coding Challenges", "ML Hackathons"]
-    Example: if "scheme" -> ["Govt Scholarship Schemes", "Skill Development Schemes", "State Education Loans", "Startup India Scheme"]`;
+    const prompt = `Based on the partial search query: "${partialQuery}", suggest 4-5 highly relevant search terms related to corporate hackathons, government student schemes, internships, and educational programs in India.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
+      model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
       },
     });
 
-    const text = response.text;
-    if (!text) return [];
-    
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    const jsonString = jsonMatch ? jsonMatch[0] : text;
-    
-    return JSON.parse(jsonString);
-  } catch (error) {
-    console.error("Suggestion error:", error);
+    return safeJsonParse(response.text, []);
+  } catch (error: any) {
     return [];
   }
 }
 
-export async function getTopicDeepDive(topic: string): Promise<TopicDeepDive | null> {
+export async function getRelatedDomains(topic: string): Promise<RelatedDomains | null> {
   if (!topic || topic.length < 3) return null;
   
   try {
     const ai = getAiClient();
     if (!ai) return null;
 
-    const prompt = `Analyze the industry/topic: "${topic}" in the context of opportunities for students and early-career professionals in India.
-    
-    Provide a concise but comprehensive "Deep Dive" structure in JSON:
-    {
-      "topic": "${topic}",
-      "summary": "A 2-3 sentence overview of this field in India right now.",
-      "keySkills": ["Skill 1", "Skill 2", "Skill 3"],
-      "trendingOpportunities": [
-        { "title": "Opportunity Name/Type", "desc": "Brief 1-sentence why it's trending" }
-      ],
-      "marketOutlook": "A brief outlook on career/research growth (max 150 chars).",
-      "relatedTags": ["Tag 1", "Tag 2"]
-    }
-    
-    Make it feel professional, insightful, and forward-looking. Avoid generic advice; focus on current Indian ecosystem relevance (e.g., Digital India, AI Missions, Industry hubs).`;
+    const prompt = `Analyze the search query: "${topic}". Identify 3-4 highly specific and relevant sub-domains or specialized career paths within this topic for students in India.`;
+
+    const schema = {
+      type: Type.OBJECT,
+      properties: {
+        topic: { type: Type.STRING },
+        domains: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              description: { type: Type.STRING },
+              relevance: { type: Type.STRING },
+              marketTrend: { type: Type.STRING }
+            },
+            required: ["title", "description", "relevance", "marketTrend"]
+          }
+        }
+      },
+      required: ["topic", "domains"]
+    };
 
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
+      model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         responseMimeType: "application/json",
+        responseSchema: schema
       },
     });
 
-    const text = response.text;
-    if (!text) return null;
-    
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const jsonString = jsonMatch ? jsonMatch[0] : text;
-    
-    return JSON.parse(jsonString);
+    return safeJsonParse(response.text, null);
   } catch (error) {
-    console.error("Deep dive error:", error);
+    console.error("Related domains error:", error);
     return null;
+  }
+}
+
+export async function getAssistantResponse(userMessage: string, profile: UserProfile | null, currentEvents: Event[]): Promise<string> {
+  try {
+    const ai = getAiClient();
+    if (!ai) return "I'm sorry, my AI processing is currently offline. Please try again later.";
+
+    const context = `
+      User Profile: ${JSON.stringify(profile)}
+      Available Opportunities: ${JSON.stringify(currentEvents.map(e => ({ title: e.title, organization: e.organization, type: e.type, isPaid: e.isPaid })))}
+    `;
+
+    const prompt = `You are a helpful student opportunity assistant named EventHub AI.
+    Your goal is to help students find hackathons, scholarships, and programs.
+    Use the provided context to answer the user's question accurately.
+    If they ask for specific types (e.g., beginner, free, AI-related), look through the available opportunities.
+    Be encouraging and concise.
+    
+    Context: ${context}
+    User Message: ${userMessage}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        tools: [{ googleSearch: {} }] // Allow searching for external info if not in context
+      },
+    });
+
+    return response.text;
+  } catch (error) {
+    console.error("AI Assistant error:", error);
+    return "I encountered an error while processing your request. How else can I help you today?";
+  }
+}
+
+export async function generateDraft(type: 'SOP' | 'Email', opportunityTitle: string, organization: string, profile: UserProfile | null): Promise<string> {
+  try {
+    const ai = getAiClient();
+    if (!ai) return "";
+
+    const prompt = `Draft a professional ${type === 'SOP' ? 'Statement of Purpose' : 'Application Email'} for a student applying to "${opportunityTitle}" at "${organization}".
+    Using the profile: ${JSON.stringify(profile)}.
+    Ensure it's structured, professional, and includes placeholders where specific details are needed.
+    Add a CLEAR DISCLAIMER at the top that the student MUST customize this content.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } },
+    });
+
+    return response.text;
+  } catch (error) {
+    console.error("Draft generation error:", error);
+    return "Failed to generate draft. Please try again.";
   }
 }

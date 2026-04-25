@@ -10,7 +10,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Online",
     date: "January - March 2026",
     link: "https://developers.google.com/community/challenge",
+    applyLink: "https://developers.google.com/community/challenge",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 37.422488, lng: -122.084248 }
   },
   {
@@ -22,7 +24,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Pan India / Online",
     date: "August - December 2026",
     link: "https://www.sih.gov.in/",
+    applyLink: "https://www.sih.gov.in/",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 28.6139, lng: 77.2090 }
   },
   {
@@ -34,7 +38,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Online / Global",
     date: "October 2025 - May 2026",
     link: "https://imaginecup.microsoft.com/",
+    applyLink: "https://imaginecup.microsoft.com/",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 47.6740, lng: -122.1215 }
   },
   {
@@ -46,7 +52,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "India",
     date: "Ongoing",
     link: "https://pminternship.mca.gov.in/",
+    applyLink: "https://pminternship.mca.gov.in/",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 28.6139, lng: 77.2090 }
   },
   {
@@ -58,7 +66,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Online",
     date: "Rolling Basis",
     link: "https://aws.amazon.com/training/digital/aws-cloud-up-for-her/",
+    applyLink: "https://aws.amazon.com/training/digital/aws-cloud-up-for-her/",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 47.6062, lng: -122.3321 }
   },
   {
@@ -70,7 +80,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Online",
     date: "November 2025 - March 2026",
     link: "https://www.tcscodevita.com/",
+    applyLink: "https://www.tcscodevita.com/",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 19.0760, lng: 72.8777 }
   },
   {
@@ -82,7 +94,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Online",
     date: "September - December 2026",
     link: "https://www.facebook.com/codingcompetitions/hacker-cup",
+    applyLink: "https://www.facebook.com/codingcompetitions/hacker-cup",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 37.4848, lng: -122.1484 }
   },
   {
@@ -94,7 +108,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "India",
     date: "July - October 2026",
     link: "https://scholarships.gov.in/",
+    applyLink: "https://scholarships.gov.in/",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 28.6139, lng: 77.2090 }
   },
   {
@@ -106,7 +122,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Remote",
     date: "Quarterly Batches",
     link: "https://github.com/education/Octernships",
+    applyLink: "https://github.com/education/Octernships",
     price: "Paid (Stipend)",
+    isPaid: false,
     coordinates: { lat: 37.7749, lng: -122.4194 }
   },
   {
@@ -118,7 +136,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Remote",
     date: "Spring, Summer, Fall Batches",
     link: "https://fellowship.mlh.io/",
+    applyLink: "https://fellowship.mlh.io/",
     price: "Paid (Stipend)",
+    isPaid: false,
     coordinates: { lat: 40.7128, lng: -74.0060 }
   },
   {
@@ -130,7 +150,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Online / India",
     date: "July - September 2026",
     link: "https://unstop.com/hackathons/flipkart-grid-60-software-development-track-flipkart-894234",
+    applyLink: "https://unstop.com/hackathons/flipkart-grid-60-software-development-track-flipkart-894234",
     price: "Free",
+    isPaid: false,
     coordinates: { lat: 12.9716, lng: 77.5946 }
   },
   {
@@ -142,7 +164,9 @@ export const FALLBACK_EVENTS: Event[] = [
     location: "Online",
     date: "January - August 2026",
     link: "https://summerofcode.withgoogle.com/",
+    applyLink: "https://summerofcode.withgoogle.com/",
     price: "Paid (Stipend)",
+    isPaid: false,
     coordinates: { lat: 37.4224, lng: -122.0842 }
   }
 ];
