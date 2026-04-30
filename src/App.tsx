@@ -13,7 +13,7 @@ import {
   Zap, Copy, Loader2, Users, MessageSquare, Send, Trophy, Star, FileText, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { fetchEventsAndSchemes, getSearchSuggestions, getRelatedDomains, getAssistantResponse, generateDraft } from './services/geminiService';
+import { fetchEventsAndSchemes, getSearchSuggestions, getRelatedDomains, getAssistantResponse, generateDraft, getSmartRefinements } from './services/geminiService';
 import { Event, UserLocation, UserProfile, Notification, UserRegistration, Message, RelatedDomains, ChatMessage, ApplicationStatus } from './types';
 import { cn } from './lib/utils';
 import { 
@@ -90,6 +90,8 @@ export default function App() {
   const [visibleCount, setVisibleCount] = useState(6);
   const [relatedDomains, setRelatedDomains] = useState<RelatedDomains | null>(null);
   const [isFetchingDeepDive, setIsFetchingDeepDive] = useState(false);
+  const [smartRefinements, setSmartRefinements] = useState<string[]>([]);
+  const [isSmartRankEnabled, setIsSmartRankEnabled] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     const saved = localStorage.getItem('user_notifications');
     return saved ? JSON.parse(saved) : [];
@@ -110,7 +112,7 @@ export default function App() {
 
   const [showSettings, setShowSettings] = useState(!profile);
   const [settingsTab, setSettingsTab] = useState<'profile' | 'applications'>('profile');
-  const [tempProfile, setTempProfile] = useState<UserProfile>(() => profile || {
+  const DEFAULT_PROFILE: UserProfile = {
     name: '',
     email: '',
     phone: '',
@@ -122,6 +124,11 @@ export default function App() {
     age: '',
     interests: [],
     notificationsEnabled: false
+  };
+
+  const [tempProfile, setTempProfile] = useState<UserProfile>(() => {
+    if (profile) return { ...DEFAULT_PROFILE, ...profile };
+    return DEFAULT_PROFILE;
   });
 
   const [regPermission, setRegPermission] = useState(false);
@@ -728,7 +735,7 @@ export default function App() {
   const [lastServerSearch, setLastServerSearch] = useState('');
 
   const filteredEvents = useMemo(() => {
-    return events.filter(event => {
+    const list = events.filter(event => {
       // If this list of events was JUST fetched for this search query (or similar),
       // don't apply the strict local string filter, because AI results 
       // might not contain the exact keyword but are relevant (semantic search).
@@ -744,14 +751,14 @@ export default function App() {
       const desc = event.description?.toLowerCase() || "";
       const ind = event.industry?.toLowerCase() || "";
       const elig = event.eligibility?.toLowerCase() || "";
-      const query = currentQuery;
+      const queryStr = currentQuery;
 
       const matchesSearch = isAIPerfectMatch || 
-                          title.includes(query) ||
-                          org.includes(query) ||
-                          desc.includes(query) ||
-                          ind.includes(query) ||
-                          elig.includes(query);
+                          title.includes(queryStr) ||
+                          org.includes(queryStr) ||
+                          desc.includes(queryStr) ||
+                          ind.includes(queryStr) ||
+                          elig.includes(queryStr);
 
       const matchesType = filterType === 'all' || event.type === filterType;
       const matchesOrganizer = selectedOrganizer === 'all' || event.organization === selectedOrganizer;
@@ -760,7 +767,34 @@ export default function App() {
       
       return matchesSearch && matchesType && matchesOrganizer && matchesIndustry && matchesEligibility;
     });
-  }, [events, searchQuery, filterType, selectedOrganizer, selectedIndustry, selectedEligibility, lastServerSearch]);
+
+    if (isSmartRankEnabled && profile) {
+      return [...list].sort((a, b) => {
+        let scoreA = 0;
+        let scoreB = 0;
+        
+        const textA = (a.title + " " + a.description + " " + a.industry).toLowerCase();
+        const textB = (b.title + " " + b.description + " " + b.industry).toLowerCase();
+
+        (profile.interests || []).forEach(i => {
+          if (textA.includes(i.toLowerCase())) scoreA += 2;
+          if (textB.includes(i.toLowerCase())) scoreB += 2;
+        });
+        (profile.skills || []).forEach(s => {
+          if (textA.includes(s.toLowerCase())) scoreA += 3;
+          if (textB.includes(s.toLowerCase())) scoreB += 3;
+        });
+        (profile.preferredDomains || []).forEach(d => {
+          if (textA.includes(d.toLowerCase())) scoreA += 4;
+          if (textB.includes(d.toLowerCase())) scoreB += 4;
+        });
+
+        return scoreB - scoreA;
+      });
+    }
+
+    return list;
+  }, [events, searchQuery, filterType, selectedOrganizer, selectedIndustry, selectedEligibility, lastServerSearch, isSmartRankEnabled, profile]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -872,6 +906,11 @@ export default function App() {
       setLastServerSearch(query); // Update this BEFORE setEvents to ensure filter re-runs correctly
       setEvents(results);
       
+      // Fetch smart refinements in background
+      getSmartRefinements(query, profile).then(refinements => {
+        setSmartRefinements(refinements);
+      });
+
       if (results.length === 0) {
         addToast("No Results", "Try broadening your search terms.", "info");
       }
@@ -1099,7 +1138,7 @@ export default function App() {
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Full Name</label>
                   <input 
                     type="text" 
-                    value={tempProfile.name}
+                    value={tempProfile.name || ''}
                     onChange={(e) => setTempProfile(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all text-sm font-bold"
                   />
@@ -1108,7 +1147,7 @@ export default function App() {
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Email</label>
                   <input 
                     type="email" 
-                    value={tempProfile.email}
+                    value={tempProfile.email || ''}
                     onChange={(e) => setTempProfile(prev => ({ ...prev, email: e.target.value }))}
                     disabled={!!user}
                     className={cn(
@@ -1121,7 +1160,7 @@ export default function App() {
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">College</label>
                   <input 
                     type="text" 
-                    value={tempProfile.college}
+                    value={tempProfile.college || ''}
                     onChange={(e) => setTempProfile(prev => ({ ...prev, college: e.target.value }))}
                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all text-sm font-bold"
                   />
@@ -1130,8 +1169,44 @@ export default function App() {
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Contact Number</label>
                   <input 
                     type="text" 
-                    value={tempProfile.phone}
+                    value={tempProfile.phone || ''}
                     onChange={(e) => setTempProfile(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all text-sm font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Date of Birth</label>
+                  <input 
+                    type="date" 
+                    value={tempProfile.dob || ''}
+                    onChange={(e) => setTempProfile(prev => ({ ...prev, dob: e.target.value }))}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all text-sm font-bold"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Address</label>
+                  <input 
+                    type="text" 
+                    value={tempProfile.address || ''}
+                    onChange={(e) => setTempProfile(prev => ({ ...prev, address: e.target.value }))}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all text-sm font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Location (City)</label>
+                  <input 
+                    type="text" 
+                    value={tempProfile.location || ''}
+                    onChange={(e) => setTempProfile(prev => ({ ...prev, location: e.target.value }))}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all text-sm font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Age</label>
+                  <input 
+                    type="number" 
+                    value={tempProfile.age}
+                    onChange={(e) => setTempProfile(prev => ({ ...prev, age: e.target.value === '' ? '' : parseInt(e.target.value) }))}
                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all text-sm font-bold"
                   />
                 </div>
@@ -1252,8 +1327,12 @@ export default function App() {
                     className="w-full pl-16 pr-24 py-6 bg-white border border-slate-200 rounded-[32px] text-lg font-bold placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-xl shadow-slate-100/50"
                     value={searchQuery}
                     onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      if (e.target.value === '') setLastServerSearch('');
+                      const val = e.target.value;
+                      setSearchQuery(val);
+                      if (val === '') {
+                        setLastServerSearch('');
+                        setSmartRefinements([]);
+                      }
                     }}
                     onFocus={() => setShowSuggestions(true)}
                   />
@@ -1266,6 +1345,26 @@ export default function App() {
                      </button>
                   </div>
                 </form>
+                
+                {/* AI Refinements */}
+                {smartRefinements.length > 0 && !loading && (
+                  <div className="flex flex-wrap gap-2 mt-4 px-2">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest self-center mr-2">Refine Search:</span>
+                    {smartRefinements.map((ref, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setSearchQuery(ref);
+                          handleSearch(ref);
+                          setSmartRefinements([]);
+                        }}
+                        className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-bold border border-indigo-100 hover:bg-indigo-100 transition-all"
+                      >
+                        {ref}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 
                 {/* Suggestions Dropdown */}
                 <AnimatePresence>
@@ -1316,6 +1415,23 @@ export default function App() {
                   {type.label}
                 </button>
               ))}
+
+              <div className="flex-1" />
+
+              {profile && (
+                <button
+                  onClick={() => setIsSmartRankEnabled(!isSmartRankEnabled)}
+                  className={cn(
+                    "flex items-center gap-2.5 px-6 py-3.5 rounded-full text-xs font-black uppercase tracking-widest transition-all border whitespace-nowrap",
+                    isSmartRankEnabled
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-100"
+                      : "bg-white text-slate-400 border-slate-200 hover:border-slate-300"
+                  )}
+                >
+                  <Zap className={cn("w-4 h-4", isSmartRankEnabled ? "fill-current" : "")} />
+                  Smart Match {isSmartRankEnabled ? 'On' : 'Off'}
+                </button>
+              )}
             </div>
 
             {/* Advanced Filters */}

@@ -297,3 +297,34 @@ export async function generateDraft(type: 'SOP' | 'Email', opportunityTitle: str
     return "Failed to generate draft. Please try again.";
   }
 }
+
+export async function getSmartRefinements(query: string, profile: UserProfile | null): Promise<string[]> {
+  if (!query || query.length < 3) return [];
+  
+  try {
+    const ai = getAiClient();
+    if (!ai) return [];
+
+    const prompt = `Based on the search query: "${query}" and the user profile: ${JSON.stringify(profile)}, suggest 3-4 short (2-4 words) search refinement chips. 
+    The goal is to focus the search on things relevant to the user's specific skills or interests.
+    Example: If user query is "scholarship" and skills include "Python", a refinement could be "Python Coding Scholarships".
+    Return ONLY a JSON array of strings. No duplicates with the current query.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      },
+    });
+
+    return safeJsonParse(response.text, []);
+  } catch (error) {
+    console.error("Smart refinements error:", error);
+    return [];
+  }
+}
