@@ -2,6 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, Opportunity } from "../types";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { fallbackOpportunities } from "./fallbackData";
 
 let aiClient: GoogleGenAI | null = null;
 
@@ -87,11 +88,13 @@ export async function loadFeed(userProfile: any, forceRefresh = false): Promise<
       mergedResults.forEach((r: any) => { r.isNew = true; r.added_timestamp = Date.now(); });
     }
 
-    await setDoc(doc(db, 'user_feeds', cacheKey), {
-      fetched_at: Date.now(),
-      results: mergedResults,
-      meta: aiResult.meta || {}
-    }, { merge: true });
+    if (!aiResult.isFallback) {
+      await setDoc(doc(db, 'user_feeds', cacheKey), {
+        fetched_at: Date.now(),
+        results: mergedResults,
+        meta: aiResult.meta || {}
+      }, { merge: true });
+    }
     
     return mergedResults;
   }
@@ -111,11 +114,13 @@ export async function loadMoreFeed(userProfile: any, currentResults: any[]): Pro
     
     if (newResults.length > 0) {
       const mergedResults = [...newResults, ...currentResults];
-      await setDoc(doc(db, 'user_feeds', cacheKey), {
-        fetched_at: Date.now(),
-        results: mergedResults,
-        meta: aiResult.meta || {}
-      }, { merge: true });
+      if (!aiResult.isFallback) {
+        await setDoc(doc(db, 'user_feeds', cacheKey), {
+          fetched_at: Date.now(),
+          results: mergedResults,
+          meta: aiResult.meta || {}
+        }, { merge: true });
+      }
       return mergedResults;
     }
   }
@@ -211,8 +216,8 @@ OUTPUT FORMAT:
       return robustParseJSON(response.text || "{}") || { results: [] };
     } catch (err: any) {
       if (err?.message?.includes("429") || err?.message?.includes("RESOURCE_EXHAUSTED")) {
-        console.warn("Gemini Quota Exceeded. Returning cached results if available.");
-        return { results: [], error: "QUOTA_EXCEEDED" };
+        console.warn("Gemini Quota Exceeded. Returning fallback results.");
+        return { results: fallbackOpportunities.map(o => ({ ...o, isFallback: true })), isFallback: true };
       }
       throw err;
     }
@@ -334,7 +339,8 @@ WHAT TO NEVER DO:
       return robustParseJSON(response.text || "{}") || { results: [] };
     } catch (err: any) {
       if (err?.message?.includes("429") || err?.message?.includes("RESOURCE_EXHAUSTED")) {
-        return { results: [], error: "QUOTA_EXCEEDED" };
+        console.warn("Gemini Quota Exceeded. Returning fallback results.");
+        return { results: fallbackOpportunities.map(o => ({ ...o, isFallback: true })), isFallback: true };
       }
       throw err;
     }
@@ -453,7 +459,8 @@ WHAT TO NEVER DO:
       return robustParseJSON(response.text || "{}") || { results: [] };
     } catch (err: any) {
       if (err?.message?.includes("429") || err?.message?.includes("RESOURCE_EXHAUSTED")) {
-        return { results: [], error: "QUOTA_EXCEEDED" };
+        console.warn("Gemini Quota Exceeded. Returning fallback results.");
+        return { results: fallbackOpportunities.map(o => ({ ...o, isFallback: true })), isFallback: true };
       }
       throw err;
     }

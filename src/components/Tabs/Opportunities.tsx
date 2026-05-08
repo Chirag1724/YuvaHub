@@ -230,21 +230,18 @@ export default function Opportunities({ user, profile }: { user: any, profile: U
              <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
              <p className="font-semibold text-gray-600">Finding opportunities matched to your profile...</p>
           </div>
-        ) : hasSearched && searchData?.error === "QUOTA_EXCEEDED" ? (
-          <div className="py-20 text-center clean-card border-dashed border-amber-200 bg-amber-50">
-             <Zap className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-             <h3 className="text-xl font-bold text-amber-900 mb-2">Search Limit Reached</h3>
-             <p className="text-amber-800 text-sm max-w-md mx-auto">
-               I've hit my search limit for the moment. Please try again in a few minutes. 
-               In the meantime, you can check the pre-curated feed in your Dashboard.
-             </p>
-          </div>
         ) : hasSearched && (!searchData || !searchData.results || searchData.results.length === 0) ? (
           <div className="py-20 text-center clean-card border-dashed">
              <p className="text-gray-500 font-medium">No live results found. Try a broader search.</p>
           </div>
         ) : searchData?.results && (
           <div className="space-y-6">
+            {searchData.isFallback && (
+              <div className="bg-amber-50 text-amber-800 p-4 rounded-lg flex items-center gap-3 border border-amber-200">
+                <Zap className="w-5 h-5 shrink-0 text-amber-500" />
+                <p className="text-sm font-medium">Search limit reached for live discovery. Showing pre-curated fallback opportunities for now.</p>
+              </div>
+            )}
             <div className="bg-blue-50 text-blue-800 p-4 rounded-lg flex items-start gap-3 border border-blue-100">
               <Sparkles className="w-5 h-5 mt-0.5 shrink-0 text-blue-600" />
               <div>
