@@ -430,7 +430,7 @@ async function startServer() {
   const corsOptions = frontendUrl ? { origin: frontendUrl } : { origin: "*" };
   
   const io = new Server(server, { cors: corsOptions });
-  const PORT = 3000;
+  const PORT = 5173;
 
   // Trust reverse proxy (Cloud Run, nginx / Cloudflare reverse proxies)
   app.set('trust proxy', true);
@@ -562,11 +562,15 @@ async function startServer() {
   // --- Real API Routes ---
   app.get("/api/v1/opportunities", async (req, res) => {
     try {
-      const page = parseInt((req.query.page as string) || "1", 10);
+      let page = parseInt((req.query.page as string) || "1", 10);
+      if (req.query.cursor) {
+        const cInt = parseInt(req.query.cursor as string, 10);
+        if (!isNaN(cInt) && cInt > 0) page = cInt;
+      }
       const limit = parseInt((req.query.limit as string) || "10", 10);
       
       if (!db) {
-        return res.json({ num_results: 1, next_page: null, items: [{
+        return res.json({ num_results: 1, next_page: null, next_cursor: null, items: [{
           id: "sys_nodeDbMissing", title: "Awaiting Live Ingestion...", organization: "Yuvahub System", type: "status", tags: ["system"], apply_link: "#"
         }]});
       }
@@ -582,6 +586,7 @@ async function startServer() {
       res.json({
         num_results: result.items.length,
         next_page: result.next_page,
+        next_cursor: result.next_page ? String(result.next_page) : null,
         items: result.items
       });
     } catch(err) {
@@ -593,7 +598,7 @@ async function startServer() {
   app.get("/api/v1/opportunities/trending", async (req, res) => {
     try {
       if (!db) {
-        return res.json({ num_results: 0, next_page: null, items: [] });
+        return res.json({ num_results: 0, next_page: null, next_cursor: null, items: [] });
       }
 
       // Fetch top composites with empty profile to return globally engaging/trending items
@@ -602,6 +607,7 @@ async function startServer() {
       res.json({
         num_results: result.items.length,
         next_page: null,
+        next_cursor: null,
         items: result.items
       });
     } catch(err) {
@@ -1538,6 +1544,17 @@ Return JSON strictly in this format:
 
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    
+    // Auto-open browser in development mode
+    if (process.env.NODE_ENV !== "production") {
+      import("child_process").then(({ exec }) => {
+        const url = `http://localhost:${PORT}`;
+        const cmd = process.platform === 'win32' ? `start ${url}` 
+                  : process.platform === 'darwin' ? `open ${url}` 
+                  : `xdg-open ${url}`;
+        exec(cmd);
+      });
+    }
   });
 }
 
