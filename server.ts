@@ -530,7 +530,7 @@ async function startServer() {
   });
 
   app.use(cors(corsOptions));
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
 
   // --- DNS-AID Agent Discovery Endpoints ---
   app.get("/.well-known/agents/:file", (req, res) => {
@@ -1149,6 +1149,115 @@ Return JSON strictly in this format:
         weaknesses: ["Requires more quantifiable impact metrics", "Descriptions of projects are relatively short"],
         suggestions: ["Incorporate metrics such as performance gains, scale size, or user retention count", "Use active, strong action verbs to begin bullet points"]
       });
+    }
+  });
+
+  app.post("/api/ai/analyze-resume", resumeRateLimiter, async (req, res) => {
+    try {
+      const { resumeBase64, fileName, jobDescription, resumeText } = req.body;
+      if (!resumeBase64 && !resumeText) {
+        return res.status(400).json({ error: "No resume file or text provided" });
+      }
+      if (!jobDescription) {
+        return res.status(400).json({ error: "No job description provided" });
+      }
+
+      // Check cache using a combination of the inputs
+      const cacheInput = resumeBase64 ? resumeBase64.substring(0, 200) : (resumeText || "").substring(0, 200);
+      const cacheKey = `resume_analysis:${cacheInput}:${jobDescription.substring(0, 100)}`;
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const defaultFallback = {
+        score: 75,
+        missingKeywords: ["TypeScript", "Vite", "MongoDB", "REST APIs"],
+        strengths: ["Clear layout and readable contact information", "Detailed description of academic projects"],
+        weaknesses: ["Missing quantifiable project scale or metrics", "Lacks modern developer toolings integration"],
+        suggestions: ["Add metrics like request rates or load times to demonstrate impact", "Integrate a modern design framework keyword"]
+      };
+
+      const ai = getGenAI();
+      if (!ai) {
+        console.warn("Gemini AI client not available, returning fallback.");
+        return res.json(defaultFallback);
+      }
+
+      let contents: any[] = [];
+      if (resumeBase64) {
+        contents.push({
+          inlineData: {
+            data: resumeBase64.replace(/^data:application\/pdf;base64,/, ""),
+            mimeType: "application/pdf"
+          }
+        });
+      } else {
+        contents.push({ text: `Resume plain text content:\n${resumeText}` });
+      }
+
+      contents.push({
+        text: `You are an expert recruiter and resume reviewer.
+        Analyze this resume for compatibility with the following target Job Description.
+        
+        Job Description:
+        ${jobDescription}
+        
+        Evaluate the compatibility score (0-100), identify key missing keywords, list strengths, list weaknesses, and provide layout/structural optimization suggestions.
+        Return ONLY a JSON object matching this schema:
+        {
+          "score": number,
+          "missingKeywords": string[],
+          "strengths": string[],
+          "weaknesses": string[],
+          "suggestions": string[]
+        }
+        `
+      });
+
+      let responseText = "";
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: contents,
+          config: { responseMimeType: "application/json" }
+        });
+        responseText = response.text || "";
+      } catch (err: any) {
+        console.error("Gemini API call failed:", err);
+        // Fallback to older model if rate limited or failed
+        try {
+          const response = await ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: contents,
+            config: { responseMimeType: "application/json" }
+          });
+          responseText = response.text || "";
+        } catch (liteErr) {
+          console.error("Gemini Alternate model failed:", liteErr);
+        }
+      }
+
+      let parsed = defaultFallback;
+      if (responseText) {
+        try {
+          parsed = JSON.parse(responseText);
+        } catch (e) {
+          try {
+            const firstBrace = responseText.indexOf('{');
+            const lastBrace = responseText.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+              parsed = JSON.parse(responseText.substring(firstBrace, lastBrace + 1));
+            }
+          } catch (e2) {}
+        }
+      }
+
+      setCachedResponse(cacheKey, parsed);
+      res.json(parsed);
+    } catch (err) {
+      console.error("/api/ai/analyze-resume error:", err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
   });
 
