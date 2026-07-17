@@ -282,6 +282,8 @@ export default function SplashAuth() {
             <div className="flex gap-6">
                <button onClick={() => setActiveTab('privacy')} className="text-[13px] text-[#64748B] hover:text-gray-900 bg-transparent border-none cursor-pointer p-0 font-medium">Privacy Policy</button>
                <button onClick={() => setActiveTab('terms')} className="text-[13px] text-[#64748B] hover:text-gray-900 bg-transparent border-none cursor-pointer p-0 font-medium">Terms of Service</button>
+               <button onClick={() => setActiveTab('cookies')} className="text-[13px] text-[#64748B] hover:text-gray-900 bg-transparent border-none cursor-pointer p-0 font-medium">Cookie Policy</button>
+               <button onClick={() => setActiveTab('guidelines')} className="text-[13px] text-[#64748B] hover:text-gray-900 bg-transparent border-none cursor-pointer p-0 font-medium">Guidelines</button>
                <button onClick={() => setActiveTab('security')} className="text-[13px] text-[#64748B] hover:text-gray-900 bg-transparent border-none cursor-pointer p-0 font-medium">Security</button>
                <a href="mailto:support@yuvahub.com" className="text-[13px] text-[#64748B] hover:text-gray-900">Contact Us</a>
             </div>
