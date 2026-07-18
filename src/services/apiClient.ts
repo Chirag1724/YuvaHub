@@ -98,10 +98,18 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 2): P
 
   try {
     const response = await fetch(url, mergedOptions);
-    if (response.ok) return response;
+    if (response.ok) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('backend-status', { detail: { online: true, timestamp: Date.now() } }));
+      }
+      return response;
+    }
     
     // Don't retry on 4xx (client errors) other than 429
     if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('backend-status', { detail: { online: true, timestamp: Date.now() } }));
+      }
       return response;
     }
     
@@ -109,11 +117,20 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 2): P
       await new Promise(r => setTimeout(r, 1000));
       return fetchWithRetry(url, options, retries - 1);
     }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('backend-status', { detail: { online: true, timestamp: Date.now() } }));
+    }
     return response;
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error;
+    }
     if (retries > 0) {
       await new Promise(r => setTimeout(r, 1000));
       return fetchWithRetry(url, options, retries - 1);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('backend-status', { detail: { online: false, timestamp: Date.now() } }));
     }
     throw error;
   }
@@ -496,9 +513,20 @@ export async function markAllNotificationsRead() {
 export async function fetchSystemStats() {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
-    if (response.ok) return await response.json();
+    if (response.ok) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('backend-status', { detail: { online: true, timestamp: Date.now() } }));
+      }
+      return await response.json();
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('backend-status', { detail: { online: true, timestamp: Date.now() } }));
+    }
     return null;
   } catch (e) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('backend-status', { detail: { online: false, timestamp: Date.now() } }));
+    }
     return null;
   }
 }
@@ -511,6 +539,11 @@ export async function trackInteraction(opportunityId: string, actionType: 'view'
       headers,
       body: JSON.stringify({ opportunity_id: opportunityId, action_type: actionType })
     });
+    if (response.ok) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('backend-status', { detail: { online: true, timestamp: Date.now() } }));
+      }
+    }
     return response.ok;
   } catch (e) {
     // Fire and forget, don't break UI for tracking failures
