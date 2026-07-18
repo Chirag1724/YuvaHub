@@ -1,3 +1,4 @@
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import React, { 
   createContext, 
   useContext, 
@@ -98,6 +99,10 @@ const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
 
   // ─── Theme sync ──────────────────────────────────────────────────────────────
 
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedOppId, setSelectedOppId] = useState<string | null>(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [gettingStartedStep, setGettingStartedStep] = useState<string | null>(null);
   const [selectedOppId, setSelectedOppId] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
