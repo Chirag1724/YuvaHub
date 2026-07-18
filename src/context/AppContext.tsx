@@ -66,12 +66,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Navigation & UI state
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-  const [selectedOppId, setSelectedOppId] = useState<string | null>(null);
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
-
   // Authentication state
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -442,10 +436,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       theme,
       toggleTheme,
       gettingStartedStep,
-      setGettingStartedStep,
-      bookmarkedIds,
-      toggleBookmark,
-      isBookmarked
+      setGettingStartedStep
     }}>
       {children}
     </AppContext.Provider>

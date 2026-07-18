@@ -284,7 +284,7 @@ function App() {
             </button>
           </div>
           {activeTab === 'legal' ? <Legal /> : activeTab === 'security' ? <Security /> : activeTab === 'about' ? <AboutTab /> : activeTab === 'guidelines' ? <Guidelines /> : <Support />}
-        </div>
+        </main>
       </div>
     );
   }
