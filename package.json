@@ -13,6 +13,7 @@
     "lint": "tsc --noEmit",
     "scrape": "tsx scrape-cli.ts",
     "test-mongo": "tsx tests/test-mongo.ts",
+    "test-pdf": "tsx tests/test-pdf-export.ts",
     "test-dnl": "tsx src/services/dnl/validationTest.ts",
     "test-cqrs": "tsx tests/test-cqrs.ts",
     "test-scraper": "tsx tests/test-scraper.ts",

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
@@ -73,6 +73,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // ─── Theme sync ──────────────────────────────────────────────────────────────
 
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedOppId, setSelectedOppId] = useState<string | null>(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [gettingStartedStep, setGettingStartedStep] = useState<string | null>(null);
 
   useEffect(() => {
