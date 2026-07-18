@@ -322,6 +322,8 @@ const __dirname = __filename ? path.dirname(__filename) : "";
 
 // MongoDB setup
 const uri = process.env.MONGODB_URI || "";
+const commandUri = process.env.MONGODB_COMMAND_URI || uri;
+const queryUri = process.env.MONGODB_QUERY_URI || uri;
 const dbName = process.env.MONGODB_DB_NAME || "yuvahub";
 import { CURATED_FALLBACKS } from "./src/services/staticFallbacks.js";
 import fs from "fs";
@@ -330,7 +332,8 @@ import { DNLDispatcher } from "./src/services/dnl/scheduler.js";
 import { DevpostAdapter } from "./src/services/dnl/adapters/DevpostAdapter.js";
 import { InternshalaAdapter } from "./src/services/dnl/adapters/InternshalaAdapter.js";
 
-let db: any = null;
+let dbCommand: any = null;
+let dbQuery: any = null;
 
 // VERY simple mock DB for offline fallback
 class MemoryCollection {
@@ -407,29 +410,33 @@ function setupDNL(database: any) {
   });
 }
 
-if (uri) {
-  const client = new MongoClient(uri);
-  client.connect().then(() => {
-    db = client.db(dbName);
-    console.log(`[Database] Connected to MongoDB: ${dbName}`);
-    setupDNL(db);
-    initializeSearchSync(db);
+if (commandUri && queryUri) {
+  const commandClient = new MongoClient(commandUri);
+  const queryClient = new MongoClient(queryUri);
+  
+  Promise.all([commandClient.connect(), queryClient.connect()]).then(() => {
+    dbCommand = commandClient.db(process.env.MONGODB_COMMAND_DB || dbName);
+    dbQuery = queryClient.db(process.env.MONGODB_QUERY_DB || dbName);
+    console.log(`[Database] Connected to Command and Query MongoDB pools`);
+    setupDNL(dbCommand);
+    initializeSearchSync(dbQuery);
     
-    // Create required compound indexes asynchronously
-    db.collection("opportunities").createIndex({ created_at: -1, source_quality_score: -1 })
+    dbCommand.collection("opportunities").createIndex({ created_at: -1, source_quality_score: -1 })
       .then(() => console.log(`[Database] Created compound index on opportunities`))
       .catch((err: any) => console.error(`[Database] Failed to create index:`, err));
   }).catch(err => {
     console.error("[Database] Connection failed, falling back to Mock Data:", err);
-    db = new MockDB();
-    setupDNL(db);
-    initializeSearchSync(db);
+    dbCommand = new MockDB();
+    dbQuery = new MockDB();
+    setupDNL(dbCommand);
+    initializeSearchSync(dbQuery);
   });
 } else {
   console.log("[Database] No MONGODB_URI provided. Running in Offline Mock mode.");
-  db = new MockDB();
-  setupDNL(db);
-  initializeSearchSync(db);
+  dbCommand = new MockDB();
+  dbQuery = new MockDB();
+  setupDNL(dbCommand);
+  initializeSearchSync(dbQuery);
 }
 
 class AnalyticsBuffer {
@@ -467,8 +474,8 @@ class AnalyticsBuffer {
     this.buffer = [];
 
     try {
-      if (db) {
-        const collection = db.collection("analytics");
+      if (dbCommand && dbQuery) {
+        const collection = dbCommand.collection("analytics");
         const bulk = collection.initializeUnorderedBulkOp();
         for (const doc of batch) {
           bulk.insert(doc);
@@ -525,7 +532,7 @@ async function startServer() {
   const corsOptions = frontendUrl ? { origin: frontendUrl } : { origin: "*" };
   
   const io = new Server(server, { cors: corsOptions });
-  const PORT = 5173;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5173;
 
   // Trust reverse proxy (Cloud Run, nginx / Cloudflare reverse proxies)
   app.set('trust proxy', true);
@@ -713,7 +720,7 @@ async function startServer() {
       }
       const limit = parseInt((req.query.limit as string) || "10", 10);
       
-      if (!db) {
+      if (!dbCommand || !dbQuery) {
         return res.json({ num_results: 1, next_page: null, next_cursor: null, items: [{
           id: "sys_nodeDbMissing", title: "Awaiting Live Ingestion...", organization: "Yuvahub System", type: "status", tags: ["system"], apply_link: "#"
         }]});
@@ -725,7 +732,7 @@ async function startServer() {
         field: (req.query.field as string) || ""
       };
 
-      const result = await getRankedOpportunities(db, profile, page, limit);
+      const result = await getRankedOpportunities(dbQuery, profile, page, limit);
 
       res.json({
         num_results: result.items.length,
@@ -741,12 +748,12 @@ async function startServer() {
 
   app.get("/api/v1/opportunities/trending", cacheMiddleware(15 * 60), async (req, res) => {
     try {
-      if (!db) {
+      if (!dbCommand || !dbQuery) {
         return res.json({ num_results: 0, next_page: null, next_cursor: null, items: [] });
       }
 
       // Fetch top composites with empty profile to return globally engaging/trending items
-      const result = await getRankedOpportunities(db, {}, 1, 5);
+      const result = await getRankedOpportunities(dbQuery, {}, 1, 5);
 
       res.json({
         num_results: result.items.length,
@@ -761,14 +768,14 @@ async function startServer() {
 
   app.get("/api/v1/opportunities/latest", async (req, res) => {
     try {
-      if (!db) {
+      if (!dbCommand || !dbQuery) {
         return res.json({ num_results: 0, items: [] });
       }
 
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       
       // Check if created_at is stored as Date, or if there's no results, fallback to latest overall
-      const cursor = db.collection("opportunities")
+      const cursor = dbQuery.collection("opportunities")
         .find({ created_at: { $gte: twentyFourHoursAgo } })
         .sort({ created_at: -1 })
         .limit(20);
@@ -777,7 +784,7 @@ async function startServer() {
       
       if (items.length === 0) {
         // Fallback to latest 10 overall if no recents
-        const fallbackCursor = db.collection("opportunities")
+        const fallbackCursor = dbQuery.collection("opportunities")
             .find({})
             .sort({ created_at: -1 })
             .limit(10);
@@ -867,7 +874,7 @@ async function startServer() {
       }
 
       // 3. Sync profile with MongoDB
-      if (!db) {
+      if (!dbCommand || !dbQuery) {
         return res.json({
           status: "success",
           profile: {
@@ -880,7 +887,7 @@ async function startServer() {
         });
       }
 
-      const usersCollection = db.collection("users");
+      const usersCollection = dbQuery.collection("users");
       const existingUser = await usersCollection.findOne({ uid });
 
       const role = email === "uditt490@gmail.com" ? "admin" : "student";
@@ -1129,11 +1136,11 @@ async function startServer() {
         return res.status(400).json({ error: "Invalid document type" });
       }
 
-      if (!db) {
+      if (!dbCommand || !dbQuery) {
         return res.status(503).json({ error: "Database not available" });
       }
 
-      const usersCollection = db.collection("users");
+      const usersCollection = dbQuery.collection("users");
 
       const updateFields: Record<string, any> = {
         updatedAt: new Date()
@@ -1180,8 +1187,8 @@ async function startServer() {
 
   app.post("/api/v1/interactions/track", async (req, res) => {
     try {
-      if (db && req.body) {
-        await db.collection("interactions").insertOne({
+      if (dbCommand && req.body) {
+        await dbCommand.collection("interactions").insertOne({
           ...req.body,
           timestamp: new Date()
         });
@@ -1579,7 +1586,7 @@ Return JSON strictly in this format:
       const startDateStr = req.query.startDate as string;
       const endDateStr = req.query.endDate as string;
       
-      if (!db) return res.json({ results: [], meta: { total_found: 0 } });
+      if (!dbCommand || !dbQuery) return res.json({ results: [], meta: { total_found: 0 } });
       const andConditions: any[] = [];
 
       // 1. Opportunity Type Filter (multiple types supported)
@@ -1731,13 +1738,13 @@ Return JSON strictly in this format:
         });
 
         pipeline.push({ $limit: 50 });
-        items = await db.collection("opportunities").aggregate(pipeline).toArray();
+        items = await dbQuery.collection("opportunities").aggregate(pipeline).toArray();
       } else {
         const filter: any = {};
         if (andConditions.length > 0) {
           filter.$and = andConditions;
         }
-        items = await db.collection("opportunities").find(filter).limit(50).toArray();
+        items = await dbQuery.collection("opportunities").find(filter).limit(50).toArray();
       }
 
       let mapped = items.map((doc: any) => {
@@ -1775,7 +1782,7 @@ Return JSON strictly in this format:
         });
       }
 
-      if (!db) {
+      if (!dbCommand || !dbQuery) {
         return res.status(404).json({ error: "Database offline" });
       }
       
@@ -1787,7 +1794,7 @@ Return JSON strictly in this format:
       } catch(e) {
         query = { id: rawId };
       }
-      const item = await db.collection("opportunities").findOne(query);
+      const item = await dbQuery.collection("opportunities").findOne(query);
       if (!item) {
         return res.status(404).json({ error: "Opportunity not found" });
       }
@@ -1802,7 +1809,7 @@ Return JSON strictly in this format:
 
   app.put("/api/v1/opportunity/:id", async (req, res) => {
     try {
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
       const id = req.params.id;
       
       const { ObjectId } = await import("mongodb");
@@ -1817,7 +1824,7 @@ Return JSON strictly in this format:
       delete updateData._id;
       delete updateData.id;
 
-      const result = await db.collection("opportunities").updateOne(
+      const result = await dbCommand.collection("opportunities").updateOne(
         { _id: queryId },
         { $set: updateData }
       );
@@ -1922,7 +1929,7 @@ Return JSON strictly in this format:
   app.get("/api/v1/admin/health", authorizeRoles('admin', 'moderator'), (req, res) => {
     res.json({
       status: "healthy",
-      database: db ? "connected" : "disconnected",
+      database: dbQuery ? "connected" : "disconnected",
       cache: "connected",
       api_latency_ms: 120,
       uptime_sec: process.uptime()
@@ -1931,8 +1938,8 @@ Return JSON strictly in this format:
 
   app.get("/api/v1/admin/metrics", authorizeRoles('admin', 'moderator'), async (req, res) => {
     let opportunitiesAdded = 0;
-    if (db) {
-      opportunitiesAdded = await db.collection("opportunities").countDocuments();
+    if (dbCommand && dbQuery) {
+      opportunitiesAdded = await dbQuery.collection("opportunities").countDocuments();
     }
     res.json({
       activeUsers: 1500 + Math.floor(Math.random() * 50),
@@ -1944,12 +1951,12 @@ Return JSON strictly in this format:
 
   app.get("/api/v1/admin/scrapers", authorizeRoles('admin', 'moderator'), async (req, res) => {
     try {
-      if (!db) {
+      if (!dbCommand || !dbQuery) {
         return res.json([]);
       }
       
       // Query the scraper_metrics populated by the Python Daemon!
-      const metrics = await db.collection("scraper_metrics").find({}).toArray();
+      const metrics = await dbQuery.collection("scraper_metrics").find({}).toArray();
       
       const mappings: Record<string, string> = {
         "devpost": "Devpost",
@@ -1989,7 +1996,7 @@ Return JSON strictly in this format:
       const pipeline = [
         { $group: { _id: "$source", items: { $sum: 1 } } }
       ];
-      const stats = await db.collection("opportunities").aggregate(pipeline).toArray();
+      const stats = await dbQuery.collection("opportunities").aggregate(pipeline).toArray();
       
       const adminScrapers = stats.map((stat: any) => ({
         name: mappings[stat._id] || stat._id || "Unknown Source",
@@ -2035,7 +2042,7 @@ Return JSON strictly in this format:
 
   app.delete("/api/v1/admin/users/:id", authorizeRoles('admin', 'moderator'), async (req, res) => {
     try {
-      if (!db) {
+      if (!dbCommand || !dbQuery) {
         return res.status(503).json({ error: "Database unavailable" });
       }
       const userId = req.params.id;
@@ -2130,9 +2137,9 @@ Return JSON strictly in this format:
     });
 
     // Dynamic Opportunities (Fetch the latest 200 opportunities dynamically)
-    if (db) {
+    if (dbCommand && dbQuery) {
       try {
-        const cursor = db.collection("opportunities").find({}).sort({ created_at: -1 }).limit(200);
+        const cursor = dbQuery.collection("opportunities").find({}).sort({ created_at: -1 }).limit(200);
         const list = await cursor.toArray();
         list.forEach((opp: any) => {
           const id = opp._id ? opp._id.toString() : opp.id;
@@ -2177,7 +2184,7 @@ Return JSON strictly in this format:
       }
 
       const oppMatch = req.path.match(/^\/opportunity\/([^\/]+)/);
-      if (oppMatch && db) {
+      if (oppMatch && dbQuery) {
         const id = oppMatch[1];
         try {
           const { ObjectId } = await import("mongodb");
@@ -2187,7 +2194,7 @@ Return JSON strictly in this format:
           } catch(e) {
             query = { id: id };
           }
-          const item = await db.collection("opportunities").findOne(query);
+          const item = await dbQuery.collection("opportunities").findOne(query);
           if (item) {
             let md = `# ${item.title}\n\n`;
             md += `**Organization:** ${item.org || item.organization || 'Unknown'}\n`;
@@ -2221,7 +2228,7 @@ Return JSON strictly in this format:
     const id = (Array.isArray(rawId) ? rawId[0] : rawId) as string;
     let item: any = null;
     
-    if (db) {
+    if (dbCommand && dbQuery) {
       try {
         const { ObjectId } = await import("mongodb");
         let query;
@@ -2230,7 +2237,7 @@ Return JSON strictly in this format:
         } catch(e) {
           query = { id: id };
         }
-        item = await db.collection("opportunities").findOne(query);
+        item = await dbQuery.collection("opportunities").findOne(query);
       } catch (err) {
         console.error("[SEO Interceptor] MongoDB fetch failed:", err);
       }
@@ -2352,9 +2359,9 @@ Return JSON strictly in this format:
   // --- Scholarship Hub API Routes ---
   app.post("/api/scholarships", async (req, res) => {
     try {
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
       const parsedData = ScholarshipSchema.parse(req.body);
-      const collection = db.collection("scholarships");
+      const collection = dbQuery.collection("scholarships");
       const result = await collection.insertOne(parsedData);
       res.status(201).json({ id: result.insertedId, ...parsedData });
     } catch (err: any) {
@@ -2367,12 +2374,12 @@ Return JSON strictly in this format:
 
   app.get("/api/scholarships", async (req, res) => {
     try {
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
       const page = parseInt((req.query.page as string) || "1", 10);
       const limit = parseInt((req.query.limit as string) || "10", 10);
       const skip = (page - 1) * limit;
 
-      const collection = db.collection("scholarships");
+      const collection = dbQuery.collection("scholarships");
       
       // Need skip() and limit() natively or via mock db fallback handling
       let items, total;
@@ -2398,9 +2405,9 @@ Return JSON strictly in this format:
 
   app.get("/api/scholarships/:id", async (req, res) => {
     try {
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
       const id = req.params.id;
-      const collection = db.collection("scholarships");
+      const collection = dbQuery.collection("scholarships");
       let queryId;
       try {
         queryId = new ObjectId(id);
@@ -2417,10 +2424,10 @@ Return JSON strictly in this format:
 
   app.put("/api/scholarships/:id", async (req, res) => {
     try {
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
       const id = req.params.id;
       const parsedData = ScholarshipSchema.parse({ ...req.body, updated_at: new Date() });
-      const collection = db.collection("scholarships");
+      const collection = dbQuery.collection("scholarships");
       let queryId;
       try {
         queryId = new ObjectId(id);
@@ -2444,9 +2451,9 @@ Return JSON strictly in this format:
 
   app.delete("/api/scholarships/:id", async (req, res) => {
     try {
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
       const id = req.params.id;
-      const collection = db.collection("scholarships");
+      const collection = dbQuery.collection("scholarships");
       let queryId;
       try {
         queryId = new ObjectId(id);
@@ -2471,8 +2478,8 @@ Return JSON strictly in this format:
         return res.status(400).json({ error: "Missing scholarshipId or userProfile" });
       }
 
-      if (!db) return res.status(503).json({ error: "Database not available" });
-      const collection = db.collection("scholarships");
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
+      const collection = dbQuery.collection("scholarships");
       let queryId;
       try {
         queryId = new ObjectId(scholarshipId);
@@ -2544,7 +2551,7 @@ ${JSON.stringify(userProfile, null, 2)}
       if (!title || !content || !author) {
         return res.status(400).json({ error: "Missing title, content, or author" });
       }
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
       const post = {
         title,
@@ -2556,7 +2563,7 @@ ${JSON.stringify(userProfile, null, 2)}
         updatedAt: new Date()
       };
 
-      const result = await db.collection("posts").insertOne(post);
+      const result = await dbCommand.collection("posts").insertOne(post);
       res.status(201).json({ ...post, _id: result.insertedId });
     } catch (err) {
       console.error("Create Post Error:", err);
@@ -2568,7 +2575,7 @@ ${JSON.stringify(userProfile, null, 2)}
   app.get("/api/v1/posts/:postId", async (req, res) => {
     try {
       const { postId } = req.params;
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
       let queryId;
       try {
@@ -2577,7 +2584,7 @@ ${JSON.stringify(userProfile, null, 2)}
         queryId = postId;
       }
 
-      const post = await db.collection("posts").findOne({ _id: queryId });
+      const post = await dbQuery.collection("posts").findOne({ _id: queryId });
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
       }
@@ -2597,7 +2604,7 @@ ${JSON.stringify(userProfile, null, 2)}
       if (!content || !author) {
         return res.status(400).json({ error: "Missing content or author" });
       }
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
       const commentId = new ObjectId();
       let path = "";
@@ -2609,7 +2616,7 @@ ${JSON.stringify(userProfile, null, 2)}
         } catch (e) {
           parentQueryId = parentId;
         }
-        const parentComment = await db.collection("comments").findOne({ _id: parentQueryId });
+        const parentComment = await dbQuery.collection("comments").findOne({ _id: parentQueryId });
         if (!parentComment) {
           return res.status(404).json({ error: "Parent comment not found" });
         }
@@ -2631,7 +2638,7 @@ ${JSON.stringify(userProfile, null, 2)}
         updatedAt: new Date()
       };
 
-      await db.collection("comments").insertOne(comment);
+      await dbCommand.collection("comments").insertOne(comment);
       res.status(201).json(comment);
     } catch (err) {
       console.error("Create Comment Error:", err);
@@ -2648,7 +2655,7 @@ ${JSON.stringify(userProfile, null, 2)}
       if (!content) {
         return res.status(400).json({ error: "Missing content" });
       }
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
       let queryId;
       try {
@@ -2658,7 +2665,7 @@ ${JSON.stringify(userProfile, null, 2)}
         queryId = commentId;
       }
 
-      const result = await db.collection("comments").findOneAndUpdate(
+      const result = await dbCommand.collection("comments").findOneAndUpdate(
         { _id: queryId, postId },
         { $set: { content, updatedAt: new Date() } },
         { returnDocument: "after" }
@@ -2679,9 +2686,9 @@ ${JSON.stringify(userProfile, null, 2)}
   app.get("/api/v1/posts/:postId/comments", async (req, res) => {
     try {
       const { postId } = req.params;
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
-      const comments = await db.collection("comments")
+      const comments = await dbQuery.collection("comments")
         .find({ path: new RegExp('^,' + postId + ',') })
         .sort({ path: 1 })
         .toArray();
@@ -2702,7 +2709,7 @@ ${JSON.stringify(userProfile, null, 2)}
       if (!userId) {
         return res.status(400).json({ error: "Missing userId" });
       }
-      if (!db) return res.status(503).json({ error: "Database not available" });
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
       let queryId;
       try {
@@ -2711,13 +2718,13 @@ ${JSON.stringify(userProfile, null, 2)}
         queryId = postId;
       }
 
-      const result = await db.collection("posts").updateOne(
+      const result = await dbCommand.collection("posts").updateOne(
         { _id: queryId, upvoted_by: { $ne: userId } },
         { $inc: { upvotes: 1 }, $push: { upvoted_by: userId } }
       );
 
       if (result.matchedCount === 0) {
-        const post = await db.collection("posts").findOne({ _id: queryId });
+        const post = await dbQuery.collection("posts").findOne({ _id: queryId });
         if (!post) {
           return res.status(404).json({ error: "Post not found" });
         }
@@ -2795,7 +2802,7 @@ async function bootstrap() {
     await eventBus.connect();
     
     // Setup DB Ingestion consumer (requires db)
-    const dbConsumer = await createOpportunityScrapedConsumer(db);
+    const dbConsumer = await createOpportunityScrapedConsumer(dbCommand);
     await eventBus.subscribe('dnl.opportunity.scraped.db', 'opportunity.scraped', dbConsumer);
 
     // Setup Notification consumer

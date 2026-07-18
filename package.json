@@ -13,7 +13,8 @@
     "lint": "tsc --noEmit",
     "scrape": "tsx scrape-cli.ts",
     "test-mongo": "tsx tests/test-mongo.ts",
-    "test-dnl": "tsx src/services/dnl/validationTest.ts"
+    "test-dnl": "tsx src/services/dnl/validationTest.ts",
+    "test-cqrs": "tsx tests/test-cqrs.ts"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
