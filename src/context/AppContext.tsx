@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
@@ -34,9 +34,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [backendReady, setBackendReady] = useState(false);
+  const [backendReady, setBackendReady] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [lastSyncedTime, setLastSyncedTime] = useState(new Date().toLocaleTimeString());
   const [appSearchQuery, setAppSearchQuery] = useState('');
+  const lastConnectedRef = useRef(typeof navigator !== 'undefined' && navigator.onLine ? Date.now() : 0);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('yuvahub-theme');
     if (savedTheme) {
@@ -78,17 +79,89 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     verifyFeedEndpoint();
 
     const checkBackend = async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setBackendReady(false);
+        return;
+      }
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
+
       const stats = await fetchSystemStats();
       if (stats) {
-        setBackendReady(true);
+        lastConnectedRef.current = Date.now();
+        setBackendReady(prev => {
+          if (!prev) return true;
+          return prev;
+        });
         setLastSyncedTime(new Date().toLocaleTimeString());
       } else {
-        setBackendReady(false);
+        const timeSinceLastConnect = Date.now() - lastConnectedRef.current;
+        if (timeSinceLastConnect >= 2000) {
+          setBackendReady(prev => {
+            if (prev) return false;
+            return prev;
+          });
+        }
       }
     };
     checkBackend();
     const interval = setInterval(checkBackend, 60000);
-    return () => clearInterval(interval);
+
+    const handleBackendStatus = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const newStatus = customEvent.detail.online;
+      const timestamp = customEvent.detail.timestamp || Date.now();
+
+      if (newStatus) {
+        lastConnectedRef.current = timestamp;
+        setBackendReady(prev => {
+          if (!prev) return true;
+          return prev;
+        });
+        setLastSyncedTime(new Date().toLocaleTimeString());
+      } else {
+        const timeSinceLastConnect = Date.now() - lastConnectedRef.current;
+        if (timeSinceLastConnect >= 2000) {
+          setBackendReady(prev => {
+            if (prev) return false;
+            return prev;
+          });
+        }
+      }
+    };
+
+    window.addEventListener('backend-status', handleBackendStatus);
+
+    const handleOnline = () => {
+      void checkBackend();
+    };
+
+    const handleOffline = () => {
+      setBackendReady(false);
+    };
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        void checkBackend();
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('backend-status', handleBackendStatus);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
   }, []);
 
   useEffect(() => {
