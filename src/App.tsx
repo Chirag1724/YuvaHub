@@ -451,9 +451,13 @@ function App() {
            </div>
            <div className="flex items-center gap-5">
               <NotificationDropdown profile={profile} />
-              <div className="w-8 h-8 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-sm">
-                {profile?.name ? profile.name.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')}
-              </div>
+              {profile?.avatarUrl ? (
+                <img src={profile.avatarUrl.includes("cloudinary.com") ? profile.avatarUrl.replace("/upload/", "/upload/f_auto,q_auto,c_fill,w_64,h_64/") : profile.avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-sm">
+                  {profile?.name ? profile.name.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')}
+                </div>
+              )}
            </div>
         </div>
 
