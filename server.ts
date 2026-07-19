@@ -2094,6 +2094,153 @@ Return JSON strictly in this format:
     }
   });
 
+  const handleCareerRoadmap = async (req: express.Request, res: express.Response) => {
+    try {
+      const { education, targetRole, currentSkills, timeframe } = req.body;
+      if (!targetRole) {
+        return res.status(400).json({ error: "Target role is required" });
+      }
+
+      const roleStr = targetRole || "Software Engineer";
+      const eduStr = education || "Computer Science Student";
+      const skillsStr = currentSkills || "Programming Basics, Problem Solving";
+      const timeStr = timeframe || "6 Months";
+
+      const cacheKey = `career_roadmap:${roleStr}:${eduStr}:${skillsStr}:${timeStr}`;
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const defaultFallback = {
+        title: `${roleStr} Career Roadmap`,
+        overview: `A structured learning and project path to help you master ${roleStr} within ${timeStr}.`,
+        estimatedTimeframe: timeStr,
+        targetRole: roleStr,
+        milestones: [
+          {
+            step: 1,
+            title: "Core Fundamentals & Tooling Mastery",
+            duration: "Month 1",
+            description: "Master the foundational languages, version control, and core software engineering concepts for your target role.",
+            topics: ["Data Structures & Algorithms", "Git & GitHub Workflow", "Modern Syntax & Language Specs", "Command Line & Terminal Power Tools"],
+            projectIdea: "Build a responsive personal developer portfolio and CLI utility tool",
+            recommendedResources: ["FreeCodeCamp", "MDN Web Docs", "GitHub Skills"]
+          },
+          {
+            step: 2,
+            title: "Domain Specialization & Modern Frameworks",
+            duration: "Month 2-3",
+            description: "Deep dive into production-grade frameworks, state management, and ecosystem architecture.",
+            topics: ["Framework Architecture", "State Management & Reactivity", "API Integration & Async Flow", "Automated Testing & Linting"],
+            projectIdea: "Build an interactive, real-time web dashboard with filtering and search",
+            recommendedResources: ["Official Framework Documentation", "Frontend Masters", "Coursera Specialization"]
+          },
+          {
+            step: 3,
+            title: "Backend Services, Databases & Security",
+            duration: "Month 4",
+            description: "Learn how to build scalable backend APIs, structure databases, and handle authentication.",
+            topics: ["REST & GraphQL API Design", "Relational & NoSQL Databases", "Authentication (JWT / OAuth)", "Middleware & Validation"],
+            projectIdea: "Develop a full-stack platform with user auth, database persistence, and payment integration",
+            recommendedResources: ["MongoDB University", "Node.js Best Practices", "OWASP Security Guide"]
+          },
+          {
+            step: 4,
+            title: "System Design, Cloud & Deployment",
+            duration: "Month 5",
+            description: "Understand cloud deployment pipelines, CI/CD, system architecture, and performance optimization.",
+            topics: ["Docker Containerization", "CI/CD GitHub Actions", "Cloud Deployment (Render/AWS/Vercel)", "Performance & Caching"],
+            projectIdea: "Deploy your full-stack app with containerized microservices and automated CI/CD pipeline",
+            recommendedResources: ["System Design Primer", "Docker Docs", "AWS Free Tier Labs"]
+          },
+          {
+            step: 5,
+            title: "Portfolio Polish, Open Source & Job Readiness",
+            duration: "Month 6",
+            description: "Finalize high-impact resume projects, contribute to open-source software, and practice technical interviews.",
+            topics: ["Open Source Contribution", "Resume & Portfolio Review", "Mock Technical Interviews", "Networking & Application Strategy"],
+            projectIdea: "Submit a major pull request to a popular open-source project in your domain",
+            recommendedResources: ["LeetCode / HackerRank", "First Timers Only", "YuvaHub Mock Interview Prep"]
+          }
+        ]
+      };
+
+      const ai = getGenAI();
+      if (!ai) {
+        return res.json(defaultFallback);
+      }
+
+      const prompt = `You are a senior engineering mentor. Build a structured, step-by-step career roadmap for a student.
+Target Role: ${roleStr}
+Current Education Level: ${eduStr}
+Current Known Skills: ${skillsStr}
+Desired Timeframe: ${timeStr}
+
+Return ONLY a JSON object strictly adhering to this schema:
+{
+  "title": string,
+  "overview": string,
+  "estimatedTimeframe": string,
+  "targetRole": string,
+  "milestones": [
+    {
+      "step": number,
+      "title": string,
+      "duration": string,
+      "description": string,
+      "topics": string[],
+      "projectIdea": string,
+      "recommendedResources": string[]
+    }
+  ]
+}`;
+
+      let responseText = "";
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: prompt,
+          config: { responseMimeType: "application/json" }
+        });
+        responseText = response.text || "";
+      } catch (err: any) {
+        try {
+          const response = await ai.models.generateContent({
+            model: "gemini-3.1-flash-lite",
+            contents: prompt,
+            config: { responseMimeType: "application/json" }
+          });
+          responseText = response.text || "";
+        } catch (liteErr) {}
+      }
+
+      let parsed = defaultFallback;
+      if (responseText) {
+        try {
+          parsed = JSON.parse(responseText);
+        } catch (e) {
+          try {
+            const firstBrace = responseText.indexOf('{');
+            const lastBrace = responseText.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+              parsed = JSON.parse(responseText.substring(firstBrace, lastBrace + 1));
+            }
+          } catch (e2) {}
+        }
+      }
+
+      setCachedResponse(cacheKey, parsed);
+      res.json(parsed);
+    } catch (err) {
+      console.error("/api/ai/career-roadmap error:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  };
+
+  app.post("/api/ai/career-roadmap", chatRateLimiter, handleCareerRoadmap);
+  app.post("/api/v1/ai/career-roadmap", chatRateLimiter, handleCareerRoadmap);
+
   app.post("/api/ai/analyze-resume", resumeRateLimiter, async (req, res) => {
     try {
       const { resumeBase64, fileName, jobDescription, resumeText } = req.body;
