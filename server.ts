@@ -4060,11 +4060,11 @@ ${JSON.stringify(userProfile, null, 2)}
   });
 
   // 6. Upvote a Post (Transactional and atomic)
-  app.post(["/api/v1/posts/:postId/upvote", "/api/posts/:postId/upvote"], async (req, res) => {
+  app.post(["/api/v1/posts/:postId/upvote", "/api/posts/:postId/upvote"], authorizeRoles("user", "admin", "moderator"), async (req, res) => {
     try {
       const { postId } = req.params;
       const idStr = Array.isArray(postId) ? postId[0] : postId;
-      const { userId } = req.body;
+      const userId = req.user.uid;
 
       if (!userId) {
         return res.status(400).json({ error: "Missing userId" });
