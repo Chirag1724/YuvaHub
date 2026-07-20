@@ -665,6 +665,21 @@ async function startServer() {
     await gracefulShutdown("API_TRIGGER");
   });
 
+  // REST Fallback for Socket Messages
+  app.post("/api/messages", (req, res) => {
+    const { eventName, data } = req.body;
+    if (!eventName) {
+      return res.status(400).json({ error: "eventName is required" });
+    }
+    console.log(`[REST Backup] Received fallback event: ${eventName}`, data);
+    
+    // Broadcast or process the event if the local socket instance is available
+    if (ioInstance) {
+      ioInstance.emit(eventName, data);
+    }
+    return res.status(200).json({ success: true, message: "Processed via REST backup" });
+  });
+
   // --- Rate Limiting Middlewares ---
   const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
