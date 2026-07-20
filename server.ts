@@ -1654,7 +1654,10 @@ ${urls.join("\n")}
 
     // Try to verify as a standard JWT first (for our RBAC custom tokens)
     try {
-      const decoded = jwt.verify(idToken, process.env.JWT_SECRET || "yuvahub-secret-key") as any;
+      if (!process.env.JWT_SECRET) {
+        throw new Error("JWT_SECRET environment variable is required");
+      }
+      const decoded = jwt.verify(idToken, process.env.JWT_SECRET) as any;
       uid = decoded.sub || decoded.user_id || decoded.uid;
       email = decoded.email || "";
       role = decoded.role || "user";
@@ -4155,6 +4158,9 @@ ${JSON.stringify(userProfile, null, 2)}
 
 async function bootstrap() {
   try {
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET environment variable is required");
+    }
     await startServer(); // startServer initializes db and starts express
     
     await eventBus.connect();
