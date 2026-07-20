@@ -22,6 +22,7 @@
     "test-socket": "tsx tests/test-socket-fallback.ts",
     "test-eventbus": "tsx tests/test-eventbus.ts",
     "test-admin-alerts": "tsx tests/test-admin-alerts.ts"
+    "test-eventbus": "tsx tests/test-eventbus.ts"
   },
   "dependencies": {
     "@bull-board/api": "^8.1.2",
