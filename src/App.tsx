@@ -3,6 +3,7 @@ import { LayoutDashboard, Globe, PlusCircle, Users, User, Menu, X, Activity, Boo
 import { signInWithGoogle, logout } from './lib/firebase';
 import { UserProfile } from './types';
 import { useAppContext } from './context/AppContext';
+import { useSocket } from './context/SocketContext';
 import { scrollContentToTop } from './lib/smoothScroll';
 // Tab/View Components
 import Dashboard from './components/Tabs/Dashboard';
@@ -133,6 +134,8 @@ function App() {
     gettingStartedStep,
     setGettingStartedStep
   } = useAppContext();
+
+  const { isConnected, transportMode } = useSocket();
 
   // WebMCP Integration
   useEffect(() => {
@@ -461,6 +464,12 @@ function App() {
               )}
            </div>
            <div className="flex items-center gap-5">
+              <div className="hidden md:flex items-center gap-2 text-xs font-medium bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700">
+                <span className={`w-2 h-2 rounded-full ${isConnected ? (transportMode === 'websocket' ? 'bg-green-500' : 'bg-yellow-500') : 'bg-red-500'}`}></span>
+                <span className="text-gray-600 dark:text-gray-300">
+                  {!isConnected ? 'Disconnected (Offline Mode)' : (transportMode === 'websocket' ? 'Connected' : 'Polling mode active')}
+                </span>
+              </div>
               <NotificationDropdown profile={profile} />
               {profile?.avatarUrl ? (
                 <img src={profile.avatarUrl.includes("cloudinary.com") ? profile.avatarUrl.replace("/upload/", "/upload/f_auto,q_auto,c_fill,w_64,h_64/") : profile.avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
