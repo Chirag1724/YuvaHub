@@ -195,7 +195,7 @@ function mockCareerAdvice(message: string): string {
 
   // General Fallback
   return JSON.stringify({
-    text: "I am Yuva, your dedicated AI Career Mentor. I'm here to help you navigate your academic focus, map out high-signal technical skills, refine your resume, and discover pristine student opportunities.\n\nWhat specifically can I help you build or explore today?",
+    text: "I am Yuva, your dedicated AI Career Mentor. I'm here to help you navigate your academic focus, map out high-signal technical skills, refine your resume, and discover pristine student opportunities.\n\n*(Note: This response was provided by a local fallback system because our AI service is currently experiencing high traffic.)*\n\nWhat specifically can I help you build or explore today?",
     options: [
       "How do I get into GSoC?",
       "Review my LinkedIn summary",

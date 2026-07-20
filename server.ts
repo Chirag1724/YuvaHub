@@ -1938,7 +1938,9 @@ My academic journey, combined with my active engineering projects, has equipped 
 Thank you for your time and consideration.
 
 Sincerely,
-[Your Name]`;
+[Your Name]
+
+*(Note: This is a static template provided because our AI service is currently experiencing high traffic. Please customize it before sending.)*`;
     }
     
     if (lower.includes("scout protocol") || lower.includes("scout")) {
@@ -1978,7 +1980,9 @@ Sincerely,
     }
     
     if (lower.includes("mentor") || lower.includes("career advice") || lower.includes("messages")) {
-      return "I am standard career mentor fallback. Focus on building fully polished portfolio applications, writing high-quality README documents, and establishing deep mastery in TypeScript/Vite full-stack structures!";
+      return JSON.stringify({
+        text: "I am a standard career mentor fallback. Focus on building fully polished portfolio applications, writing high-quality README documents, and establishing deep mastery in TypeScript/Vite full-stack structures!\n\n*(Note: This response was provided by a local fallback system because our AI service is currently experiencing high traffic.)*"
+      });
     }
 
     if (expectJson) {
