@@ -4341,10 +4341,20 @@ ${JSON.stringify(userProfile, null, 2)}
         prompt += `\nCandidate: ${text}\nInterviewer:`;
 
         console.log(`[MockInterview] Received message: ${text}`);
-        const response = await genAI.models.generateContent({
-          model: "gemini-3.5-flash",
-          contents: prompt
-        });
+        let response;
+        try {
+          response = await genAI.models.generateContent({
+            model: "gemini-3.5-flash",
+            contents: prompt
+          });
+        } catch (primaryErr: any) {
+          console.warn(`[MockInterview] Primary model failed, attempting fallback: ${primaryErr.message}`);
+          response = await genAI.models.generateContent({
+            model: "gemini-3.1-flash-lite",
+            contents: prompt
+          });
+        }
+        
         const aiText = response.text || "I'm sorry, I didn't quite get that.";
         console.log(`[MockInterview] AI Response: ${aiText}`);
 
