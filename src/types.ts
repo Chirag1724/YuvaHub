@@ -41,6 +41,23 @@ export interface UserProfile {
   bookmarks?: string[];
   fcmToken?: string;
   notificationPreferences?: NotificationPreferences;
+  education?: Education[];
+  workExperience?: WorkExperience[];
+  canonicalSkills?: string[];
+}
+
+export interface Education {
+  degree: string;
+  institution: string;
+  dates: string;
+  gpa?: string;
+}
+
+export interface WorkExperience {
+  company: string;
+  role: string;
+  dates: string;
+  impact: string;
 }
 
 export interface NotificationPreferences {
