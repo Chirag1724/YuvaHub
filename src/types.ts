@@ -41,6 +41,23 @@ export interface UserProfile {
   bookmarks?: string[];
   fcmToken?: string;
   notificationPreferences?: NotificationPreferences;
+  education?: Education[];
+  workExperience?: WorkExperience[];
+  canonicalSkills?: string[];
+}
+
+export interface Education {
+  degree: string;
+  institution: string;
+  dates: string;
+  gpa?: string;
+}
+
+export interface WorkExperience {
+  company: string;
+  role: string;
+  dates: string;
+  impact: string;
 }
 
 export interface NotificationPreferences {
@@ -72,4 +89,38 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+}
+
+export interface Bounty {
+  _id?: string;
+  id?: string;
+  title: string;
+  description: string;
+  tags: string[];
+  reward: number;
+  status: 'open' | 'accepted' | 'resolved';
+  posterId: string;
+  posterName: string;
+  mentorId?: string;
+  mentorName?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface KarmaTransaction {
+  _id?: string;
+  userId: string;
+  amount: number;
+  type: 'daily_login' | 'bounty_post' | 'bounty_reward' | 'profile_setup' | 'expired_report' | 'other';
+  timestamp: number;
+  metadata?: any;
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  name: string;
+  avatarUrl?: string;
+  reputation: number;
+  karmaEarned: number;
+  bountiesResolved: number;
 }
