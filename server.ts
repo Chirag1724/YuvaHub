@@ -35,6 +35,7 @@ import { ExpressAdapter } from '@bull-board/express';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { scraperQueue } from './src/queues/scraperQueue.js';
+import { resumeParserQueue } from './src/queues/resumeQueue.js';
 import { generateOpportunityEmbedding } from "./src/services/embedding.js";
 
 dotenv.config();
@@ -701,7 +702,7 @@ async function startServer() {
   const serverAdapter = new ExpressAdapter();
   serverAdapter.setBasePath('/admin/queues');
   createBullBoard({
-    queues: [new BullMQAdapter(scraperQueue)],
+    queues: [new BullMQAdapter(scraperQueue), new BullMQAdapter(resumeParserQueue)],
     serverAdapter: serverAdapter,
   });
   app.use('/admin/queues', authenticateUser(dbCommand), authorizeRoles('admin'), serverAdapter.getRouter());
@@ -714,6 +715,20 @@ async function startServer() {
 
   app.use(cors(corsOptions));
   app.use(express.json({ limit: '10mb' }));
+
+  app.post("/api/resume/process", async (req, res) => {
+    const { userId, resumeUrl } = req.body;
+    if (!userId || !resumeUrl) {
+      return res.status(400).json({ error: "Missing userId or resumeUrl" });
+    }
+    try {
+      await resumeParserQueue.add("parse", { userId, resumeUrl });
+      res.status(202).json({ status: "Accepted", message: "Resume processing job enqueued" });
+    } catch (error) {
+      console.error("Failed to enqueue resume job", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
   app.post("/api/analytics/track", (req, res) => {
     analyticsBuffer.push(req.body);
