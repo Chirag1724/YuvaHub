@@ -4815,6 +4815,9 @@ ${JSON.stringify(userProfile, null, 2)}
     } catch (err: any) {
       console.error("[Team API] Error responding to join request:", err);
       return res.status(500).json({ error: "Failed to respond to join request" });
+    }
+  });
+
   // --- Bookmark Folders & Custom Tag Organization API ---
 
   // 1. Fetch User Bookmark Folders
