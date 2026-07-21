@@ -4342,16 +4342,16 @@ ${JSON.stringify(userProfile, null, 2)}
 
         console.log(`[MockInterview] Received message: ${text}`);
         const response = await genAI.models.generateContent({
-          model: "gemini-1.5-flash",
+          model: "gemini-3.5-flash",
           contents: prompt
         });
         const aiText = response.text || "I'm sorry, I didn't quite get that.";
         console.log(`[MockInterview] AI Response: ${aiText}`);
 
         socket.emit("mock_interview_response", { text: aiText });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Mock Interview Error:", err);
-        socket.emit("mock_interview_response", { text: "I'm experiencing technical difficulties right now." });
+        socket.emit("mock_interview_response", { text: `Error: ${err.message || 'Unknown error'}` });
       }
     });
 
@@ -4366,7 +4366,7 @@ ${JSON.stringify(userProfile, null, 2)}
            const prompt = `Review this mock interview transcript and provide a score out of 100, and a brief 2-sentence area of improvement.\nTranscript:\n${JSON.stringify(transcript)}\nFormat your response strictly as JSON: {"score": 85, "feedback": "..."}`;
            try {
              const result = await genAI.models.generateContent({
-               model: "gemini-1.5-flash",
+               model: "gemini-3.5-flash",
                contents: prompt
              });
              let resText = result.text || "";
