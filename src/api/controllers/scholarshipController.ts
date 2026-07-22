@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { dbCommand, dbQuery } from "../db.js";
-import { ObjectId } from "mongodb";
+import { safeObjectId } from "../../lib/utils.js";
 import { z } from "zod";
 import { getGenAI } from "../genai.js";
 import { ScholarshipSchema, AIEvaluationResponseSchema } from "../../models/scholarshipSchema.js";
@@ -48,8 +48,8 @@ export const getScholarshipById = async (req: Request, res: Response) => {
     if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
     const id = req.params.id;
     const collection = dbQuery.collection("scholarships");
-    let queryId;
-    try { queryId = new ObjectId(id); } catch (e) { queryId = id; }
+    const oid = safeObjectId(id);
+    const queryId = oid || id;
     const item = await collection.findOne({ _id: queryId });
     if (!item) return res.status(404).json({ error: "Scholarship not found" });
     res.json(item);
@@ -65,8 +65,8 @@ export const updateScholarship = async (req: Request, res: Response, next: NextF
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
     const parsedData = { ...req.body, updated_at: new Date() };
     const collection = dbQuery.collection("scholarships");
-    let queryId;
-    try { queryId = new ObjectId(id); } catch (e) { queryId = id; }
+    const oid = safeObjectId(id);
+    const queryId = oid || id;
 
     await collection.updateOne({ _id: queryId }, { $set: parsedData });
     res.json({ success: true, updated: true });
@@ -81,8 +81,8 @@ export const deleteScholarship = async (req: Request, res: Response) => {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
     const collection = dbQuery.collection("scholarships");
-    let queryId;
-    try { queryId = new ObjectId(id); } catch (e) { queryId = id; }
+    const oid = safeObjectId(id);
+    const queryId = oid || id;
     let deleted = true;
     if (collection.deleteOne) {
       const result = await collection.deleteOne({ _id: queryId });
@@ -103,8 +103,8 @@ export const validateEligibility = async (req: Request, res: Response) => {
 
     if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
     const collection = dbQuery.collection("scholarships");
-    let queryId;
-    try { queryId = new ObjectId(scholarshipId); } catch (e) { queryId = scholarshipId; }
+    const oid = safeObjectId(scholarshipId);
+    const queryId = oid || scholarshipId;
 
     const scholarship = await collection.findOne({ _id: queryId });
     if (!scholarship) return res.status(404).json({ error: "Scholarship not found" });

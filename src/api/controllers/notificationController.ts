@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { dbCommand, dbQuery } from "../db.js";
-import { ObjectId } from "mongodb";
+import { safeObjectId } from "../../lib/utils.js";
 
 export const getNotifications = async (req: Request, res: Response) => {
   try {
@@ -62,12 +62,8 @@ export const markRead = async (req: Request, res: Response) => {
     if (!dbCommand) return res.status(503).json({ error: "Database not available" });
 
     const collection = dbCommand.collection("notifications");
-    let queryId;
-    try {
-      queryId = new ObjectId(id);
-    } catch (e) {
-      queryId = id;
-    }
+    const oid = safeObjectId(id);
+    const queryId = oid || id;
 
     if ((dbCommand as any).isMock) {
       const notif = (collection as any).data ? (collection as any).data.find((n: any) => n.id === id || n._id?.toString() === id) : null;

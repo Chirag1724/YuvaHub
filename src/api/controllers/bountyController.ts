@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { dbCommand, dbQuery } from "../db.js";
-import { ObjectId } from "mongodb";
+import { safeObjectId } from "../../lib/utils.js";
 
 export const getBounties = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -51,8 +51,10 @@ export const acceptBounty = async (req: Request, res: Response, next: NextFuncti
     const { mentorName } = req.body;
 
     const bountyId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const oid = safeObjectId(bountyId);
+    if (!oid) return res.status(400).json({ error: "Invalid bounty ID format" });
     const result = await dbCommand.collection("bounties").updateOne(
-      { _id: new ObjectId(bountyId), status: 'open' },
+      { _id: oid, status: 'open' },
       { $set: { status: 'accepted', mentorId: user.uid, mentorName, updatedAt: Date.now() } }
     );
     if (result.modifiedCount === 0) return res.status(400).json({ error: "Bounty not available" });
@@ -68,12 +70,14 @@ export const resolveBounty = async (req: Request, res: Response, next: NextFunct
     if (!dbCommand) return res.status(503).json({ error: "Database not available" });
 
     const bountyId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const bounty = await dbCommand.collection("bounties").findOne({ _id: new ObjectId(bountyId) });
+    const oid = safeObjectId(bountyId);
+    if (!oid) return res.status(400).json({ error: "Invalid bounty ID format" });
+    const bounty = await dbCommand.collection("bounties").findOne({ _id: oid });
     if (!bounty) return res.status(404).json({ error: "Not found" });
     if (bounty.posterId !== user.uid) return res.status(403).json({ error: "Only poster can resolve" });
 
     await dbCommand.collection("bounties").updateOne(
-      { _id: new ObjectId(bountyId) },
+      { _id: oid },
       { $set: { status: 'resolved', updatedAt: Date.now() } }
     );
 
@@ -98,7 +102,9 @@ export const rateBounty = async (req: Request, res: Response, next: NextFunction
     const { rating } = req.body;
 
     const bountyId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const bounty = await dbCommand.collection("bounties").findOne({ _id: new ObjectId(bountyId) });
+    const oid = safeObjectId(bountyId);
+    if (!oid) return res.status(400).json({ error: "Invalid bounty ID format" });
+    const bounty = await dbCommand.collection("bounties").findOne({ _id: oid });
     if (!bounty) return res.status(404).json({ error: "Not found" });
     if (bounty.posterId !== user.uid) return res.status(403).json({ error: "Only poster can rate" });
 

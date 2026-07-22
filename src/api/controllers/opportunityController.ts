@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { dbCommand, dbQuery } from "../db.js";
-import { ObjectId } from "mongodb";
+import { safeObjectId } from "../../lib/utils.js";
 import escapeHtml from "escape-html";
 import { meiliClient } from "../../services/searchSync.js";
 import { generateOpportunityEmbedding } from "../../services/embedding.js";
@@ -452,14 +452,10 @@ export const getOpportunityById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Database offline" });
     }
 
-    let query;
-    try {
-      if (typeof rawId !== 'string') throw new Error("Invalid id");
-      query = { _id: new ObjectId(rawId) };
-    } catch (e) {
-      query = { id: rawId };
-    }
-    const item = await dbQuery.collection("opportunities").findOne(query);
+    const oid = safeObjectId(rawId);
+    const item = oid
+      ? await dbQuery.collection("opportunities").findOne({ _id: oid })
+      : await dbQuery.collection("opportunities").findOne({ id: rawId });
     if (!item) {
       return res.status(404).json({ error: "Opportunity not found" });
     }
@@ -488,12 +484,8 @@ export const updateOpportunity = async (req: Request, res: Response) => {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
-    let queryId;
-    try {
-      queryId = new ObjectId(id);
-    } catch (e) {
-      queryId = id;
-    }
+    const oid = safeObjectId(id);
+    const queryId = oid || id;
 
     const updateData = { ...req.body, updated_at: new Date() };
     delete updateData._id;

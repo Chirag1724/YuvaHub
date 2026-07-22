@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { dbCommand, dbQuery } from "../db.js";
-import { ObjectId } from "mongodb";
+import { safeObjectId } from "../../lib/utils.js";
 
 export const createTeam = async (req: Request, res: Response) => {
   try {
@@ -58,8 +58,8 @@ export const listTeams = async (req: Request, res: Response) => {
 export const getTeamById = async (req: Request, res: Response) => {
   try {
     const teamId = req.params.id;
-    let filter: any;
-    try { filter = { _id: new ObjectId(String(teamId)) }; } catch { filter = { _id: String(teamId) }; }
+    const oid = safeObjectId(teamId);
+    const filter = oid ? { _id: oid } : { _id: String(teamId) };
 
     const team = await dbCommand.collection("teams").findOne(filter);
     if (!team) return res.status(404).json({ error: "Team not found" });
@@ -78,8 +78,8 @@ export const submitJoinRequest = async (req: Request, res: Response) => {
 
     if (!role) return res.status(400).json({ error: "Role/skill preference is required" });
 
-    let filter: any;
-    try { filter = { _id: new ObjectId(String(teamId)) }; } catch { filter = { _id: String(teamId) }; }
+    const oid = safeObjectId(teamId);
+    const filter = oid ? { _id: oid } : { _id: String(teamId) };
 
     const team = await dbCommand.collection("teams").findOne(filter);
     if (!team) return res.status(404).json({ error: "Team not found" });
@@ -123,8 +123,8 @@ export const submitJoinRequest = async (req: Request, res: Response) => {
 export const getTeamRequests = async (req: Request, res: Response) => {
   try {
     const teamId = req.params.id;
-    let filter: any;
-    try { filter = { _id: new ObjectId(String(teamId)) }; } catch { filter = { _id: String(teamId) }; }
+    const oid = safeObjectId(teamId);
+    const filter = oid ? { _id: oid } : { _id: String(teamId) };
 
     const team = await dbCommand.collection("teams").findOne(filter);
     if (!team) return res.status(404).json({ error: "Team not found" });
@@ -152,8 +152,8 @@ export const respondToRequest = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Action must be 'accept' or 'reject'" });
     }
 
-    let reqFilter: any;
-    try { reqFilter = { _id: new ObjectId(String(requestId)) }; } catch { reqFilter = { _id: String(requestId) }; }
+    const reqOid = safeObjectId(requestId);
+    const reqFilter = reqOid ? { _id: reqOid } : { _id: String(requestId) };
 
     const joinReq = await dbCommand.collection("team_requests").findOne(reqFilter);
     if (!joinReq) return res.status(404).json({ error: "Join request not found" });
@@ -161,8 +161,8 @@ export const respondToRequest = async (req: Request, res: Response) => {
       return res.status(400).json({ error: `Request has already been ${joinReq.status}` });
     }
 
-    let teamFilter: any;
-    try { teamFilter = { _id: new ObjectId(String(joinReq.teamId)) }; } catch { teamFilter = { _id: String(joinReq.teamId) }; }
+    const teamOid = safeObjectId(joinReq.teamId);
+    const teamFilter = teamOid ? { _id: teamOid } : { _id: String(joinReq.teamId) };
 
     const team = await dbCommand.collection("teams").findOne(teamFilter);
     if (!team) return res.status(404).json({ error: "Associated team not found" });
