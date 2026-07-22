@@ -733,8 +733,9 @@ async function startServer() {
     }
   });
 
-  app.post("/api/analytics/track", (req, res) => {
-    analyticsBuffer.push(req.body);
+  app.post("/api/analytics/track", authorizeRoles("user", "admin", "moderator"), (req, res) => {
+    const event = { ...req.body, userId: req.user.uid };
+    analyticsBuffer.push(event);
     res.status(202).json({ status: "Accepted" });
   });
 
@@ -3303,27 +3304,35 @@ Return ONLY a JSON object strictly adhering to this schema:
 
 app.post(
   "/api/v1/applications/generate-draft",
+  authorizeRoles("user", "admin", "moderator"),
   async (req, res) => {
 
     try {
 
       const {
-        opportunity,
-        profile
+        opportunity
       } = req.body;
 
-
-
       if (!opportunity?.title) {
-
         return res.status(400).json({
-          error:
-            "Opportunity details required"
+          error: "Opportunity details required"
         });
-
       }
 
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
+      // Fetch user profile from database instead of trusting body input
+      const userDoc = await dbQuery.collection("users").findOne({ 
+        $or: [{ uid: req.user.uid }, { firebaseUid: req.user.uid }] 
+      });
+
+      const profile = userDoc || {
+        uid: req.user.uid,
+        email: req.user.email,
+        name: req.user.name || "YuvaHub Student",
+        skills: "React, Node.js, TypeScript",
+        education: "Computer Science Student"
+      };
 
       const draft =
         await generateApplicationDraft({
@@ -3339,32 +3348,20 @@ app.post(
 
         });
 
-
-
       return res.json({
-
         success: true,
-
         content: draft
-
       });
 
-
-
     } catch(error) {
-
 
       console.error(
         "Application draft generation failed:",
         error
       );
 
-
       return res.status(500).json({
-
-        error:
-          "Failed to generate application draft"
-
+        error: "Failed to generate application draft"
       });
 
     }
@@ -3380,16 +3377,30 @@ app.post(
 
 app.post(
   "/api/v1/applications/queue",
+  authorizeRoles("user", "admin", "moderator"),
   async(req,res)=>{
 
     try {
+      if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
+      // Fetch user profile from database instead of trusting body input
+      const userDoc = await dbQuery.collection("users").findOne({ 
+        $or: [{ uid: req.user.uid }, { firebaseUid: req.user.uid }] 
+      });
+
+      const profile = userDoc || {
+        uid: req.user.uid,
+        email: req.user.email,
+        name: req.user.name || "YuvaHub Student",
+        skills: "React, Node.js, TypeScript",
+        education: "Computer Science Student"
+      };
 
       const job =
         await addApplicationJob({
 
           userId:
-            req.body.userId,
+            req.user.uid,
 
           opportunityId:
             req.body.opportunityId,
@@ -3401,7 +3412,7 @@ app.post(
             req.body.organization,
 
           profile:
-            req.body.profile,
+            profile,
 
           action:
             req.body.action ||
@@ -3409,26 +3420,18 @@ app.post(
 
         });
 
-
-
       return res.json({
-
         success:true,
-
         jobId:
           job.id
-
       });
 
-
     } catch(error){
-
 
       console.error(
         "Application queue error:",
         error
       );
-
 
       return res.status(500).json({
 
@@ -4161,14 +4164,28 @@ app.post(
     }
   });
 
-  app.post("/api/scholarships/validate-eligibility", async (req, res) => {
+  app.post("/api/scholarships/validate-eligibility", authorizeRoles("user", "admin", "moderator"), async (req, res) => {
     try {
-      const { scholarshipId, userProfile } = req.body;
-      if (!scholarshipId || !userProfile) {
-        return res.status(400).json({ error: "Missing scholarshipId or userProfile" });
+      const { scholarshipId } = req.body;
+      if (!scholarshipId) {
+        return res.status(400).json({ error: "Missing scholarshipId" });
       }
 
       if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
+
+      // Fetch user profile from database instead of trusting body input
+      const userDoc = await dbQuery.collection("users").findOne({ 
+        $or: [{ uid: req.user.uid }, { firebaseUid: req.user.uid }] 
+      });
+
+      const userProfile = userDoc || {
+        uid: req.user.uid,
+        email: req.user.email,
+        name: req.user.name || "YuvaHub Student",
+        skills: "React, Node.js, TypeScript",
+        education: "Computer Science Student"
+      };
+
       const collection = dbQuery.collection("scholarships");
       let queryId;
       try {
@@ -4310,11 +4327,11 @@ ${JSON.stringify(userProfile, null, 2)}
   });
 
   // 2. Create a Post (with Profanity Filter)
-  app.post(["/api/v1/posts", "/api/posts"], async (req, res) => {
+  app.post(["/api/v1/posts", "/api/posts"], authorizeRoles("user", "admin", "moderator"), async (req, res) => {
     try {
-      const { title, content, author, type, tags, uid } = req.body;
-      if (!content || !author) {
-        return res.status(400).json({ error: "Missing post content or author name" });
+      const { title, content, type, tags } = req.body;
+      if (!content) {
+        return res.status(400).json({ error: "Missing post content" });
       }
 
       // Profanity & toxicity check
@@ -4325,8 +4342,8 @@ ${JSON.stringify(userProfile, null, 2)}
       const post = {
         title: title || "Community Discussion",
         content,
-        author,
-        authorUid: uid || "user_anon",
+        author: req.user.name || "Community Member",
+        authorUid: req.user.uid,
         type: type || "Update",
         tags: Array.isArray(tags) ? tags : ["General"],
         upvotes: 0,
@@ -4349,17 +4366,29 @@ ${JSON.stringify(userProfile, null, 2)}
   });
 
   // Delete a Post
-  app.delete(["/api/v1/posts/:postId", "/api/posts/:postId"], async (req, res) => {
+  app.delete(["/api/v1/posts/:postId", "/api/posts/:postId"], authorizeRoles("user", "admin", "moderator"), async (req, res) => {
     try {
       const { postId } = req.params;
       const idStr = Array.isArray(postId) ? postId[0] : postId;
-      if (dbCommand) {
+      if (dbCommand && dbQuery) {
         let queryId;
         try {
           queryId = new ObjectId(idStr);
         } catch {
           queryId = idStr;
         }
+        
+        // Fetch post to verify ownership
+        const post = await dbQuery.collection("posts").findOne({ $or: [{ _id: queryId }, { id: idStr }] });
+        if (!post) {
+          return res.status(404).json({ error: "Post not found" });
+        }
+
+        // Restrict deletion to author or admin/moderator
+        if (post.authorUid !== req.user.uid && req.user.role !== "admin" && req.user.role !== "moderator") {
+          return res.status(403).json({ error: "Forbidden: You are not authorized to delete this post." });
+        }
+
         await dbCommand.collection("posts").deleteOne({ $or: [{ _id: queryId }, { id: idStr }] });
       }
       res.json({ success: true, message: "Post deleted successfully" });
@@ -4394,13 +4423,13 @@ ${JSON.stringify(userProfile, null, 2)}
   });
 
   // 3. Create a Comment or Reply (Materialized Path, Toxicity classification)
-  app.post(["/api/v1/posts/:postId/comments", "/api/posts/:postId/comments"], toxicityMiddleware, async (req, res) => {
+  app.post(["/api/v1/posts/:postId/comments", "/api/posts/:postId/comments"], authorizeRoles("user", "admin", "moderator"), toxicityMiddleware, async (req, res) => {
     try {
       const { postId } = req.params;
-      const { content, author, parentId } = req.body;
+      const { content, parentId } = req.body;
 
-      if (!content || !author) {
-        return res.status(400).json({ error: "Missing content or author" });
+      if (!content) {
+        return res.status(400).json({ error: "Missing content" });
       }
       if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
@@ -4428,7 +4457,8 @@ ${JSON.stringify(userProfile, null, 2)}
         postId,
         parentId: parentId || null,
         content,
-        author,
+        author: req.user.name || "Community Member",
+        authorUid: req.user.uid,
         path,
         upvotes: 0,
         upvoted_by: [] as string[],
@@ -4445,7 +4475,7 @@ ${JSON.stringify(userProfile, null, 2)}
   });
 
   // 4. Edit a Comment (Toxicity classification)
-  app.patch("/api/v1/posts/:postId/comments/:commentId", toxicityMiddleware, async (req, res) => {
+  app.patch("/api/v1/posts/:postId/comments/:commentId", authorizeRoles("user", "admin", "moderator"), toxicityMiddleware, async (req, res) => {
     try {
       const { postId, commentId } = req.params;
       const { content } = req.body;
@@ -4463,6 +4493,17 @@ ${JSON.stringify(userProfile, null, 2)}
         queryId = commentId;
       }
 
+      // Fetch comment to verify ownership
+      const comment = await dbQuery.collection("comments").findOne({ _id: queryId, postId });
+      if (!comment) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+
+      // Restrict edit to author or admin/moderator
+      if (comment.authorUid !== req.user.uid && req.user.role !== "admin" && req.user.role !== "moderator") {
+        return res.status(403).json({ error: "Forbidden: You are not authorized to edit this comment." });
+      }
+
       const result = await dbCommand.collection("comments").findOneAndUpdate(
         { _id: queryId, postId },
         { $set: { content, updatedAt: new Date() } },
@@ -4470,9 +4511,6 @@ ${JSON.stringify(userProfile, null, 2)}
       );
 
       const updatedComment = (result as any)?.value || result;
-      if (!updatedComment) {
-        return res.status(404).json({ error: "Comment not found" });
-      }
       res.json(updatedComment);
     } catch (err) {
       console.error("Edit Comment Error:", err);
