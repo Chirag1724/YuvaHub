@@ -14,8 +14,82 @@ const commandUri = process.env.MONGODB_COMMAND_URI || uri;
 const queryUri = process.env.MONGODB_QUERY_URI || uri;
 const dbName = process.env.MONGODB_DB_NAME || "yuvahub";
 
+/** Interval (ms) between MongoDB reconnection attempts after fallback to MockDB. */
+const RECONNECT_INTERVAL_MS = 30_000;
+
 export let dbCommand: any = null;
 export let dbQuery: any = null;
+
+// ── Reconnection subsystem ──────────────────────────────────────────
+
+type ReinitCallback = () => Promise<void>;
+const reinitCallbacks: ReinitCallback[] = [];
+
+let reconnectTimer: ReturnType<typeof setInterval> | null = null;
+let activeDispatcher: DNLDispatcher | null = null;
+
+/**
+ * Register a callback that will be called every time the system
+ * successfully reconnects to MongoDB (after having fallen back to MockDB).
+ * Used by background services (DNL, SearchSync) to reinitialize with
+ * the real database reference.
+ */
+export function onReconnect(callback: ReinitCallback): void {
+  reinitCallbacks.push(callback);
+}
+
+/**
+ * Try to create fresh MongoClient connections and replace the module-level
+ * `dbCommand` / `dbQuery` variables. Returns `true` on success.
+ */
+async function attemptReconnect(): Promise<boolean> {
+  const commandClient = new MongoClient(commandUri);
+  const queryClient = new MongoClient(queryUri);
+
+  try {
+    await Promise.all([commandClient.connect(), queryClient.connect()]);
+
+    const newCommandDb = commandClient.db(process.env.MONGODB_COMMAND_DB || dbName);
+    const newQueryDb = queryClient.db(process.env.MONGODB_QUERY_DB || dbName);
+
+    // Atomic swap — all live bindings (e.g. from server.ts) will see
+    // the new instances on their next access.
+    dbCommand = newCommandDb;
+    dbQuery = newQueryDb;
+
+    console.warn("[Database] Reconnected to MongoDB. Swapped from MockDB to live database.");
+
+    // Notify dependent services (DNL, SearchSync, etc.)
+    await Promise.allSettled(reinitCallbacks.map((cb) => cb()));
+
+    // Stop the reconnection loop — we are back online.
+    if (reconnectTimer !== null) {
+      clearInterval(reconnectTimer);
+      reconnectTimer = null;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("[Database] Reconnection attempt failed:", (err as Error).message);
+    return false;
+  }
+}
+
+/**
+ * Start an interval-based reconnection loop.
+ * Safe to call multiple times — only one timer runs at a time.
+ */
+function startReconnectLoop(): void {
+  if (reconnectTimer !== null) return;
+  console.warn(
+    `[Database] Starting reconnection loop (every ${RECONNECT_INTERVAL_MS / 1000}s)...`,
+  );
+  reconnectTimer = setInterval(() => {
+    attemptReconnect();
+  }, RECONNECT_INTERVAL_MS);
+}
+
+// ── MockDB (offline fallback) ───────────────────────────────────────
 
 // VERY simple mock DB for offline fallback
 export class MemoryCollection {
@@ -132,17 +206,40 @@ export class MockDB {
   collection(name: string) { return this.collections[name] || (this.collections[name] = new MemoryCollection()); }
 }
 
+// ── DNL Scheduler setup ─────────────────────────────────────────────
+
 function setupDNL(database: any) {
   initializeDNLDatabase(database).then(() => {
+    // Stop any previously running dispatcher before creating a new one.
+    if (activeDispatcher) {
+      activeDispatcher.stop();
+    }
     const dispatcher = new DNLDispatcher(database);
     dispatcher.registerAdapter(new DevpostAdapter());
     dispatcher.registerAdapter(new InternshalaAdapter());
     dispatcher.start(3600000); // 1 hour
+    activeDispatcher = dispatcher;
     console.log("[DNL] Scheduler initialized and started.");
   }).catch(err => {
     console.error("[DNL] Setup failed:", err);
   });
 }
+
+// Reinitialisation callback for the DNL scheduler — registered once on module load.
+onReconnect(async () => {
+  console.log("[Database] Re-initializing DNL scheduler with live database...");
+  setupDNL(dbCommand);
+});
+
+// Reinitialisation callback for Meilisearch search sync — registered once on module load.
+onReconnect(async () => {
+  console.log("[Database] Re-initializing SearchSync with live database...");
+  initializeSearchSync(dbQuery).catch((err: any) =>
+    console.error("[SearchSync] Non-fatal reinit error:", err),
+  );
+});
+
+// ── Main initializer ────────────────────────────────────────────────
 
 export async function initializeDatabase(): Promise<void> {
   if (commandUri && queryUri) {
@@ -173,6 +270,9 @@ export async function initializeDatabase(): Promise<void> {
       dbQuery = new MockDB();
       setupDNL(dbCommand);
       initializeSearchSync(dbQuery).catch(err => console.error('[SearchSync] Non-fatal init error:', err));
+      // Kick off the background reconnection loop so the system can
+      // recover once MongoDB comes back online.
+      startReconnectLoop();
     }
   } else {
     console.log("[Database] No MONGODB_URI provided. Running in Offline Mock mode.");
