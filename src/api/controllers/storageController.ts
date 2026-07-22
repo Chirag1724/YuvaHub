@@ -2,9 +2,44 @@ import { Request, Response } from "express";
 import { v2 as cloudinary } from "cloudinary";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { dbCommand, dbQuery } from "../db.js";
 // @ts-ignore
 import multer from "multer";
+
+// --- SECURITY UTILITIES & CONFIGURATIONS ---
+
+// 1. Max upload size (5MB as per Acceptance Criteria)
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+// 2. Allowed MIME types and extensions allowlist
+const ALLOWED_MIME_TYPES: Record<string, string[]> = {
+  pdf: ["application/pdf"],
+  png: ["image/png"],
+  jpeg: ["image/jpeg"],
+  jpg: ["image/jpeg"]
+};
+
+/**
+ * Sanitizes original filenames to prevent path traversal and shell injection
+ */
+const sanitizeFilename = (filename: string): string => {
+  // Strip path traversal characters (../, ..\) and keep only base name
+  const basename = path.basename(filename);
+  // Replace all non-alphanumeric characters (except dots and dashes) with an underscore
+  const safeName = basename.replace(/[^a-zA-Z0-9.-]/g, "_");
+  // Prepend random UUID to prevent overwriting files
+  return `${crypto.randomUUID()}-${safeName}`;
+};
+
+/**
+ * Sanitizes text inputs before writing to database
+ */
+const sanitizeInputText = (str: string): string => {
+  return path.basename(str).replace(/[<>'"/]/g, "").trim();
+};
+
+// --- HANDLERS & MIDDLEWARES ---
 
 export const handleSignatureRequest = async (req: any, res: any) => {
   try {
@@ -38,15 +73,11 @@ export const handleSignatureRequest = async (req: any, res: any) => {
 
     if (fileType === "resume" || fileType === "cover_letter") {
       paramsToSign.allowed_formats = "pdf";
-    } else if (fileType === "avatar") {
-      paramsToSign.allowed_formats = "png,jpg,jpeg";
-    }
-
-    if (fileType === "resume" || fileType === "cover_letter") {
       if (normalizedExt !== "pdf") {
         return res.status(400).json({ error: "Resumes and cover letters must be PDF format." });
       }
     } else if (fileType === "avatar") {
+      paramsToSign.allowed_formats = "png,jpg,jpeg";
       if (!["png", "jpg", "jpeg"].includes(normalizedExt)) {
         return res.status(400).json({ error: "Avatars must be PNG or JPEG format." });
       }
@@ -125,8 +156,12 @@ export const handleSaveUpload = async (req: any, res: any) => {
         }
 
         const now = new Date();
-        const origName = req.body.originalFileName || req.body.fileName || "resume.pdf";
-        const dispName = req.body.displayName || origName;
+        const rawOrigName = req.body.originalFileName || req.body.fileName || "resume.pdf";
+        const rawDispName = req.body.displayName || rawOrigName;
+
+        // Sanitize string inputs before database write
+        const origName = sanitizeInputText(rawOrigName);
+        const dispName = sanitizeInputText(rawDispName);
 
         await resumesCol.insertOne({
           userId: user.uid,
@@ -169,7 +204,21 @@ export const handleSaveUpload = async (req: any, res: any) => {
   }
 };
 
+// SECURE LOCAL UPLOAD MULTER INSTANCE
 export const localUpload = multer({
+  limits: {
+    fileSize: MAX_FILE_SIZE // 1. Limit upload size to 5MB
+  },
+  fileFilter: (req: any, file: any, cb: any) => {
+    // 2. MIME Validation
+    const ext = path.extname(file.originalname).toLowerCase().replace(".", "");
+    const allowedMimeList = ALLOWED_MIME_TYPES[ext];
+
+    if (!allowedMimeList || !allowedMimeList.includes(file.mimetype)) {
+      return cb(new Error("UNSUPPORTED_FILE_TYPE: Invalid MIME type or unsupported extension."));
+    }
+    cb(null, true);
+  },
   storage: multer.diskStorage({
     destination: (req: any, file: any, cb: any) => {
       const dir = path.join(process.cwd(), "public", "uploads");
@@ -177,7 +226,8 @@ export const localUpload = multer({
       cb(null, dir);
     },
     filename: (req: any, file: any, cb: any) => {
-      cb(null, `${Date.now()}-${file.originalname}`);
+      // 3. Filename Sanitization & Path Traversal Prevention
+      cb(null, sanitizeFilename(file.originalname));
     }
   })
 });
