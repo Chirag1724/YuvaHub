@@ -12,19 +12,8 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "scrape": "tsx scrape-cli.ts",
-    "test-mongo": "tsx tests/test-mongo.ts",
-    "test-pdf": "tsx tests/test-pdf-export.ts",
-    "test-dnl": "tsx src/services/dnl/validationTest.ts",
-    "test-cqrs": "tsx tests/test-cqrs.ts",
-    "test-scraper": "tsx tests/test-scraper.ts",
-    "test-semantic-search": "tsx tests/test-semantic-search.ts",
-    "test-auth": "tsx tests/test-jit-auth.ts",
-    "test-socket": "tsx tests/test-socket-fallback.ts",
-    "test-eventbus": "tsx tests/test-eventbus.ts",
-    "test-team-builder": "tsx tests/test-team-builder.ts",
-    "test-admin-alerts": "tsx tests/test-admin-alerts.ts",
-    "test-cache-keys": "tsx tests/test-cache-keys.ts",
-    "test-resumes": "tsx tests/test-resume-version-manager.ts"
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@bull-board/api": "^8.1.2",
@@ -82,11 +71,13 @@
     "@types/nodemailer": "^8.0.1",
     "@types/opossum": "^8.1.9",
     "@types/pdf-parse": "^1.1.5",
+    "@vitest/coverage-v8": "^4.1.10",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.28.0",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
-    "vite-plugin-singlefile": "^2.3.3"
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^4.1.10"
   }
 }
