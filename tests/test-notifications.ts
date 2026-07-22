@@ -47,6 +47,21 @@ async function testNotifications() {
         }
         if (name === "opportunities") {
           return {
+            find: (q?: any) => ({
+              toArray: async () => {
+                if (!q) return mockOpps;
+                if (q.$or) {
+                  return mockOpps.filter(item => {
+                    return q.$or.some((cond: any) => {
+                      if (cond.id && cond.id.$in) return cond.id.$in.includes(item.id) || cond.id.$in.includes(String(item.id));
+                      if (cond._id && cond._id.$in) return cond._id.$in.some((id: any) => String(id) === String(item._id));
+                      return false;
+                    });
+                  });
+                }
+                return mockOpps;
+              }
+            }),
             findOne: async (q: any) => {
               return mockOpps.find(item => item.id === q.id || item._id === q._id || (q.$or && q.$or.some((o: any) => o._id === item._id || o.id === item.id)));
             },
@@ -66,6 +81,9 @@ async function testNotifications() {
             find: (q?: any) => ({
               toArray: async () => {
                 if (!q || !q.userId) return mockNotifs;
+                if (q.userId.$in) {
+                  return mockNotifs.filter(n => q.userId.$in.includes(n.userId) && (!q.type || n.type === q.type));
+                }
                 return mockNotifs.filter(n => n.userId === q.userId && (!q.type || n.type === q.type));
               }
             }),
