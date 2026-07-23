@@ -32,7 +32,7 @@ export const scraperWorker = new Worker(
     const title = `Mock Opportunity from ${domain} - ${Date.now()}`;
     const organization = `Mock Org ${domain}`;
     const dedupeHash = crypto
-      .createHash("md5")
+      .createHash("sha256")
       .update(`${domain}:${title}:${organization}`)
       .digest("hex");
 
