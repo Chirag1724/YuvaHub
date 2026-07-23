@@ -108,3 +108,55 @@ export const markAllRead = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const markBulkRead = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const { notificationIds, all } = req.body;
+    if (!dbCommand) return res.status(503).json({ error: "Database not available" });
+
+    const collection = dbCommand.collection("notifications");
+
+    if (!Array.isArray(notificationIds) && !all) {
+      return res.status(400).json({ error: "Invalid payload: notificationIds must be an array or all must be true" });
+    }
+
+    let filter: any = { userId: user.uid, read: { $ne: true } };
+
+    if (!all && Array.isArray(notificationIds) && notificationIds.length > 0) {
+      const oids = notificationIds.map((id: string) => safeObjectId(id) || id);
+      filter._id = { $in: oids };
+    }
+
+    if ((dbCommand as any).isMock) {
+      let updatedCount = 0;
+      if ((collection as any).data) {
+        (collection as any).data.forEach((n: any) => {
+          if (n.userId === user.uid && n.read !== true) {
+            let match = false;
+            if (all || !notificationIds || notificationIds.length === 0) {
+              match = true;
+            } else {
+              match = notificationIds.includes(n.id) || notificationIds.includes(n._id?.toString());
+            }
+            if (match) {
+              n.read = true;
+              n.isRead = true;
+              updatedCount++;
+            }
+          }
+        });
+      }
+      return res.json({ updatedCount });
+    } else {
+      const result = await collection.updateMany(
+        filter,
+        { $set: { read: true, isRead: true } }
+      );
+      res.json({ updatedCount: result.modifiedCount });
+    }
+  } catch (err: any) {
+    console.error("PUT /api/v1/notifications/read-bulk error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
