@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { jsPDF } from "jspdf";
 import { dbCommand, dbQuery } from "../db.js";
 import { safeObjectId } from "../../lib/utils.js";
 
@@ -176,3 +177,106 @@ export const handleSetDefaultResume = async (req: any, res: any) => {
     res.status(500).json({ error: err.message || "Failed to set default resume" });
   }
 };
+
+export const handleExportResumeToPDF = async (req: any, res: any) => {
+  try {
+    const user = req.user;
+    if (!user || !user.uid) return res.status(401).json({ error: "Unauthorized" });
+    if (!dbQuery) return res.status(503).json({ error: "Database unavailable" });
+
+    const usersCol = dbQuery.collection("users");
+    const userProfile = await usersCol.findOne({ uid: user.uid });
+
+    if (!userProfile) {
+      return res.status(404).json({ error: "User profile not found" });
+    }
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "letter"
+    });
+
+    const margin = 40;
+    let y = 60;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    const writeText = (text: string, fontSize = 10, fontStyle = "normal", color = [0, 0, 0], indent = 0) => {
+      if (!text) return;
+      doc.setFont("helvetica", fontStyle as any);
+      doc.setFontSize(fontSize);
+      doc.setTextColor(color[0], color[1], color[2]);
+      
+      const lines = doc.splitTextToSize(String(text), pageWidth - (margin * 2) - indent);
+      
+      for (const line of lines) {
+        if (y + 16 > pageHeight - margin) {
+          doc.addPage();
+          y = 60;
+        }
+        doc.text(line, margin + indent, y);
+        y += 16;
+      }
+    };
+
+    // Name
+    const name = userProfile.name || "Unknown User";
+    writeText(name, 24, "bold", [17, 24, 39], 0);
+    y += 10;
+
+    // Contact Info (optional addition)
+    if (userProfile.email) {
+      writeText(userProfile.email, 10, "normal", [75, 85, 99], 0);
+      y += 20;
+    }
+
+    // Education
+    if (userProfile.education && Array.isArray(userProfile.education) && userProfile.education.length > 0) {
+      writeText("Education", 16, "bold", [31, 41, 55], 0);
+      y += 5;
+      for (const edu of userProfile.education) {
+        writeText(`${edu.degree || ""} - ${edu.institution || ""}`, 12, "bold", [0, 0, 0], 10);
+        writeText(`${edu.dates || ""}`, 10, "italic", [75, 85, 99], 10);
+        if (edu.gpa) {
+          writeText(`GPA: ${edu.gpa}`, 10, "normal", [55, 65, 81], 10);
+        }
+        y += 10;
+      }
+    }
+
+    // Experience
+    if (userProfile.workExperience && Array.isArray(userProfile.workExperience) && userProfile.workExperience.length > 0) {
+      writeText("Experience", 16, "bold", [31, 41, 55], 0);
+      y += 5;
+      for (const exp of userProfile.workExperience) {
+        writeText(`${exp.role || ""} at ${exp.company || ""}`, 12, "bold", [0, 0, 0], 10);
+        writeText(`${exp.dates || ""}`, 10, "italic", [75, 85, 99], 10);
+        if (exp.impact) {
+          writeText(exp.impact, 10, "normal", [55, 65, 81], 10);
+        }
+        y += 10;
+      }
+    }
+
+    // Skills
+    if (userProfile.skills && Array.isArray(userProfile.skills) && userProfile.skills.length > 0) {
+      writeText("Skills", 16, "bold", [31, 41, 55], 0);
+      y += 5;
+      const skillsText = userProfile.skills.join(", ");
+      writeText(skillsText, 10, "normal", [55, 65, 81], 10);
+      y += 10;
+    }
+
+    const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
+    
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_resume.pdf"`);
+    res.status(200).send(pdfBuffer);
+    
+  } catch (err: any) {
+    console.error("[Resumes] Export to PDF error:", err);
+    res.status(500).json({ error: err.message || "Failed to export resume to PDF" });
+  }
+};
+
