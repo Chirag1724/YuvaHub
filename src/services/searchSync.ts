@@ -1,5 +1,5 @@
 import { Meilisearch } from 'meilisearch';
-import { Db, ChangeStreamInsertDocument, ChangeStreamUpdateDocument, ChangeStreamReplaceDocument, ChangeStreamDeleteDocument } from 'mongodb';
+import { Db, ChangeStream, ChangeStreamInsertDocument, ChangeStreamUpdateDocument, ChangeStreamReplaceDocument, ChangeStreamDeleteDocument } from 'mongodb';
 
 // --- SEC-245 FIX: Remove hardcoded default master key & validate startup ---
 const host = process.env.MEILI_HOST || 'http://localhost:7700';
@@ -22,7 +22,21 @@ export const meiliClient = new Meilisearch({
   apiKey: apiKey || '',
 });
 
+/** Track the active change stream so we can close it before reinitializing. */
+let activeChangeStream: ChangeStream | null = null;
+
 export async function initializeSearchSync(db: Db) {
+  // Close any previous change stream (e.g. on MockDB) before opening a new one.
+  if (activeChangeStream) {
+    try {
+      await activeChangeStream.close();
+      console.log('[SearchSync] Closed previous change stream.');
+    } catch (err) {
+      console.error('[SearchSync] Error closing previous change stream:', err);
+    }
+    activeChangeStream = null;
+  }
+
   try {
     const index = meiliClient.index('opportunities');
 
@@ -37,7 +51,8 @@ export async function initializeSearchSync(db: Db) {
     const collection = db.collection('opportunities');
     
     // Attempt to open a change stream (Requires MongoDB Replica Set)
-    const changeStream = collection.watch();
+    const changeStream: ChangeStream = collection.watch();
+    activeChangeStream = changeStream;
 
     console.log('[SearchSync] Started listening to MongoDB Change Streams on opportunities collection.');
 
