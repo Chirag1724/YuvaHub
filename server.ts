@@ -15,6 +15,10 @@ import apiRoutes from "./src/api/routes/index.js";
 import { analyticsBuffer } from "./src/api/analytics.js";
 import * as Sentry from "@sentry/node";
 
+import { eventBus } from "./src/events/eventBus.js";
+import { createNotificationConsumer } from "./src/consumers/notificationConsumer.js";
+import { createOpportunityScrapedConsumer } from "./src/consumers/opportunityScrapedConsumer.js";
+
 dotenv.config();
 
 Sentry.init({
@@ -202,7 +206,19 @@ async function bootstrap() {
     // 3. Setup Socket.IO Event Handlers
     setupSocketEvents();
 
-    // 4. Start Background Services
+    // 4. Wire Event Bus Consumers (RabbitMQ)
+    try {
+      await eventBus.connect();
+      const notifHandler = await createNotificationConsumer(dbCommand);
+      const scrapedHandler = await createOpportunityScrapedConsumer(dbCommand);
+      await eventBus.subscribe('notifications', 'opportunity.scraped', notifHandler);
+      await eventBus.subscribe('opportunity-scraped', 'opportunity.scraped', scrapedHandler);
+      console.log('[Core] Event Bus consumers wired successfully');
+    } catch (err) {
+      console.warn('[Core] Event Bus unavailable. Consumers will not process background events:', (err as Error).message);
+    }
+
+    // 5. Start Background Services
     if (process.env.NODE_ENV !== "test") {
       setInterval(() => runDeadlineChecks(dbCommand), 24 * 60 * 60 * 1000);
       setInterval(() => runWeeklyDigest(dbCommand), 7 * 24 * 60 * 60 * 1000);
