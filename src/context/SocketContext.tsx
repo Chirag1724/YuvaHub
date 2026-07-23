@@ -25,8 +25,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     // Initialize socket with explicitly allowed transports for robust fallback
-    const serverUrl = import.meta.env.VITE_API_URL || "";
-    const socketInstance = io(serverUrl, {
+    const socketInstance = io({
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
