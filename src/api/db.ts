@@ -170,6 +170,27 @@ export class MemoryCollection {
     }
     return { modifiedCount: 0 };
   }
+  async findOneAndUpdate(query: any, update: any, options: any = {}) {
+    let item = await this.findOne(query);
+    if (!item && options.upsert) {
+      item = { ...query };
+      if (update.$setOnInsert) {
+        Object.assign(item, update.$setOnInsert);
+      }
+      if (update.$set) {
+        Object.assign(item, update.$set);
+      }
+      this.data.push(item);
+      return { value: item };
+    }
+    if (item) {
+      if (update.$set) {
+        Object.assign(item, update.$set);
+      }
+      return { value: item };
+    }
+    return { value: null };
+  }
   async insertOne(doc: any) { this.data.push(doc); return { insertedId: "mock_id" }; }
   async deleteOne(query: any) {
     const initialLen = this.data.length;

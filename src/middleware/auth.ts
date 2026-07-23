@@ -58,7 +58,7 @@ declare global {
   }
 }
 
-export const authenticateUser = (dbCommand: any) => {
+export const authenticateUser = (db: any) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
@@ -98,9 +98,11 @@ export const authenticateUser = (dbCommand: any) => {
 
       req.user = decodedToken;
 
-      if (dbCommand) {
+      const activeDb = db || dbCommand;
+
+      if (activeDb) {
         try {
-          const usersCollection = dbCommand.collection('users');
+          const usersCollection = activeDb.collection('users');
 
           const userDoc = await usersCollection.findOneAndUpdate(
             { firebaseUid: decodedToken.uid },
