@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from "fs";
 import { dbCommand, dbQuery } from "../db.js";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 export const authSync = async (req: Request, res: Response) => {
   try {
@@ -159,13 +161,171 @@ export const authSync = async (req: Request, res: Response) => {
       delete updatedProfile._id;
     }
 
+    const jwtSecret = process.env.JWT_SECRET || "default_secret_for_development_only";
+    const refreshSecret = process.env.JWT_REFRESH_SECRET || "default_refresh_secret_for_development_only";
+    
+    // Generate custom JWTs
+    const accessToken = jwt.sign(
+      { uid: updatedProfile.uid, role: updatedProfile.role, email: updatedProfile.email },
+      jwtSecret,
+      { expiresIn: "15m" }
+    );
+    
+    const refreshToken = jwt.sign(
+      { uid: updatedProfile.uid },
+      refreshSecret,
+      { expiresIn: "7d" }
+    );
+    
+    // Hash refresh token for secure storage
+    const hashedRefreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    
+    // Store hashed refresh token in users collection (up to 5 active sessions)
+    if (dbCommand) {
+      const usersCollectionCmd = dbCommand.collection("users");
+      await usersCollectionCmd.updateOne(
+        { uid: updatedProfile.uid },
+        { 
+          $push: { 
+            hashedRefreshTokens: {
+              $each: [hashedRefreshToken],
+              $slice: -5 
+            }
+          }
+        }
+      );
+    }
+
     res.json({
       status: "success",
-      profile: updatedProfile
+      profile: updatedProfile,
+      accessToken,
+      refreshToken
     });
 
   } catch (err: any) {
     console.error("[Auth] Error syncing user:", err);
     res.status(500).json({ error: "Internal Server Error during auth sync" });
+  }
+};
+
+export const refreshTokens = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(400).json({ error: "Refresh token is required" });
+    }
+
+    const refreshSecret = process.env.JWT_REFRESH_SECRET || "default_refresh_secret_for_development_only";
+    const jwtSecret = process.env.JWT_SECRET || "default_secret_for_development_only";
+
+    let decoded: any;
+    try {
+      decoded = jwt.verify(refreshToken, refreshSecret);
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid or expired refresh token" });
+    }
+
+    if (!decoded || !decoded.uid) {
+      return res.status(401).json({ error: "Invalid refresh token payload" });
+    }
+
+    if (!dbCommand) {
+      return res.status(500).json({ error: "Database not connected" });
+    }
+
+    const usersCollection = dbCommand.collection("users");
+    const user = await usersCollection.findOne({ uid: decoded.uid });
+
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    const hashedIncomingToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    const activeTokens = user.hashedRefreshTokens || [];
+
+    // Check if token exists
+    if (!activeTokens.includes(hashedIncomingToken)) {
+      // Token reuse detected! Revoke all sessions for security.
+      await usersCollection.updateOne(
+        { uid: decoded.uid },
+        { $set: { hashedRefreshTokens: [] } }
+      );
+      console.warn(`[Auth] Refresh token reuse detected for user ${decoded.uid}. Revoked all sessions.`);
+      return res.status(401).json({ error: "Session revoked due to token reuse" });
+    }
+
+    // Generate new tokens
+    const newAccessToken = jwt.sign(
+      { uid: user.uid, role: user.role, email: user.email },
+      jwtSecret,
+      { expiresIn: "15m" }
+    );
+    const newRefreshToken = jwt.sign(
+      { uid: user.uid },
+      refreshSecret,
+      { expiresIn: "7d" }
+    );
+
+    const hashedNewRefreshToken = crypto.createHash('sha256').update(newRefreshToken).digest('hex');
+
+    // Remove the old token and add the new one atomically using multiple updates or sequentially
+    await usersCollection.updateOne(
+      { uid: decoded.uid },
+      { $pull: { hashedRefreshTokens: hashedIncomingToken } }
+    );
+    await usersCollection.updateOne(
+      { uid: decoded.uid },
+      { 
+        $push: { 
+          hashedRefreshTokens: {
+            $each: [hashedNewRefreshToken],
+            $slice: -5
+          }
+        }
+      }
+    );
+
+    res.json({
+      status: "success",
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    });
+  } catch (error) {
+    console.error("[Auth] Error refreshing token:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(400).json({ error: "Refresh token is required" });
+    }
+    
+    const refreshSecret = process.env.JWT_REFRESH_SECRET || "default_refresh_secret_for_development_only";
+    
+    let decoded: any;
+    try {
+      decoded = jwt.verify(refreshToken, refreshSecret);
+    } catch (e) {
+      return res.json({ status: "success", message: "Logged out" });
+    }
+
+    if (dbCommand && decoded && decoded.uid) {
+      const hashedIncomingToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      const usersCollection = dbCommand.collection("users");
+      
+      await usersCollection.updateOne(
+        { uid: decoded.uid },
+        { $pull: { hashedRefreshTokens: hashedIncomingToken } }
+      );
+    }
+
+    res.json({ status: "success", message: "Logged out successfully" });
+  } catch (error) {
+    console.error("[Auth] Error during logout:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
