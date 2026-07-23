@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { dbCommand, dbQuery } from "../db.js";
 import { ObjectId } from "mongodb";
+import { safeObjectId } from "../../lib/utils.js";
 
 const containsProfanity = (text: string): boolean => {
   const profanityRegex = /\b(badword|abuse|hate|spam|scam|idiot|stupid|bastard)\b/i;
@@ -78,12 +79,8 @@ export const deletePost = async (req: Request, res: Response) => {
     const { postId } = req.params;
     const idStr = Array.isArray(postId) ? postId[0] : postId;
     if (dbCommand) {
-      let queryId;
-      try {
-        queryId = new ObjectId(idStr);
-      } catch {
-        queryId = idStr;
-      }
+      const oid = safeObjectId(idStr);
+      const queryId = oid || idStr;
       await dbCommand.collection("posts").deleteOne({ $or: [{ _id: queryId }, { id: idStr }] });
     }
     res.json({ success: true, message: "Post deleted successfully" });
@@ -98,12 +95,8 @@ export const getPostById = async (req: Request, res: Response) => {
     const { postId } = req.params;
     if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
-    let queryId;
-    try {
-      queryId = new ObjectId(postId);
-    } catch (e) {
-      queryId = postId;
-    }
+    const oid = safeObjectId(postId);
+    const queryId = oid || postId;
 
     const post = await dbQuery.collection("posts").findOne({ _id: queryId });
     if (!post) {
@@ -130,12 +123,8 @@ export const createComment = async (req: Request, res: Response) => {
     let path = "";
 
     if (parentId) {
-      let parentQueryId;
-      try {
-        parentQueryId = new ObjectId(parentId);
-      } catch (e) {
-        parentQueryId = parentId;
-      }
+      const parentOid = safeObjectId(parentId);
+      const parentQueryId = parentOid || parentId;
       const parentComment = await dbQuery.collection("comments").findOne({ _id: parentQueryId });
       if (!parentComment) {
         return res.status(404).json({ error: "Parent comment not found" });
@@ -176,13 +165,8 @@ export const editComment = async (req: Request, res: Response) => {
     }
     if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
-    let queryId;
-    try {
-      if (typeof commentId !== 'string') throw new Error("Invalid id");
-      queryId = new ObjectId(commentId);
-    } catch (e) {
-      queryId = commentId;
-    }
+    const oid = typeof commentId === 'string' ? safeObjectId(commentId) : null;
+    const queryId = oid || commentId;
 
     const result = await dbCommand.collection("comments").findOneAndUpdate(
       { _id: queryId, postId },
@@ -236,12 +220,8 @@ export const upvotePost = async (req: Request, res: Response) => {
     }
     if (!dbCommand || !dbQuery) return res.status(503).json({ error: "Database not available" });
 
-    let queryId;
-    try {
-      queryId = new ObjectId(idStr);
-    } catch (e) {
-      queryId = idStr;
-    }
+    const oid = safeObjectId(idStr);
+    const queryId = oid || idStr;
 
     const result = await dbCommand.collection("posts").updateOne(
       { _id: queryId, upvoted_by: { $ne: userId } },

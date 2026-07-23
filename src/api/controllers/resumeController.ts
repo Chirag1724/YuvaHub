@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { dbCommand, dbQuery } from "../db.js";
-import { ObjectId } from "mongodb";
+import { safeObjectId } from "../../lib/utils.js";
 
 export const handleListResumes = async (req: any, res: any) => {
   try {
@@ -82,12 +82,10 @@ export const handleRenameResume = async (req: any, res: any) => {
     }
 
     const resumesCol = dbCommand.collection("resumes");
-    let query: any;
-    try {
-      query = { _id: new ObjectId(id), userId: user.uid };
-    } catch {
-      query = { _id: id, userId: user.uid };
-    }
+    const oid = safeObjectId(id);
+    const query = oid
+      ? { _id: oid, userId: user.uid }
+      : { _id: id, userId: user.uid };
 
     const target = await resumesCol.findOne(query);
     if (!target) {
@@ -115,12 +113,10 @@ export const handleDeleteResume = async (req: any, res: any) => {
     const resumesCol = dbCommand.collection("resumes");
     const usersCol = dbCommand.collection("users");
 
-    let query: any;
-    try {
-      query = { _id: new ObjectId(id), userId: user.uid };
-    } catch {
-      query = { _id: id, userId: user.uid };
-    }
+    const oid = safeObjectId(id);
+    const query = oid
+      ? { _id: oid, userId: user.uid }
+      : { _id: id, userId: user.uid };
 
     const target = await resumesCol.findOne(query);
     if (!target) {
@@ -157,12 +153,10 @@ export const handleSetDefaultResume = async (req: any, res: any) => {
     const resumesCol = dbCommand.collection("resumes");
     const usersCol = dbCommand.collection("users");
 
-    let query: any;
-    try {
-      query = { _id: new ObjectId(id), userId: user.uid };
-    } catch {
-      query = { _id: id, userId: user.uid };
-    }
+    const oid = safeObjectId(id);
+    const query = oid
+      ? { _id: oid, userId: user.uid }
+      : { _id: id, userId: user.uid };
 
     const target = await resumesCol.findOne(query);
     if (!target) {

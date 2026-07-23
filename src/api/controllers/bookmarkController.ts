@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { dbCommand, dbQuery } from "../db.js";
-import { ObjectId } from "mongodb";
+import { safeObjectId } from "../../lib/utils.js";
 
 export const getBookmarks = async (req: Request, res: Response) => {
   try {
@@ -31,12 +31,9 @@ export const addBookmark = async (req: Request, res: Response) => {
     }
 
     // Check if opportunity exists (foreign key validation)
-    let query;
-    try {
-      query = { _id: new ObjectId(opportunityId) };
-    } catch (e) {
-      query = { id: opportunityId };
-    }
+    // Use ObjectId when valid, fall back to string id for mock-DB compatibility
+    const oid = safeObjectId(opportunityId);
+    const query = oid ? { _id: oid } : { id: opportunityId };
     const opp = await dbQuery.collection("opportunities").findOne(query);
     if (!opp) {
       return res.status(404).json({ error: "Opportunity not found" });

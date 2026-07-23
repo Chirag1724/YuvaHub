@@ -1,6 +1,6 @@
 import express from "express";
-import { ObjectId } from "mongodb";
 import { dbQuery } from "../db.js";
+import { safeObjectId } from "../../lib/utils.js";
 
 /**
  * Content negotiation middleware for AI agents requesting text/markdown.
@@ -16,12 +16,8 @@ export const markdownNegotiation = async (req: express.Request, res: express.Res
     if (oppMatch && dbQuery) {
       const id = oppMatch[1];
       try {
-        let query;
-        try {
-          query = { _id: new ObjectId(id) };
-        } catch (e) {
-          query = { id: id };
-        }
+        const oid = safeObjectId(id);
+        const query = oid ? { _id: oid } : { id: id };
         const item = await dbQuery.collection("opportunities").findOne(query);
         if (item) {
           let md = `# ${item.title}\n\n`;

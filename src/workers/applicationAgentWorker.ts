@@ -3,7 +3,7 @@ import { connection, isRedisReady } from "../queues/connection";
 import { AgentJobData } from "../queues/agentQueue";
 import { chromium, Browser } from "playwright";
 import { getCommandDB } from "../lib/mongodb";
-import { ObjectId } from "mongodb";
+import { safeObjectId } from "../lib/utils.js";
 import { analyzeDomWithGemini } from "../services/agent/domAnalyzer";
 import { fillFormFields } from "../services/agent/formInteraction";
 
@@ -17,7 +17,9 @@ export async function processAgentJob(job: any) {
   await job.updateProgress({ status: "Starting application agent..." });
   
   const db = await getCommandDB();
-  const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+  const oid = safeObjectId(userId);
+  if (!oid) throw new Error("Invalid userId format provided to agent worker.");
+  const user = await db.collection("users").findOne({ _id: oid });
   
   if (!user) {
     throw new Error("User not found for agent execution.");
