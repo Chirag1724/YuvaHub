@@ -157,7 +157,7 @@ app.use((req, res) => {
   res.status(404).json({ success: false, error: "Endpoint not found" });
 });
 
-const PORT = process.env.PORT || 5173;
+const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   try {
