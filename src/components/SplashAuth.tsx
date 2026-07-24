@@ -12,14 +12,21 @@ export default function SplashAuth() {
   const { activeTab, setActiveTab, theme, toggleTheme } = useAppContext();
   const [loading, setLoading] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   const handleGoogleLogin = async () => {
     setLoading('google');
+    setErrorMsg(null);
     try {
       await signInWithGoogle();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (e?.code === 'auth/unauthorized-domain') {
+        setErrorMsg(`Domain '${window.location.hostname}' is not authorized in Firebase Console. Please add this domain to Firebase Console -> Authentication -> Settings -> Authorized Domains.`);
+      } else {
+        setErrorMsg(e?.message || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(null);
     }
@@ -27,10 +34,16 @@ export default function SplashAuth() {
 
   const handleGithubLogin = async () => {
     setLoading('github');
+    setErrorMsg(null);
     try {
       await signInWithGithub();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (e?.code === 'auth/unauthorized-domain') {
+        setErrorMsg(`Domain '${window.location.hostname}' is not authorized in Firebase Console. Please add this domain to Firebase Console -> Authentication -> Settings -> Authorized Domains.`);
+      } else {
+        setErrorMsg(e?.message || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(null);
     }
@@ -445,6 +458,12 @@ export default function SplashAuth() {
               <h3 className="text-2xl font-bold text-text-primary mb-2">Welcome to YuvaHub</h3>
               <p className="text-sm text-text-secondary">Sign in to unlock personalized opportunities, AI mentoring, and discussion boards.</p>
             </div>
+            
+            {errorMsg && (
+              <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs leading-relaxed font-medium">
+                {errorMsg}
+              </div>
+            )}
             
             <div className="space-y-4">
               <button 
