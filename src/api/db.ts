@@ -174,6 +174,22 @@ export class MemoryCollection {
           }
         }
       }
+      if (update.$push) {
+        for (const key in update.$push) {
+          if (!Array.isArray(item[key])) {
+            item[key] = [];
+          }
+          const val = update.$push[key];
+          if (val && val.$each) {
+             item[key].push(...val.$each);
+             if (val.$slice !== undefined) {
+               item[key] = item[key].slice(val.$slice);
+             }
+          } else {
+             item[key].push(val);
+          }
+        }
+      }
       return { modifiedCount: 1 };
     }
     if (options.upsert) {
