@@ -136,7 +136,18 @@ Open your browser and navigate to `http://localhost:5173`.
 - **Manually Run Scrapers:** `npm run scrape`
 - **Check Database Connectivity:** `npm run test-mongo`
 
-### 7. Optional Docker & Redis Setup
+### 7. Running Tests
+YuvaHub separates unit/integration tests from end-to-end (e2e) tests:
+- **Unit & Integration Tests (Vitest):** Runs standard backend and controller validation tests:
+  ```bash
+  npm test
+  ```
+- **End-to-End Tests (Playwright):** Runs browser automation and frontend flow tests:
+  ```bash
+  npm run test:e2e
+  ```
+
+### 8. Optional Docker & Redis Setup
 Running Docker is **optional** for local development. `npm run dev` works out-of-the-box without Docker by running background tasks in local fallback mode.
 
 If you wish to test BullMQ queues or Meilisearch indexing locally with Redis, ensure Docker Desktop is running and start the containers:
