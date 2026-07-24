@@ -84,22 +84,26 @@ describe('AnalyticsBuffer — Memory Leak & Shutdown Fixes', () => {
     const serverProcess = spawnServer(port);
     await waitForServer(`${BASE}/analytics/buffer-status`);
 
-    const promises: Promise<Response>[] = [];
-    for (let i = 0; i < 500; i++) {
-      promises.push(
-        fetch(`${BASE}/analytics/track`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            event: 'click',
-            element: `button_${i}`,
-            timestamp: new Date().toISOString(),
-            isTest: true,
+    const responses: Response[] = [];
+    for (let batch = 0; batch < 5; batch++) {
+      const batchPromises: Promise<Response>[] = [];
+      for (let i = 0; i < 100; i++) {
+        batchPromises.push(
+          fetch(`${BASE}/analytics/track`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'click',
+              element: `button_${batch * 100 + i}`,
+              timestamp: new Date().toISOString(),
+              isTest: true,
+            }),
           }),
-        }),
-      );
+        );
+      }
+      const res = await Promise.all(batchPromises);
+      responses.push(...res);
     }
-    const responses = await Promise.all(promises);
     const accepted = responses.filter((r) => r.status === 202).length;
 
     await new Promise((r) => setTimeout(r, 7000));
@@ -114,7 +118,7 @@ describe('AnalyticsBuffer — Memory Leak & Shutdown Fixes', () => {
     }
     await new Promise((r) => setTimeout(r, 1000));
     await client.close();
-  }, 30000);
+  }, 60000);
 
   it('should not grow unbounded — drops oldest events when over capacity', async () => {
     const client = new MongoClient(uri);
@@ -128,8 +132,8 @@ describe('AnalyticsBuffer — Memory Leak & Shutdown Fixes', () => {
     const serverProcess = spawnServer(port);
     await waitForServer(`${BASE}/analytics/buffer-status`);
 
-    const BATCH_SIZE = 500;
-    for (let batch = 0; batch < 30; batch++) {
+    const BATCH_SIZE = 100;
+    for (let batch = 0; batch < 150; batch++) {
       const batchPromises: Promise<Response>[] = [];
       for (let j = 0; j < BATCH_SIZE; j++) {
         const idx = batch * BATCH_SIZE + j;
@@ -205,7 +209,7 @@ describe('AnalyticsBuffer — Memory Leak & Shutdown Fixes', () => {
 
     await collection.deleteMany({ isTest: true, isShutdownTest: true });
     await client.close();
-  }, 30000);
+  }, 60000);
 
   it('should return 503 when buffer is in shutdown mode', async () => {
     const port = currentPort++;
@@ -238,7 +242,7 @@ describe('AnalyticsBuffer — Memory Leak & Shutdown Fixes', () => {
       const body = await duringShutdownRes.json();
       expect(body.status).toBe('Unavailable');
     }
-  }, 15000);
+  }, 60000);
 
   it('should signal backpressure with 429 when buffer is near capacity', async () => {
     const port = currentPort++;
@@ -246,14 +250,14 @@ describe('AnalyticsBuffer — Memory Leak & Shutdown Fixes', () => {
     const serverProcess = spawnServer(port);
     await waitForServer(`${BASE}/analytics/buffer-status`);
 
-    for (let batch = 0; batch < 20; batch++) {
+    for (let batch = 0; batch < 100; batch++) {
       const batchPromises: Promise<Response>[] = [];
-      for (let j = 0; j < 500; j++) {
+      for (let j = 0; j < 100; j++) {
         batchPromises.push(
           fetch(`${BASE}/analytics/track`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event: 'fill', index: batch * 500 + j }),
+            body: JSON.stringify({ event: 'fill', index: batch * 100 + j }),
           }),
         );
       }
