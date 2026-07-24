@@ -153,8 +153,17 @@ export const authSync = async (req: Request, res: Response) => {
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      await usersCollection.insertOne(newUser);
-      updatedProfile = newUser;
+      try {
+        await usersCollection.insertOne(newUser);
+        updatedProfile = newUser;
+      } catch (err: any) {
+        if (err.code === 11000 || err.message?.includes('E11000')) {
+          const retryUser = await usersCollection.findOne({ uid });
+          updatedProfile = retryUser || newUser;
+        } else {
+          throw err;
+        }
+      }
     }
 
     if (updatedProfile._id) {

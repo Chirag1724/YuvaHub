@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Globe, BrainCircuit, Search, Zap, Code, Lightbulb, Trophy, Target, ArrowRight, Mail, X, Github, Sun, Moon, ChevronDown } from 'lucide-react';
+import { Sparkles, Globe, BrainCircuit, Search, Zap, Code, Lightbulb, Trophy, Target, ArrowRight, Mail, X, Github, Sun, Moon, ChevronDown, Rocket, Calendar, Users, AlertCircle } from 'lucide-react';
 import { signInWithGoogle, signInWithGithub } from '../lib/firebase';
 import { useAppContext } from '../context/AppContext';
 import HelpCenter from './Tabs/HelpCenter';
@@ -93,8 +93,8 @@ export default function SplashAuth() {
           {/* Hero Section */}
           <section className="px-6 lg:px-12 py-16 lg:py-24 max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
             <div>
-              <div className="inline-block px-3 py-1 bg-orange-cta/10 border border-orange-cta/20 text-orange-cta text-[11px] font-bold uppercase tracking-wide rounded-full mb-6">
-                ⚡ Connecting Talent to Opportunity
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-cta/10 border border-orange-cta/20 text-orange-cta text-[11px] font-bold uppercase tracking-wide rounded-full mb-6">
+                <Zap className="w-3.5 h-3.5" /> Connecting Talent to Opportunity
               </div>
               <h1 className="text-[46px] font-[800] leading-[1.12] text-text-primary mb-6 transition-colors duration-250">
                 Unlock Your <span className="text-primary-blue italic">Career</span> Potential
@@ -127,15 +127,15 @@ export default function SplashAuth() {
             
             <div className="relative h-[400px] w-full rounded-[20px] bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/20 shadow-lg border border-border-theme flex items-center justify-center p-8 transition-colors duration-250">
                <div className="absolute top-[10%] left-[10%] w-[120px] bg-surface p-3 rounded-xl shadow-[0_10px_30px_var(--shadow-color)] border border-border-theme flex flex-col items-center gap-2 animate-float" style={{ animationDelay: '0s' }}>
-                  <span className="text-3xl">🚀</span>
+                  <Rocket className="w-7 h-7 text-primary-blue" />
                   <span className="text-[10px] font-bold text-text-primary">Landed job at Google</span>
                </div>
                <div className="absolute bottom-[20%] right-[5%] w-[130px] bg-surface p-3 rounded-xl shadow-[0_10px_30px_var(--shadow-color)] border border-border-theme flex flex-col items-center gap-2 animate-float" style={{ animationDelay: '0.8s' }}>
-                  <span className="text-3xl">🏆</span>
+                  <Trophy className="w-7 h-7 text-amber-500" />
                   <span className="text-[10px] font-bold text-text-primary">Won ETHGlobal</span>
                </div>
                <div className="absolute top-[40%] right-[15%] w-[100px] bg-surface p-3 rounded-xl shadow-[0_10px_30px_var(--shadow-color)] border border-border-theme flex flex-col items-center gap-2 animate-float" style={{ animationDelay: '1.5s' }}>
-                  <span className="text-3xl">💡</span>
+                  <Lightbulb className="w-7 h-7 text-yellow-500" />
                   <span className="text-[10px] font-bold text-text-primary">Top 10 Finalist</span>
                </div>
                <div className="w-64 h-64 bg-surface/40 backdrop-blur-md rounded-full absolute border border-border-theme/60"></div>
@@ -190,8 +190,8 @@ export default function SplashAuth() {
                       </div>
                       <h4 className="text-[15px] font-[600] text-text-primary mb-3 line-clamp-2">Global Innovation Challenge: AI & Web3</h4>
                       <div className="flex items-center text-[12px] text-text-secondary justify-between">
-                         <span>📅 Apr 15 - Apr 17</span>
-                         <span>👥 1,204 Registered</span>
+                         <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-primary-blue shrink-0" /> Apr 15 - Apr 17</span>
+                         <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-primary-blue shrink-0" /> 1,204 Registered</span>
                       </div>
                    </div>
                 </div>
@@ -209,8 +209,8 @@ export default function SplashAuth() {
                       </div>
                       <h4 className="text-[15px] font-[600] text-text-primary mb-3 line-clamp-2">Stanford Business Case Competition 2025</h4>
                       <div className="flex items-center text-[12px] text-text-secondary justify-between">
-                         <span>📅 May 01 - May 05</span>
-                         <span>👥 850 Registered</span>
+                         <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-primary-blue shrink-0" /> May 01 - May 05</span>
+                         <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-primary-blue shrink-0" /> 850 Registered</span>
                       </div>
                    </div>
                 </div>
@@ -228,8 +228,8 @@ export default function SplashAuth() {
                       </div>
                       <h4 className="text-[15px] font-[600] text-text-primary mb-3 line-clamp-2">Solution Challenge India Regional</h4>
                       <div className="flex items-center text-[12px] text-text-secondary justify-between">
-                         <span>📅 Mar 10 - Jun 20</span>
-                         <span>👥 5,200 Registered</span>
+                         <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-primary-blue shrink-0" /> Mar 10 - Jun 20</span>
+                         <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-primary-blue shrink-0" /> 5,200 Registered</span>
                       </div>
                    </div>
                 </div>
@@ -460,8 +460,9 @@ export default function SplashAuth() {
             </div>
             
             {errorMsg && (
-              <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs leading-relaxed font-medium">
-                {errorMsg}
+              <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs leading-relaxed font-medium flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <span>{errorMsg}</span>
               </div>
             )}
             

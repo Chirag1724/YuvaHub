@@ -161,34 +161,35 @@ const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   try {
-    // 1. Initialize MongoDB Database Connections
-    await initializeDatabase();
+    // 1. Start HTTP Server immediately so port 5000 opens instantly for Vite proxy
+    server.listen(PORT, () => {
+      console.log(`[Core] Express Server is listening on port ${PORT}`);
+    });
 
     // 2. Setup Socket.IO Event Handlers
     setupSocketEvents();
 
-    // 3. Wire Event Bus Consumers (RabbitMQ)
-    try {
-      await eventBus.connect();
+    // 3. Initialize MongoDB Database Connections asynchronously
+    initializeDatabase().catch((err) => {
+      console.warn('[Core] Database initialization fallback mode:', (err as Error).message);
+    });
+
+    // 4. Wire Event Bus Consumers (RabbitMQ) asynchronously
+    eventBus.connect().then(async () => {
       const notifHandler = await createNotificationConsumer(dbCommand);
       const scrapedHandler = await createOpportunityScrapedConsumer(dbCommand);
       await eventBus.subscribe('notifications', 'opportunity.scraped', notifHandler);
       await eventBus.subscribe('opportunity-scraped', 'opportunity.scraped', scrapedHandler);
       console.log('[Core] Event Bus consumers wired successfully');
-    } catch (err) {
-      console.warn('[Core] Event Bus unavailable. Consumers will not process background events:', (err as Error).message);
-    }
+    }).catch((err) => {
+      console.warn('[Core] Event Bus unavailable:', (err as Error).message);
+    });
 
-    // 4. Start Background Services
+    // 5. Start Background Services
     if (process.env.NODE_ENV !== "test") {
       setInterval(() => runDeadlineChecks(dbCommand), 24 * 60 * 60 * 1000);
       setInterval(() => runWeeklyDigest(dbCommand), 7 * 24 * 60 * 60 * 1000);
     }
-
-    // 5. Start HTTP Server
-    server.listen(PORT, () => {
-      console.log(`[Core] Server is running on port ${PORT}`);
-    });
   } catch (error) {
     console.error("[Core] Failed to start server:", error);
     process.exit(1);
