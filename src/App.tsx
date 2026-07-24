@@ -28,6 +28,7 @@ import GrantFellowshipStudio from './components/Tabs/GrantFellowshipStudio';
 import CampusAlumniHub from './components/Tabs/CampusAlumniHub';
 import ResumeAtsStudio from './components/Tabs/ResumeAtsStudio';
 import InterviewPrepStudio from './components/Tabs/InterviewPrepStudio';
+import OpenSourceBountyStudio from './components/Tabs/OpenSourceBountyStudio';
 import Legal from './components/Tabs/Legal';
 import Privacy from './components/Tabs/Privacy';
 import Terms from './components/Tabs/Terms';
@@ -105,6 +106,7 @@ function App() {
     { id: 'campus_alumni', label: 'Campus & Alumni Hub', icon: Activity },
     { id: 'resume_ats', label: 'Resume ATS Optimizer', icon: Activity },
     { id: 'interview_prep', label: 'AI Interview Studio', icon: Activity },
+    { id: 'opensource_bounties', label: 'Open Source Bounties', icon: Activity },
     { id: 'submit', label: 'Submit Opportunity', icon: PlusCircle },
     { id: 'mentorship', label: 'Mentorship', icon: Users },
     { id: 'community', label: 'Community', icon: MessageSquare },
@@ -127,6 +129,7 @@ function App() {
       case 'campus_alumni': return <CampusAlumniHub />;
       case 'resume_ats': return <ResumeAtsStudio />;
       case 'interview_prep': return <InterviewPrepStudio />;
+      case 'opensource_bounties': return <OpenSourceBountyStudio />;
       case 'submit': return <SubmitOpportunity />;
       case 'mentorship': return <Mentorship />;
       case 'community': return <Community />;
