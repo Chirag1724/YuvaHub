@@ -25,6 +25,7 @@ import CareerMatchStudio from './components/Tabs/CareerMatchStudio';
 import HackathonStudio from './components/Tabs/HackathonStudio';
 import DeveloperApiPortal from './components/Tabs/DeveloperApiPortal';
 import GrantFellowshipStudio from './components/Tabs/GrantFellowshipStudio';
+import CampusAlumniHub from './components/Tabs/CampusAlumniHub';
 import Legal from './components/Tabs/Legal';
 import Privacy from './components/Tabs/Privacy';
 import Terms from './components/Tabs/Terms';
@@ -99,6 +100,7 @@ function App() {
     { id: 'hackathon_studio', label: 'Hackathon Studio', icon: Activity },
     { id: 'developer_api', label: 'Developer API Portal', icon: Activity },
     { id: 'grant_studio', label: 'Grants & Fellowships', icon: Activity },
+    { id: 'campus_alumni', label: 'Campus & Alumni Hub', icon: Activity },
     { id: 'submit', label: 'Submit Opportunity', icon: PlusCircle },
     { id: 'mentorship', label: 'Mentorship', icon: Users },
     { id: 'community', label: 'Community', icon: MessageSquare },
@@ -118,6 +120,7 @@ function App() {
       case 'hackathon_studio': return <HackathonStudio />;
       case 'developer_api': return <DeveloperApiPortal />;
       case 'grant_studio': return <GrantFellowshipStudio />;
+      case 'campus_alumni': return <CampusAlumniHub />;
       case 'submit': return <SubmitOpportunity />;
       case 'mentorship': return <Mentorship />;
       case 'community': return <Community />;
