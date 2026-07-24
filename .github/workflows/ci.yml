@@ -63,6 +63,11 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -77,10 +82,18 @@ jobs:
         run: npm ci
         
       - name: Run unit tests
+        env:
+          MONGODB_URI: mongodb://localhost:27017/yuvahub_test
+          MONGODB_DB_NAME: yuvahub_test
         run: npm run test:coverage
 
   e2e-tests:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -98,4 +111,7 @@ jobs:
         run: npx playwright install --with-deps
         
       - name: Run E2E tests
+        env:
+          MONGODB_URI: mongodb://localhost:27017/yuvahub_test
+          MONGODB_DB_NAME: yuvahub_test
         run: npm run test:e2e
