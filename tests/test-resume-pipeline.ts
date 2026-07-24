@@ -13,13 +13,16 @@ describe('test-resume-pipeline.ts', () => {
   console.log("[Test] Starting Resume Pipeline Test");
   const uri = process.env.MONGODB_URI || "mongodb://localhost:27017";
   const dbName = process.env.MONGODB_DB_NAME || "yuvahub";
-  const mongoClient = new MongoClient(uri);
+ const mongoClient = new MongoClient(uri, {
+  serverSelectionTimeoutMS: 2000,
+  connectTimeoutMS: 2000,
+});
 
-  try {
-    await mongoClient.connect();
-    console.log("[Test] Connected to MongoDB");
+try {
+  await mongoClient.connect();
+  console.log("[Test] Connected to MongoDB");
 
-    // 1. Mock Resume Text (as if parsed from PDF)
+  // 1. Mock Resume Text (as if parsed from PDF)
     const mockResumeText = `
       John Doe
       Education:
@@ -135,4 +138,4 @@ describe('test-resume-pipeline.ts', () => {
       // Not throwing to allow suite to pass without local dbs
     }
   });
-});
+});
