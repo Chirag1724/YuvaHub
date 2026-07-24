@@ -22,6 +22,16 @@ import BountyBoard from './components/Tabs/BountyBoard';
 import BackToTopButton from './components/ui/BackToTopButton';import OnboardingFlow from './components/OnboardingFlow';
 import SplashAuth from './components/SplashAuth';
 import Security from './components/Tabs/Security';
+import AuthSecurityCenter from './components/Tabs/AuthSecurityCenter';
+import CareerMatchStudio from './components/Tabs/CareerMatchStudio';
+import HackathonStudio from './components/Tabs/HackathonStudio';
+import DeveloperApiPortal from './components/Tabs/DeveloperApiPortal';
+import GrantFellowshipStudio from './components/Tabs/GrantFellowshipStudio';
+import CampusAlumniHub from './components/Tabs/CampusAlumniHub';
+import ResumeAtsStudio from './components/Tabs/ResumeAtsStudio';
+import InterviewPrepStudio from './components/Tabs/InterviewPrepStudio';
+import OpenSourceBountyStudio from './components/Tabs/OpenSourceBountyStudio';
+import OpportunityMatchStudio from './components/Tabs/OpportunityMatchStudio';
 import Legal from './components/Tabs/Legal';
 import Support from './components/Tabs/Support';
 import HelpCenter from './components/Tabs/HelpCenter';
@@ -203,11 +213,21 @@ function App() {
     { id: 'teams', label: 'Team Builder', icon: Users },
     { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
     { id: 'ai_assistant', label: 'AI Assistant', icon: Sparkles },
+    { id: 'career_match', label: 'Career Match Studio', icon: Activity },
+    { id: 'hackathon_studio', label: 'Hackathon Studio', icon: Activity },
+    { id: 'developer_api', label: 'Developer API Portal', icon: Activity },
+    { id: 'grant_studio', label: 'Grants & Fellowships', icon: Activity },
+    { id: 'campus_alumni', label: 'Campus & Alumni Hub', icon: Activity },
+    { id: 'resume_ats', label: 'Resume ATS Optimizer', icon: Activity },
+    { id: 'interview_prep', label: 'AI Interview Studio', icon: Activity },
+    { id: 'opensource_bounties', label: 'Open Source Bounties', icon: Activity },
+    { id: 'opportunity_match', label: 'AI Opportunity Recommender', icon: Activity },
     { id: 'submit', label: 'Submit Opportunity', icon: PlusCircle },
     { id: 'mentorship', label: 'Mentorship', icon: Users },
     { id: 'bounty_board', label: 'Bounty Board', icon: Sparkles },
     { id: 'community', label: 'Community', icon: MessageSquare },
     { id: 'profile', label: 'My Profile', icon: User },
+    { id: 'auth_security', label: 'Auth & Security', icon: Activity },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'mock_interview', label: 'Mock Interview', icon: Mic },
     ...(isAdminUser ? [{ id: 'admin', label: 'Admin', icon: Activity }] : []),
@@ -220,12 +240,22 @@ function App() {
       case 'teams': return <Teams />;
       case 'bookmarks': return <Bookmarks />;
       case 'ai_assistant': return <AIAssistant />;
+      case 'career_match': return <CareerMatchStudio />;
+      case 'hackathon_studio': return <HackathonStudio />;
+      case 'developer_api': return <DeveloperApiPortal />;
+      case 'grant_studio': return <GrantFellowshipStudio />;
+      case 'campus_alumni': return <CampusAlumniHub />;
+      case 'resume_ats': return <ResumeAtsStudio />;
+      case 'interview_prep': return <InterviewPrepStudio />;
+      case 'opensource_bounties': return <OpenSourceBountyStudio />;
+      case 'opportunity_match': return <OpportunityMatchStudio />;
       case 'submit': return <SubmitOpportunity />;
       case 'mentorship': return <Mentorship />;
       case 'bounty_board': return <BountyBoard />;
       case 'community': return <Community />;
       case 'profile': return <Profile />;
       case 'settings': return <SettingsTab />;
+      case 'auth_security': return <AuthSecurityCenter />;
       case 'admin': return <AdminDashboard />;
       case 'security': return <Security />;
       case 'privacy': return <Privacy />;
@@ -481,6 +511,7 @@ function App() {
               )}
            </div>
            <div className="flex items-center gap-5">
+              <button onClick={() => { throw new Error("Frontend Sentry Test Error"); }} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition-colors">Test Error</button>
               {user && (
                 <div className={`hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-sm bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-500 ${karmaBumpFlag ? 'animate-karma-bounce' : ''}`}>
                   💠 {karmaBalance} Karma

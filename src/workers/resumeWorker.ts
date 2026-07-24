@@ -2,7 +2,7 @@ import { Worker, Job } from "bullmq";
 import { connection } from "../queues/connection";
 import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
-import pdfParse from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import { GoogleGenAI, Type } from "@google/genai";
 import { normalizeSkills } from "../services/skillTaxonomy";
 
@@ -38,8 +38,10 @@ export const resumeWorker = new Worker(
 
       // Parse PDF
       console.log(`[Resume Worker] Parsing PDF for user ${userId}`);
-      const pdfData = await pdfParse(buffer);
+      const parser = new PDFParse({ data: buffer });
+      const pdfData = await parser.getText();
       const text = pdfData.text;
+      await parser.destroy();
 
       // Extract Structured Data using Gemini
       console.log(`[Resume Worker] Extracting data using Gemini for user ${userId}`);

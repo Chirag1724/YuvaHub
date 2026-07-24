@@ -3,7 +3,7 @@ import { enqueuePushNotification } from "../queues/pushQueue";
 import { Notification } from "../models/notificationSchema";
 
 // Since Socket.io is initialized in server.ts, we will import a helper to fetch the instance
-import { getSocketIO } from "../../server";
+import { getSocketIO } from "../api/socketInstance.js";
 
 export async function matchOpportunityAndNotify(db: any, opportunity: any): Promise<void> {
   if (!db) {

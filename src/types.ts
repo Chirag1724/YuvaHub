@@ -46,6 +46,18 @@ export interface UserProfile {
   canonicalSkills?: string[];
 }
 
+export interface ResumeItem {
+  id: string;
+  userId: string;
+  displayName: string;
+  originalFileName: string;
+  fileUrl: string;
+  publicId?: string;
+  uploadedAt: string | Date;
+  updatedAt?: string | Date;
+  isDefault: boolean;
+}
+
 export interface Education {
   degree: string;
   institution: string;
