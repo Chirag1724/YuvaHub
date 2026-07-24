@@ -54,7 +54,7 @@ describe('test-agent.ts', () => {
         }, 60_000);
 
         agentQueueEvents.on("progress", ({ jobId, data }) => {
-          if (jobId === job.id) console.log(`[Status Update] ${data.status}`);
+          if (jobId === job.id) console.log(`[Status Update] ${(data as any).status}`);
         });
 
         agentQueueEvents.on("completed", async ({ jobId }) => {

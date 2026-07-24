@@ -135,8 +135,9 @@ export const authenticateUser = (db: any) => {
             },
           );
 
-          if (userDoc && userDoc.value && userDoc.value.role) {
-            req.user.role = userDoc.value.role;
+          const returnedDoc = userDoc && userDoc.value ? userDoc.value : userDoc;
+          if (returnedDoc && returnedDoc.role) {
+            req.user.role = returnedDoc.role;
           } else {
             req.user.role = 'student';
           }

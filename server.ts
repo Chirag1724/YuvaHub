@@ -190,6 +190,9 @@ async function gracefulShutdown(signal: string) {
 
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("message", (msg) => {
+  if (msg === "shutdown") gracefulShutdown("IPC_SHUTDOWN");
+});
 
 async function bootstrap() {
   try {
