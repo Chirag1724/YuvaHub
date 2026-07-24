@@ -4,6 +4,8 @@ import { MongoClient } from 'mongodb';
 // Configure environment variables before importing modules that evaluate them on load
 process.env.NODE_ENV = 'development';
 process.env.ENABLE_MOCK_AUTH = 'true';
+process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 = '';
+process.env.FIREBASE_PROJECT_ID = '';
 
 const { authenticateUser, deleteFirebaseUser, authMiddleware } = await import('../src/middleware/auth.js');
 const dbModule = await import('../src/api/db.js');
@@ -45,7 +47,8 @@ describe('JIT Authentication Middleware Tests', () => {
       const db = client.db('yuvahub_test');
       const usersCollection = db.collection('users');
 
-      await usersCollection.deleteMany({ firebaseUid: "mock_user_123" });
+      await usersCollection.deleteOne({ firebaseUid: "mock_user_123" });
+      await usersCollection.deleteOne({ uid: "mock_user_123" });
       try {
         await usersCollection.createIndex({ firebaseUid: 1 }, { unique: true });
       } catch (e) {
@@ -75,6 +78,7 @@ describe('JIT Authentication Middleware Tests', () => {
       // Clean up local test db entries
       await deleteFirebaseUser("mock_user_123");
       await usersCollection.deleteOne({ firebaseUid: "mock_user_123" });
+      await usersCollection.deleteOne({ uid: "mock_user_123" });
       const afterDelete = await usersCollection.find({ firebaseUid: "mock_user_123" }).toArray();
       expect(afterDelete.length).toBe(0);
 
@@ -90,10 +94,12 @@ describe('JIT Authentication Middleware Tests', () => {
 
     const usersCollection = dbModule.dbCommand.collection('users');
     await usersCollection.deleteOne({ firebaseUid: "mock_user_123" });
+    await usersCollection.deleteOne({ uid: "mock_user_123" });
 
     // Seed existing profile with custom role
     await usersCollection.insertOne({
       firebaseUid: "mock_user_123",
+      uid: "mock_user_123",
       email: "stale@example.com",
       name: "Stale Name",
       role: "admin",
@@ -115,6 +121,7 @@ describe('JIT Authentication Middleware Tests', () => {
     // Clean up
     await deleteFirebaseUser("mock_user_123");
     await usersCollection.deleteOne({ firebaseUid: "mock_user_123" });
+    await usersCollection.deleteOne({ uid: "mock_user_123" });
   });
 
   it('should be atomic under concurrent findOneAndUpdate calls on MemoryCollection', async () => {
