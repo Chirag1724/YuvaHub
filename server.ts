@@ -12,7 +12,7 @@ import { dbCommand, dbQuery } from "./src/api/db.js";
 
 // Import Main API Router
 import apiRoutes from "./src/api/routes/index.js";
-import { analyticsBuffer } from "./src/api/analytics.js";
+
 import * as Sentry from "@sentry/node";
 
 import { eventBus } from "./src/events/eventBus.js";
@@ -22,24 +22,24 @@ import { createOpportunityScrapedConsumer } from "./src/consumers/opportunityScr
 dotenv.config();
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN_NODE,
+  dsn: process.env.SENTRY_DSN,
   tracesSampleRate: 1.0,
 });
 
 const app = express();
 const server = http.createServer(app);
 
-const corsOrigins = process.env.NODE_ENV === "development" 
-  ? ["http://localhost:3000", "http://127.0.0.1:3000"]
-  : ["https://yuvahub.xyz", "https://www.yuvahub.xyz", "https://yuvahub-web.vercel.app"];
-
-// Initialize Socket.io Singleton
-const io = new SocketIOServer(server, { cors: { origin: corsOrigins, credentials: true } });
+// Socket.IO Configuration
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "*",
+    methods: ["GET", "POST"]
+  }
+});
 setSocketIO(io);
 
-app.use(cors({ origin: corsOrigins, credentials: true }));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(cors());
+app.use(express.json({ limit: "10mb" }));
 
 // Setup API Routes
 app.use("/api", apiRoutes);
@@ -157,57 +157,17 @@ app.use((req, res) => {
   res.status(404).json({ success: false, error: "Endpoint not found" });
 });
 
-import { errorHandler } from "./src/middlewares/errorHandler.js";
-app.use(errorHandler);
-
 const PORT = process.env.PORT || 5000;
 
-// ── Graceful Shutdown ─────────────────────────────────────────────────
-let isShuttingDown = false;
-
-async function gracefulShutdown(signal: string) {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
-  console.log(`[Core] Received ${signal}. Starting graceful shutdown...`);
-
-  // 1. Stop accepting new HTTP connections
-  server.close(() => {
-    console.log("[Core] HTTP server closed.");
-  });
-
-  // 2. Drain analytics buffer (safe — drainAndStop sets isShuttingDown flag,
-  //    rejects new pushes, flushes remaining, then stops the interval)
+async function startServer() {
   try {
-    await analyticsBuffer.drainAndStop();
-    console.log("[Core] Analytics buffer drained successfully.");
-  } catch (err) {
-    console.error("[Core] Error draining analytics buffer:", err);
-  }
-
-  // 3. Exit
-  process.exit(0);
-}
-
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-process.on("message", (msg) => {
-  if (msg === "shutdown") gracefulShutdown("IPC_SHUTDOWN");
-});
-
-async function bootstrap() {
-  try {
-    // 1. Initialize databases and caches
+    // 1. Initialize MongoDB Database Connections
     await initializeDatabase();
-    
-    // 2. Start the HTTP server
-    server.listen(PORT, () => {
-      console.log(`[Core] Server running on port ${PORT}`);
-    });
 
-    // 3. Setup Socket.IO Event Handlers
+    // 2. Setup Socket.IO Event Handlers
     setupSocketEvents();
 
-    // 4. Wire Event Bus Consumers (RabbitMQ)
+    // 3. Wire Event Bus Consumers (RabbitMQ)
     try {
       await eventBus.connect();
       const notifHandler = await createNotificationConsumer(dbCommand);
@@ -219,29 +179,32 @@ async function bootstrap() {
       console.warn('[Core] Event Bus unavailable. Consumers will not process background events:', (err as Error).message);
     }
 
-    // 5. Start Background Services
+    // 4. Start Background Services
     if (process.env.NODE_ENV !== "test") {
       setInterval(() => runDeadlineChecks(dbCommand), 24 * 60 * 60 * 1000);
       setInterval(() => runWeeklyDigest(dbCommand), 7 * 24 * 60 * 60 * 1000);
-      
-      // Node.js Central Ingestion
-      if (process.env.START_NODE_SCRAPER === "true") {
-        console.log("[Scraper] Central Ingestion daemon enabled");
-        import("child_process").then(({ spawn }) => {
-          spawn("npx", ["tsx", "scrape-cli.ts"], {
-            cwd: process.cwd(),
-            detached: true,
-            stdio: "ignore"
-          }).unref();
-        });
-      }
     }
-  } catch (err) {
-    console.error("[Core] Failed to bootstrap server:", err);
+
+    // 5. Start HTTP Server
+    server.listen(PORT, () => {
+      console.log(`[Core] Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("[Core] Failed to start server:", error);
     process.exit(1);
   }
 }
 
-bootstrap();
+startServer();
 
-export default app;
+// Graceful Shutdown Handling
+const gracefulShutdown = (signal: string) => {
+  console.log(`[Core] Received ${signal}. Starting graceful shutdown...`);
+  server.close(() => {
+    console.log("[Core] HTTP server closed.");
+    process.exit(0);
+  });
+};
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));

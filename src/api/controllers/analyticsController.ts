@@ -21,10 +21,12 @@ export const track = async (req: Request, res: Response) => {
       });
     }
 
+    const eventPayload = { ...req.body, userId: (req as any).user?.uid || req.body.userId };
+
     // Backpressure signal when buffer is nearly full (>80% capacity)
     if (analyticsBuffer.size > analyticsBuffer.capacity * 0.8) {
       // Still accept the event, but tell the client to slow down
-      analyticsBuffer.push(req.body);
+      analyticsBuffer.push(eventPayload);
       return res.status(429).json({
         status: "Backpressure",
         warning: "Buffer is near capacity. Reduce event rate.",
@@ -32,7 +34,7 @@ export const track = async (req: Request, res: Response) => {
     }
 
     // Normal path — accept and buffer
-    analyticsBuffer.push(req.body);
+    analyticsBuffer.push(eventPayload);
     return res.status(202).json({ status: "Accepted" });
   } catch (err) {
     console.error("[Analytics] Error in track endpoint:", err);
