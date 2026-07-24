@@ -4,6 +4,7 @@ import fs from "fs";
 import { dbCommand, dbQuery } from "../db.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { sendUnauthorized, sendBadRequest, sendServiceUnavailable, sendError } from "../../lib/apiResponse.js";
 
 export const authSync = async (req: Request, res: Response) => {
   try {
