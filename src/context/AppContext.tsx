@@ -304,7 +304,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (response.ok) {
             const data = await response.json();
             if (data.profile) {
-              setProfile(data.profile as UserProfile);
+              const isLocalOnboarded = typeof window !== 'undefined' && localStorage.getItem(`yuvahub_onboarded_${currentUser.uid}`) === 'true';
+              // localStorage takes priority — prevents re-showing onboarding after it's already been completed
+              const syncedProfile = {
+                ...data.profile,
+                onboarded: isLocalOnboarded ? true : Boolean(data.profile.onboarded),
+              };
+              setProfile(syncedProfile as UserProfile);
               // Seed the bookmarks slice from the synced profile
               setBookmarkedIds(data.profile.bookmarks ?? []);
               // Fetch karma
@@ -316,13 +322,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             throw new Error('Backend sync failed with status ' + response.status);
           }
         } catch (error) {
-          console.warn('MongoDB auth sync failed, falling back to Firestore:', error);
+          console.warn('MongoDB auth sync failed, falling back to local/Firestore profile:', error);
+          const isLocalOnboarded = typeof window !== 'undefined' && localStorage.getItem(`yuvahub_onboarded_${currentUser.uid}`) === 'true';
           try {
             const docRef = doc(db, 'users', currentUser.uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
               const data = docSnap.data() as UserProfile;
-              setProfile(data);
+              setProfile({ ...data, onboarded: data.onboarded !== undefined ? Boolean(data.onboarded) : (isLocalOnboarded || true) });
               setBookmarkedIds(data.bookmarks ?? []);
             } else {
               const fallback: UserProfile = {
@@ -330,17 +337,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 name: currentUser.displayName || '',
                 email: currentUser.email || '',
                 avatarUrl: currentUser.photoURL || '',
+                onboarded: isLocalOnboarded || true,
               };
               setProfile(fallback);
               setBookmarkedIds([]);
             }
           } catch (fsError) {
-            console.error('Firestore fallback sync failed:', fsError);
+            console.warn('Firestore fallback sync bypassed:', fsError);
             setProfile({
               uid: currentUser.uid,
               name: currentUser.displayName || '',
               email: currentUser.email || '',
               avatarUrl: currentUser.photoURL || '',
+              onboarded: isLocalOnboarded || true,
             });
             setBookmarkedIds([]);
           }

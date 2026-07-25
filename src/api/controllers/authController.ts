@@ -91,6 +91,7 @@ export const authSync = async (req: Request, res: Response) => {
           name,
           email,
           avatarUrl,
+          onboarded: req.body.onboarded !== undefined ? req.body.onboarded : true,
           role: email === "uditt490@gmail.com" ? "admin" : "student"
         }
       });

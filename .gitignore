@@ -11,3 +11,7 @@ public/uploads
 # Playwright Test Outputs
 test-results/
 playwright-report/
+
+# Firebase Service Account Keys (NEVER commit these!)
+*firebase-adminsdk*.json
+serviceAccount.b64

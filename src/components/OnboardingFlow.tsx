@@ -56,30 +56,35 @@ export default function OnboardingFlow({ user, profile, onComplete }: Onboarding
           onboarded: true
         };
 
-        // Write to Firestore
-        await setDoc(doc(db, 'users', user.uid), updatedProfile, { merge: true });
+        // ✅ Mark onboarded in localStorage FIRST — prevents re-showing even if auth listener fires
+        if (typeof window !== 'undefined' && user?.uid) {
+          localStorage.setItem(`yuvahub_onboarded_${user.uid}`, 'true');
+        }
 
-        // Write to MongoDB
-        try {
-          const token = await user.getIdToken(true);
-          await fetch("/api/v1/auth/sync", {
+        // ✅ Update UI immediately — don't wait for async DB saves
+        onComplete(updatedProfile);
+
+        // Save to Firestore in background (non-blocking)
+        setDoc(doc(db, 'users', user.uid), updatedProfile, { merge: true })
+          .catch((fsErr: any) => console.warn('[Onboarding] Firestore bypass:', fsErr));
+
+        // Save to MongoDB in background (non-blocking)
+        user.getIdToken(true).then((token: string) => {
+          fetch("/api/v1/auth/sync", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify(updatedProfile)
-          });
-        } catch (dbErr) {
-          console.warn("MongoDB sync failed on onboarding completion:", dbErr);
-        }
+          }).catch((dbErr: any) => console.warn("MongoDB sync failed on onboarding:", dbErr));
+        });
 
-        onComplete(updatedProfile);
       } catch (error) {
         console.error("Error saving profile", error);
         setStep(3); // Go back on error
       }
-    }, 2500);
+    }, 1500);
   };
 
   return (

@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import http from "http";
 import path from "path";
 import { initializeDatabase } from "./src/api/db.js";
@@ -18,8 +20,6 @@ import * as Sentry from "@sentry/node";
 import { eventBus } from "./src/events/eventBus.js";
 import { createNotificationConsumer } from "./src/consumers/notificationConsumer.js";
 import { createOpportunityScrapedConsumer } from "./src/consumers/opportunityScrapedConsumer.js";
-
-dotenv.config();
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,

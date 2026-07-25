@@ -1,4 +1,5 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, setLogLevel } from 'firebase/app';
+setLogLevel('error');
 import { 
   initializeAuth,
   browserLocalPersistence,
@@ -24,22 +25,7 @@ export const auth = initializeAuth(app, {
   popupRedirectResolver: browserPopupRedirectResolver
 });
 
-export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
-
-import { doc, getDocFromServer } from 'firebase/firestore';
-
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if(error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration: Firestore appears to be offline.");
-    } else {
-      console.warn("Firestore connection test failed (this might be expected if the test document doesn't exist, but it confirms reachability if no 'offline' error occurs):", error);
-    }
-  }
-}
-testConnection();
+export const db = getFirestore(app);
 
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();

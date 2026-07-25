@@ -1,13 +1,9 @@
 {
-  "apiKey": "AIzaSyC5VWEXOzsGwDHmHi0RQww7smq-1DKdDWc",
-  "authDomain": "gen-lang-client-0238861756.fireba 
-seapp.com ",
-  "projectId": "gen-lang-client-0238861756.fireba
-seapp.com",
-  "storageBucket": " gen-lang-client-0238861756.fireba
-
-seapp.com ",
+  "apiKey": "AIzaSyDogGdpIXHIrcptjtHqk078edEEf2qlOKE",
+  "authDomain": "gen-lang-client-0238861756.firebaseapp.com",
+  "projectId": "gen-lang-client-0238861756",
+  "storageBucket": "gen-lang-client-0238861756.firebasestorage.app",
   "messagingSenderId": "246109855323",
-  "appId": " 1:246109855323:web: 711b3b513e2ae2 02bca97e",
-  "measurementId": " G-885E2RP2FP"
+  "appId": "1:246109855323:web:711b3b513e2ae202bca97e",
+  "measurementId": "G-885E2RP2FP"
 }

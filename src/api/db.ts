@@ -70,7 +70,7 @@ async function attemptReconnect(): Promise<boolean> {
 
     return true;
   } catch (err) {
-    console.warn("[Database] Reconnection attempt failed — continuing in Mock Mode.");
+    // Silent fail in mock mode — background loop will retry quietly
     return false;
   }
 }

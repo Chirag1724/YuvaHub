@@ -4,7 +4,7 @@ import { dbCommand, dbQuery } from "../db.js";
 export const getKarmaBalance = async (req: Request, res: Response) => {
   try {
     const user = req.user;
-    if (!dbQuery) {
+    if (!dbQuery || (dbQuery as any).isMock) {
       // In offline / mock mode, return default initial karma balance
       return res.json({ balance: 1000 });
     }
