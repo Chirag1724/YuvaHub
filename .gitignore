@@ -17,3 +17,6 @@ firebase-applet-config.json
 
 # Bundle Visualizer Output
 stats.html
+
+# pnpm auto-generated workspace config (not needed for single-package projects)
+pnpm-workspace.yaml
