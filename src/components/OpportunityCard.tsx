@@ -1,7 +1,7 @@
 import React, { KeyboardEvent, MouseEvent, useState, useRef, useCallback } from "react";
 import { Bookmark, Shield, ExternalLink, X, CheckCircle, MapPin, Clock, ArrowRight, Sparkles, Building2, Coins, Calendar, Flag, Scale } from "lucide-react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
-import { ReportModal } from "./ui/ReportModal";
+import { OpportunityReportModal } from "./ui/OpportunityReportModal";
 import { useCompare } from "../context/CompareContext";
 
 export interface Opportunity {
@@ -361,12 +361,11 @@ export function OpportunityCard({
                 </div>
             )}
             
-            <ReportModal
+            <OpportunityReportModal
                 isOpen={showReportModal}
                 onClose={() => setShowReportModal(false)}
-                contentType="opportunity"
-                contentId={opp.id}
-                contentTitle={title}
+                opportunityId={opp.id}
+                opportunityTitle={title}
             />
         </>
     );

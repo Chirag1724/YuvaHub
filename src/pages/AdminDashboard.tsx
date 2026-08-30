@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AdminDataTable } from '../components/AdminDataTable';
+import { ReportModerationQueue } from '../components/admin/ReportModerationQueue';
 import { Users, Briefcase, TrendingUp } from 'lucide-react';
 
 interface PlatformStats {
@@ -96,7 +97,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Data Table */}
-            <div className="bg-surface dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="bg-surface dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Users</h2>
                 <AdminDataTable
                     columns={['Name', 'Email', 'Reputation', 'Joined']}
@@ -106,6 +107,9 @@ export const AdminDashboard: React.FC = () => {
                     ]}
                 />
             </div>
+
+            {/* Moderation Queue */}
+            <ReportModerationQueue />
         </div>
     );
 };
