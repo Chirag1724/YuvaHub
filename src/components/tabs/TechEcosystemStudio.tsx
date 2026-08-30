@@ -122,11 +122,11 @@ export default function TechEcosystemStudio() {
             {/* Top Banner Header - Brand Theme */}
       <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white">
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+        <div className="flex flex-col gap-6 relative z-10">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30">
-                <Globe className="w-3.5 h-3.5 text-indigo-400" /> Tech Ecosystem Intelligence
+                <Globe className="w-3.5 h-3.5 text-indigo-400 inline-block mr-1" /> TECH ECOSYSTEM INTELLIGENCE
               </span>
               <span className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
                 Global Chapter Rankings
@@ -141,12 +141,12 @@ export default function TechEcosystemStudio() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-surface dark:bg-slate-900 border border-border-theme dark:border-slate-800 p-4 rounded-2xl w-full lg:w-auto shadow-xs">
+          <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl w-full shadow-xs">
             <div className="relative flex items-center justify-center w-14 h-14 rounded-full border-4 border-primary-blue bg-background font-serif font-bold text-lg text-primary-blue">
               #1
             </div>
             <div>
-              <div className="text-[10px] uppercase font-bold text-text-muted tracking-wider">Top University Chapter</div>
+              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Top University Chapter</div>
               <div className="text-xs font-extrabold text-white">IIT Bombay GDSC</div>
               <div className="text-[11px] text-[#63703d] font-semibold">45,200 Ecosystem Points</div>
             </div>

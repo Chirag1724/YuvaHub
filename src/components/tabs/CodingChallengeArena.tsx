@@ -185,7 +185,7 @@ function ChallengeCard({ challenge, onSelect }: {
     <button
       type="button"
       onClick={onSelect}
-      className="w-full text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-surface dark:bg-gray-800 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all"
+      className="w-full text-left p-4 rounded-xl border border-border-theme dark:border-slate-800/60 shadow-sm bg-surface dark:bg-gray-800 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all"
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -241,7 +241,7 @@ function ChallengeDetail({ challenge, onBack }: {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Problem */}
         <div className="space-y-4">
-          <div className="bg-surface dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+          <div className="bg-surface dark:bg-gray-800 rounded-xl p-5 border border-border-theme dark:border-slate-800/60 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: diff.bg, color: diff.color }}>{diff.label}</span>
               <span className="text-xs text-gray-400">+{challenge.points} pts</span>
@@ -271,7 +271,7 @@ function ChallengeDetail({ challenge, onBack }: {
           </div>
 
           {/* Test Cases */}
-          <div className="bg-surface dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+          <div className="bg-surface dark:bg-gray-800 rounded-xl p-5 border border-border-theme dark:border-slate-800/60 shadow-sm">
             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Test Cases</h3>
             <div className="space-y-2">
               {[1, 2, 3].map((tc) => (
@@ -367,7 +367,7 @@ function LeaderboardTable() {
             className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
               entry.name === 'Anubhuti Sharma'
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-                : 'border-gray-200 dark:border-gray-700 bg-surface dark:bg-gray-800 hover:shadow-sm'
+                : 'border-border-theme dark:border-slate-800/60 bg-surface dark:bg-slate-900 hover:shadow-md'
             }`}
           >
             <div className="w-10 text-center">
@@ -412,7 +412,7 @@ function UserStatsPanel() {
   return (
     <div className="space-y-4">
       {/* Tier Progress */}
-      <div className="bg-surface dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+      <div className="bg-surface dark:bg-gray-800 rounded-xl p-5 border border-border-theme dark:border-slate-800/60 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold text-gray-900 dark:text-white">Your Tier</h3>
           <span className="text-xs px-3 py-1 rounded-full font-bold" style={{ background: `${tierColor}20`, color: tierColor }}>
@@ -439,7 +439,7 @@ function UserStatsPanel() {
           { icon: CheckCircle, label: 'Solved', value: USER_STATS.solved, color: '#10B981' },
           { icon: TrendingUp, label: 'Rank', value: `#${USER_STATS.rank}`, color: '#2563EB' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-surface dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700 text-center">
+          <div key={stat.label} className="bg-surface dark:bg-gray-800 rounded-xl p-3 border border-border-theme dark:border-slate-800/60 shadow-sm text-center">
             <stat.icon size={18} className="mx-auto mb-1" style={{ color: stat.color }} />
             <div className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</div>
             <div className="text-[10px] text-gray-400">{stat.label}</div>
@@ -448,7 +448,7 @@ function UserStatsPanel() {
       </div>
 
       {/* Difficulty Breakdown */}
-      <div className="bg-surface dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+      <div className="bg-surface dark:bg-gray-800 rounded-xl p-5 border border-border-theme dark:border-slate-800/60 shadow-sm">
         <h3 className="font-bold text-gray-900 dark:text-white mb-3">Difficulty Breakdown</h3>
         <div className="space-y-3">
           {DIFFICULTIES.map((d) => {
@@ -498,7 +498,7 @@ export default function CodingChallengeArena() {
 
   if (selectedChallenge) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="min-h-screen p-6">
         <div className="max-w-6xl mx-auto">
           <ChallengeDetail challenge={selectedChallenge} onBack={() => setSelectedChallenge(null)} />
         </div>
@@ -507,19 +507,33 @@ export default function CodingChallengeArena() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-            <Swords className="text-[#2563EB]" size={32} />
-            Coding Challenge Arena
-          </h1>
-          <p className="text-gray-500 text-lg">Sharpen your skills with competitive coding challenges</p>
+        <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white mb-8">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex flex-col gap-6 relative z-10">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30 flex items-center gap-1.5 shadow-xs">
+                  <Swords className="w-3.5 h-3.5 text-indigo-400" /> Competitive Coding
+                </span>
+                <span className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
+                  Global Leaderboard Active
+                </span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
+                Coding Challenge <span className="text-primary-blue italic">Arena</span>
+              </h1>
+              <p className="text-slate-300 text-xs md:text-sm max-w-2xl font-medium">
+                Sharpen your skills with competitive coding challenges, build your day streak, and climb the global ranking.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-surface dark:bg-gray-800 rounded-xl p-1 border border-gray-200 dark:border-gray-700">
+        <div className="flex gap-1 mb-6 bg-surface dark:bg-gray-800 rounded-xl p-1 border border-border-theme dark:border-slate-800/60 shadow-sm">
           {([
             { id: 'challenges' as const, label: '⚡ Challenges', count: filteredChallenges.length },
             { id: 'leaderboard' as const, label: '🏆 Leaderboard' },
@@ -554,12 +568,12 @@ export default function CodingChallengeArena() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-surface dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-theme dark:border-slate-800/60 shadow-sm bg-surface dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Search..."
                 />
               </div>
 
-              <div className="bg-surface dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+              <div className="bg-surface dark:bg-gray-800 rounded-xl p-4 border border-border-theme dark:border-slate-800/60 shadow-sm">
                 <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Difficulty</h4>
                 <div className="space-y-1">
                   {[{ id: 'all', label: 'All', color: '#6B7280' }, ...DIFFICULTIES].map((d) => (
@@ -578,7 +592,7 @@ export default function CodingChallengeArena() {
                 </div>
               </div>
 
-              <div className="bg-surface dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+              <div className="bg-surface dark:bg-gray-800 rounded-xl p-4 border border-border-theme dark:border-slate-800/60 shadow-sm">
                 <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Category</h4>
                 <div className="space-y-1">
                   {[{ id: 'all', label: 'All Categories', count: CHALLENGES.length }, ...CATEGORIES].map((c) => (

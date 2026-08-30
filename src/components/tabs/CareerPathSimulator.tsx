@@ -181,7 +181,7 @@ export default function CareerPathSimulator() {
   );
 
   return(
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-gray-900">
+    <div className="min-h-screen ">
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/20 via-purple-600/20 to-amber-600/20"/>
         <div className="relative px-6 py-8">

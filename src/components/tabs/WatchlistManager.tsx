@@ -139,29 +139,33 @@ export default function WatchlistManager() {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-8 font-sans pb-16 px-2 sm:px-4">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#f6efe2] via-[#fcf9f2] to-[#f6efe2] dark:from-slate-900 dark:to-slate-950 border border-border-theme dark:border-slate-800 p-6 md:p-8 shadow-sm">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+      {/* Header - Brand Theme */}
+      <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col gap-6 relative z-10">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#f3e4bd] bg-[#603620] rounded-full flex items-center gap-1.5 shadow-xs">
-                <Target className="w-3.5 h-3.5 text-[#f3e4bd]" /> Watchlist Rules Engine
+              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30 flex items-center gap-1.5 shadow-xs">
+                <Target className="w-3.5 h-3.5 text-indigo-400" /> Watchlist Rules Engine
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-primary dark:text-white tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
               Proactive <span className="text-primary-blue italic">Alerts</span>
             </h1>
-            <p className="text-text-secondary dark:text-slate-400 text-xs md:text-sm max-w-2xl font-medium">
+            <p className="text-slate-300 text-xs md:text-sm max-w-2xl font-medium">
               Define custom watchlists and receive real-time notifications when new opportunities match your exact criteria.
             </p>
           </div>
-          <button
-            onClick={() => setIsCreating(!isCreating)}
-            className="px-5 py-3 bg-primary-blue hover:bg-[#96552a] text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer flex items-center gap-1.5 transition-colors"
-          >
-            {isCreating ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {isCreating ? 'Cancel' : 'Create New Watchlist'}
-          </button>
+
+          <div className="flex items-center gap-4 w-full">
+            <button
+              onClick={() => setIsCreating(!isCreating)}
+              className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 px-6 py-4 bg-primary-blue hover:bg-blue-600 text-white text-sm font-bold rounded-2xl transition-all shadow-lg hover:shadow-primary-blue/20"
+            >
+              {isCreating ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+              {isCreating ? 'Cancel' : 'Create New Watchlist'}
+            </button>
+          </div>
         </div>
       </div>
 

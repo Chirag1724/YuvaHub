@@ -90,7 +90,6 @@ const Announcements = lazy(() => import('./components/tabs/Announcements'));
 const SavedSearchManager = lazy(() => import('./components/tabs/SavedSearchManager'));
 const MyRsvps = lazy(() => import('./components/tabs/MyRsvps').then(m => ({ default: m.MyRsvps })));
 
-const CardiovascularCriticalCareHub = lazy(() => import('./pages/Enterprise/CardiovascularCriticalCareHub').then(m => ({ default: m.CardiovascularCriticalCareHub })));
 const DeadlineCalendar = lazy(() => import('./components/tabs/DeadlineCalendar'));
 const DegreePlannerHub = lazy(() => import('./pages/DegreePlannerHub').then(m => ({ default: m.DegreePlannerHub })));
 const CampusAlumniEndowmentStudioPage = lazy(() => import('./pages/CampusAlumniEndowmentStudioPage'));
@@ -306,7 +305,7 @@ function App() {
       title: "Core Platform",
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'cardiovascular_hub', label: 'Cardiovascular & ECMO Hub', icon: HeartPulse, badge: 'CTICU' },
+
         { id: 'opportunities', label: 'Opportunities', icon: Globe },
         { id: 'application_tracker', label: 'Application Tracker', icon: Briefcase },
         { id: 'watchlist_manager', label: 'Watchlists & Alerts', icon: Sparkles, badge: 'NEW' },
@@ -389,7 +388,7 @@ function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <Dashboard />;
-      case 'cardiovascular_hub': return <CardiovascularCriticalCareHub />;
+
       case 'opportunities': return <Opportunities />;
       case 'application_tracker': return <ApplicationTracker />;
       case 'deadline_calendar': return <DeadlineCalendar />;
@@ -650,7 +649,7 @@ function App() {
                     }}
                     className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-surface-secondary dark:bg-blue-950/60 text-primary-blue dark:text-blue-400 font-extrabold border-r-2 border-primary-blue dark:border-blue-500 shadow-xs'
+                        ? 'bg-surface-secondary dark:bg-slate-800 text-primary-blue dark:text-blue-400 font-extrabold'
                         : 'text-text-secondary dark:text-gray-400 hover:bg-surface-secondary/70 dark:hover:bg-gray-800/80 hover:text-text-primary dark:hover:text-white'
                     }`}
                   >
@@ -730,7 +729,7 @@ function App() {
                       }}
                       className={`w-full flex items-center justify-between px-3 py-3 text-xs font-semibold rounded-xl transition-all ${
                         isActive
-                          ? 'bg-surface-secondary text-primary-blue font-extrabold border-r-2 border-primary-blue'
+                          ? 'bg-surface-secondary text-primary-blue font-extrabold'
                           : 'text-text-secondary hover:bg-surface-secondary/70 hover:text-text-primary'
                       }`}
                     >
