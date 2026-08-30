@@ -5,7 +5,7 @@ import bookmarkRoutes from "./bookmarkRoutes.js";
 import karmaRoutes from "./karmaRoutes.js";
 import bountyRoutes from "./bountyRoutes.js";
 import storageRoutes from "./storageRoutes.js";
-import resumeBuilderRoutes from "./resumeBuilderRoutes.js";
+import resumeRoutes from "./resumeRoutes.js";
 import opportunityRoutes from "./opportunityRoutes.js";
 import aiRoutes from "./aiRoutes.js";
 import searchRoutes from "./searchRoutes.js";
@@ -39,12 +39,9 @@ import testimonialRoutes from "./testimonialRoutes.js";
 import eventRsvpRoutes from "./eventRsvpRoutes.js";
 import skillAssessmentRoutes from "./skillAssessmentRoutes.js";
 import voteRoutes from "./voteRoutes.js";
- feat/hackathon-workspace-sync
 import workspaceRoutes from "./workspaceRoutes.js";
-
 import studyRoomRoutes from "./studyRoomRoutes.js";
 import observabilityRoutes from "./observabilityRoutes.js";
- main
 import { errorHandler } from "../middlewares/errorHandler.js";
 import { apiVersionHeaders } from "../versioning/middleware.js";
 
@@ -59,7 +56,7 @@ const routes = [
   karmaRoutes,
   bountyRoutes,
   storageRoutes,
-  resumeBuilderRoutes,
+  resumeRoutes,
   opportunityRoutes,
   aiRoutes,
   searchRoutes,
@@ -93,12 +90,9 @@ const routes = [
   eventRsvpRoutes,
   skillAssessmentRoutes,
   voteRoutes,
- feat/hackathon-workspace-sync
   workspaceRoutes,
-
   studyRoomRoutes,
   observabilityRoutes,
- main
 ];
 
 // Mount all routes onto v1Router

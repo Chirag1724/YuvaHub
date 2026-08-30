@@ -9,12 +9,14 @@
 
 import path from 'path';
 import ejs from 'ejs';
+// @ts-ignore
 import puppeteer from 'puppeteer';
 import DOMPurify from 'dompurify';
+// @ts-ignore
 import { JSDOM } from 'jsdom';
 
 // Initialise DOMPurify with a JSDOM window (server‑side usage)
-const window = new JSDOM('').window as unknown as Window;
+const window = new JSDOM('').window as any;
 const purify = DOMPurify(window);
 
 /**
