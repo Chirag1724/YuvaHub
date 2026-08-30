@@ -110,7 +110,7 @@ export const opportunityDeduplicationWorker = new Worker(
                 return { status: 'created', id: newOpportunity._id };
             }
         } catch (error) {
-            logger.error(`Deduplication worker failed for job ${job.id}:`, error);
+            logger.error(error as any, `Deduplication worker failed for job ${job.id}:`);
             throw error;
         }
     },

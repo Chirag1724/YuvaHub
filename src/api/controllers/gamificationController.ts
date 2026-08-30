@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { User } from '../../models/User';
-import { ReputationLog } from '../../models/ReputationLog';
-import { redisClient } from '../../config/redis';
-import { logger } from '../../utils/logger';
+import { User } from '../../models/User.js';
+import { ReputationLog } from '../../models/ReputationLog.js';
+import { redis as redisClient } from '../../config/redis.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Fetches the real-time weekly leaderboard from Redis.
@@ -12,17 +12,17 @@ export const getLeaderboard = async (req: Request, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 10;
 
         // ZREVRANGE to get top scores
-        const topUsers = await redisClient.zRange('reputation_leaderboard_weekly', 0, limit - 1, { REV: true });
+        const topUsers = await (redisClient as any).zrange('reputation_leaderboard_weekly', 0, limit - 1, 'REV');
 
         // Fetch user details for the top IDs
-        const userDetails = await User.find(
+        const userDetails = await (User as any).find(
             { _id: { $in: topUsers } },
             'name reputation_score level badges'
         ).sort({ reputation_score: -1 });
 
         res.status(200).json({ data: userDetails });
     } catch (error) {
-        logger.error('Error fetching leaderboard:', error);
+        (logger.error as any)({ error }, 'Error fetching leaderboard:');
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -49,7 +49,7 @@ export const getUserReputationHistory = async (req: Request, res: Response) => {
             pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
         });
     } catch (error) {
-        logger.error('Error fetching user reputation history:', error);
+        (logger.error as any)({ error }, 'Error fetching user reputation history:');
         res.status(500).json({ error: 'Internal server error' });
     }
 };
