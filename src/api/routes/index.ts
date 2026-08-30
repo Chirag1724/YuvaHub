@@ -39,6 +39,7 @@ import testimonialRoutes from "./testimonialRoutes.js";
 import eventRsvpRoutes from "./eventRsvpRoutes.js";
 import skillAssessmentRoutes from "./skillAssessmentRoutes.js";
 import voteRoutes from "./voteRoutes.js";
+import workspaceRoutes from "./workspaceRoutes.js";
 import { errorHandler } from "../middlewares/errorHandler.js";
 import { apiVersionHeaders } from "../versioning/middleware.js";
 
@@ -87,6 +88,7 @@ const routes = [
   eventRsvpRoutes,
   skillAssessmentRoutes,
   voteRoutes,
+  workspaceRoutes,
 ];
 
 // Mount all routes onto v1Router
