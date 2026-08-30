@@ -73,9 +73,9 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-7xl max-h-[96vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-primary-blue border border-border-theme rounded-3xl w-full max-w-7xl max-h-[96vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-theme bg-slate-950/80">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-400 font-mono font-black text-lg">
               {patient.bedNumber}
@@ -83,14 +83,14 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
             <div>
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-black text-white tracking-tight">{patient.name}</h2>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono border border-slate-700">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-surface-secondary text-slate-300 font-mono border border-border-theme">
                   {patient.mrn} • {patient.age}y {patient.sex} • BSA: {patient.bodySurfaceAreaM2} m² ({patient.weightKg} kg / {patient.heightCm} cm)
                 </span>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40">
                   {patient.scaiStage.replace("STAGE_", "SCAI ")}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-text-muted mt-0.5">
                 Attending: <strong className="text-slate-300">{patient.attendingCardiologist}</strong> | Perfusionist: <strong className="text-slate-300">{patient.primaryPerfusionist}</strong> | Hours on MCS: <strong className="text-cyan-400">{patient.hoursOnSupport}h</strong>
               </p>
             </div>
@@ -106,7 +106,7 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-xl text-text-muted hover:text-white hover:bg-surface-secondary transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
@@ -114,13 +114,13 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 px-6 py-2.5 border-b border-slate-800 bg-slate-950/40 overflow-x-auto">
+        <div className="flex items-center gap-2 px-6 py-2.5 border-b border-border-theme bg-slate-950/40 overflow-x-auto">
           <button
             onClick={() => setActiveTab("WAVEFORMS")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "WAVEFORMS"
-                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                ? "bg-cyan-500/200/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
+                : "text-text-muted hover:text-slate-200 hover:bg-surface-secondary/60"
             }`}
           >
             <Activity className="w-4 h-4 text-cyan-400" />
@@ -132,7 +132,7 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "HEMODYNAMICS"
                 ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                : "text-text-muted hover:text-slate-200 hover:bg-surface-secondary/60"
             }`}
           >
             <Heart className="w-4 h-4 text-rose-400" />
@@ -143,8 +143,8 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
             onClick={() => setActiveTab("ECMO_MCS")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "ECMO_MCS"
-                ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                ? "bg-amber-500/200/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                : "text-text-muted hover:text-slate-200 hover:bg-surface-secondary/60"
             }`}
           >
             <RotateCcw className="w-4 h-4 text-amber-400" />
@@ -156,7 +156,7 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "VASOACTIVES"
                 ? "bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                : "text-text-muted hover:text-slate-200 hover:bg-surface-secondary/60"
             }`}
           >
             <Syringe className="w-4 h-4 text-violet-400" />
@@ -167,8 +167,8 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
             onClick={() => setActiveTab("ANTICOAG_LABS")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "ANTICOAG_LABS"
-                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                ? "bg-emerald-500/200/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                : "text-text-muted hover:text-slate-200 hover:bg-surface-secondary/60"
             }`}
           >
             <Droplets className="w-4 h-4 text-emerald-400" />
@@ -179,8 +179,8 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
             onClick={() => setActiveTab("FHIR_EXPORT")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "FHIR_EXPORT"
-                ? "bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                ? "bg-blue-500/200/20 text-blue-300 border border-blue-500/40 shadow-sm"
+                : "text-text-muted hover:text-slate-200 hover:bg-surface-secondary/60"
             }`}
           >
             <FileText className="w-4 h-4 text-blue-400" />
@@ -194,13 +194,13 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
           {activeTab === "WAVEFORMS" && (
             <div className="space-y-4">
               {/* Channel 1: ECG Lead II */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold font-mono">
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/200/20 text-emerald-300 text-xs font-bold font-mono">
                       ECG LEAD II
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">
+                    <span className="text-xs text-text-muted font-mono">
                       Rhythm: <strong className="text-white">{patient.hemodynamics.rhythmStatus}</strong>
                     </span>
                   </div>
@@ -216,13 +216,13 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
               </div>
 
               {/* Channel 2: Invasive Arterial Line Waveform */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-xs font-bold font-mono">
                       ART LINE (RADIAL/FEMORAL)
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">
+                    <span className="text-xs text-text-muted font-mono">
                       Pulse Pressure: <strong className="text-white">{patient.hemodynamics.pulsePressureMmHg} mmHg</strong>
                       {patient.hemodynamics.pulsePressureMmHg < 10 && (
                         <span className="text-red-400 ml-2 font-bold">(Flat PP / Aortic Valve Closed)</span>
@@ -243,13 +243,13 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
               </div>
 
               {/* Channel 3: Swan-Ganz Pulmonary Artery Waveform */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-xs font-bold font-mono">
+                    <span className="px-2 py-0.5 rounded bg-amber-500/200/20 text-amber-300 text-xs font-bold font-mono">
                       PULMONARY ARTERY (SWAN-GANZ)
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">
+                    <span className="text-xs text-text-muted font-mono">
                       PCWP (Wedge): <strong className="text-white">{patient.hemodynamics.pulmonaryCapillaryWedgePressureMmHg} mmHg</strong> | PAPi: <strong className="text-amber-400">{patient.hemodynamics.pulmonaryArteryPulsatilityIndex}</strong>
                     </span>
                   </div>
@@ -268,13 +268,13 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
 
               {/* Channel 4: ECMO Circuit Centrifugal Flow Waveform */}
               {patient.mcsDevice.includes("ECMO") && (
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                <div className="bg-slate-950 border border-border-theme rounded-2xl p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-xs font-bold font-mono">
+                      <span className="px-2 py-0.5 rounded bg-cyan-500/200/20 text-cyan-300 text-xs font-bold font-mono">
                         EXTRACORPOREAL FLOW & P3 DRAINAGE
                       </span>
-                      <span className="text-xs text-slate-400 font-mono">
+                      <span className="text-xs text-text-muted font-mono">
                         TMP ΔP: <strong className="text-white">{patient.ecmoTelemetry.transmembranePressureGradientMmHg} mmHg</strong> | P3: <strong className="text-cyan-400">{patient.ecmoTelemetry.venousDrainagePressureP3MmHg} mmHg</strong>
                       </span>
                     </div>
@@ -298,90 +298,90 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
           {activeTab === "HEMODYNAMICS" && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Cardiac Work & Power Output */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-border-theme pb-2">
                   <Flame className="w-4 h-4 text-rose-400" />
                   Hydraulic Power & Work
                 </h3>
                 <div className="space-y-3 font-mono text-xs">
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">Cardiac Power Output (CPO):</span>
+                    <span className="text-text-muted">Cardiac Power Output (CPO):</span>
                     <span className="text-sm font-black text-rose-400">{patient.hemodynamics.cardiacPowerOutputWatts} Watts</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">Cardiac Power Index (CPI):</span>
+                    <span className="text-text-muted">Cardiac Power Index (CPI):</span>
                     <span className="font-bold text-white">{patient.hemodynamics.cardiacPowerIndexWattsM2} W/m²</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">LV Stroke Work Index (LVSWI):</span>
+                    <span className="text-text-muted">LV Stroke Work Index (LVSWI):</span>
                     <span className="font-bold text-cyan-300">{patient.hemodynamics.leftVentricularStrokeWorkIndex} g·m/m²</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">RV Stroke Work Index (RVSWI):</span>
+                    <span className="text-text-muted">RV Stroke Work Index (RVSWI):</span>
                     <span className="font-bold text-amber-300">{patient.hemodynamics.rightVentricularStrokeWorkIndex} g·m/m²</span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-400">Shock Index (HR/SBP):</span>
+                    <span className="text-text-muted">Shock Index (HR/SBP):</span>
                     <span className="font-bold text-white">{patient.hemodynamics.shockIndex} (Mod: {patient.hemodynamics.modifiedShockIndex})</span>
                   </div>
                 </div>
               </div>
 
               {/* Output & Resistance Profile */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-border-theme pb-2">
                   <Activity className="w-4 h-4 text-cyan-400" />
                   Perfusion & Resistances
                 </h3>
                 <div className="space-y-3 font-mono text-xs">
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">Cardiac Output (CO):</span>
+                    <span className="text-text-muted">Cardiac Output (CO):</span>
                     <span className="text-sm font-black text-white">{patient.hemodynamics.cardiacOutputLpm} L/min</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">Cardiac Index (CI):</span>
+                    <span className="text-text-muted">Cardiac Index (CI):</span>
                     <span className="font-bold text-cyan-400">{patient.hemodynamics.cardiacIndexLpmM2} L/min/m²</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">Stroke Volume (SV / SVI):</span>
+                    <span className="text-text-muted">Stroke Volume (SV / SVI):</span>
                     <span className="font-bold text-white">{patient.hemodynamics.strokeVolumeMl} mL ({patient.hemodynamics.strokeVolumeIndexMlM2} mL/m²)</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">Systemic Vascular Res (SVR):</span>
+                    <span className="text-text-muted">Systemic Vascular Res (SVR):</span>
                     <span className="font-bold text-emerald-300">{patient.hemodynamics.systemicVascularResistanceDynes} dynes·s/cm⁵</span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-400">Pulmonary Vascular Res (PVR):</span>
+                    <span className="text-text-muted">Pulmonary Vascular Res (PVR):</span>
                     <span className="font-bold text-amber-300">{patient.hemodynamics.pulmonaryVascularResistanceWoodUnits} Wood Units</span>
                   </div>
                 </div>
               </div>
 
               {/* Pulmonary & Right Heart Pressures */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-border-theme pb-2">
                   <Layers className="w-4 h-4 text-amber-400" />
                   Pulmonary & Filling Pressures
                 </h3>
                 <div className="space-y-3 font-mono text-xs">
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">PAPi (RV Function Index):</span>
+                    <span className="text-text-muted">PAPi (RV Function Index):</span>
                     <span className="text-sm font-black text-amber-400">{patient.hemodynamics.pulmonaryArteryPulsatilityIndex}</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">PCWP (Wedge Pressure):</span>
+                    <span className="text-text-muted">PCWP (Wedge Pressure):</span>
                     <span className="font-bold text-white">{patient.hemodynamics.pulmonaryCapillaryWedgePressureMmHg} mmHg</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">Central Venous Pressure (CVP):</span>
+                    <span className="text-text-muted">Central Venous Pressure (CVP):</span>
                     <span className="font-bold text-white">{patient.hemodynamics.centralVenousPressureMmHg} mmHg</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="text-slate-400">Transpulmonary Grad (TPG):</span>
+                    <span className="text-text-muted">Transpulmonary Grad (TPG):</span>
                     <span className="font-bold text-slate-300">{patient.hemodynamics.transpulmonaryGradientMmHg} mmHg</span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-400">Diastolic Pulm Grad (DPG):</span>
+                    <span className="text-text-muted">Diastolic Pulm Grad (DPG):</span>
                     <span className="font-bold text-slate-300">{patient.hemodynamics.diastolicPulmonaryGradientMmHg} mmHg</span>
                   </div>
                 </div>
@@ -393,8 +393,8 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
           {activeTab === "ECMO_MCS" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* ECMO Circuit Board */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-border-theme pb-3">
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                     <RotateCcw className="w-4 h-4 text-rose-400" />
                     ECMO Extracorporeal Membrane Telemetry
@@ -404,30 +404,30 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 font-mono text-xs">
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">PUMP SPEED</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">PUMP SPEED</span>
                     <span className="text-lg font-black text-white">{patient.ecmoTelemetry.pumpSpeedRpm} RPM</span>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">BLOOD FLOW</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">BLOOD FLOW</span>
                     <span className="text-lg font-black text-cyan-400">{patient.ecmoTelemetry.bloodFlowLpm} L/min</span>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">SWEEP GAS FLOW / FiO2</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">SWEEP GAS FLOW / FiO2</span>
                     <span className="text-base font-bold text-white">{patient.ecmoTelemetry.sweepGasFlowLpm} L/min @ {patient.ecmoTelemetry.sweepGasFiO2Percent}%</span>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">TMP ΔP (CLOTTING INDEX)</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">TMP ΔP (CLOTTING INDEX)</span>
                     <span className={`text-base font-bold ${patient.ecmoTelemetry.transmembranePressureGradientMmHg >= 50 ? "text-amber-400 font-black" : "text-emerald-400"}`}>
                       {patient.ecmoTelemetry.transmembranePressureGradientMmHg} mmHg
                     </span>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">P1 PRE / P2 POST PRESSURE</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">P1 PRE / P2 POST PRESSURE</span>
                     <span className="text-sm font-bold text-slate-300">P1: {patient.ecmoTelemetry.preMembranePressureP1MmHg} / P2: {patient.ecmoTelemetry.postMembranePressureP2MmHg} mmHg</span>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">P3 DRAINAGE PRESSURE</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">P3 DRAINAGE PRESSURE</span>
                     <span className="text-sm font-bold text-cyan-300">{patient.ecmoTelemetry.venousDrainagePressureP3MmHg} mmHg</span>
                   </div>
                 </div>
@@ -435,54 +435,54 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
                 {/* Harlequin Surveillance Strip */}
                 <div className="bg-rose-950/20 border border-rose-800/40 rounded-xl p-3 font-mono text-xs space-y-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold">Harlequin Surveillance:</span>
+                    <span className="text-text-muted font-bold">Harlequin Surveillance:</span>
                     <span className={`font-black ${patient.ecmoTelemetry.harlequinDeltaSpO2Percent >= 10 ? "text-rose-400" : "text-slate-300"}`}>
                       Delta SpO2: {patient.ecmoTelemetry.harlequinDeltaSpO2Percent}%
                     </span>
                   </div>
-                  <div className="text-slate-400 text-[11px]">
+                  <div className="text-text-muted text-[11px]">
                     Right Radial (Native Head): <strong>{patient.ecmoTelemetry.rightRadialNativeSpO2Percent}%</strong> | Lower Leg (ECMO): <strong>{patient.ecmoTelemetry.lowerExtremityEcmoSpO2Percent}%</strong>
                   </div>
                 </div>
               </div>
 
               {/* Impella / Microaxial / IABP Console */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-border-theme pb-3">
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                     <Zap className="w-4 h-4 text-amber-400" />
                     Microaxial & Mechanical Unloading
                   </h3>
-                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-xs font-bold">
+                  <span className="px-2 py-0.5 rounded bg-amber-500/200/20 text-amber-300 font-mono text-xs font-bold">
                     {patient.mcsDevice}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 font-mono text-xs">
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">IMPELLA PERFORMANCE LEVEL</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">IMPELLA PERFORMANCE LEVEL</span>
                     <span className="text-lg font-black text-amber-400">{patient.microaxialTelemetry.impellaPLevel}</span>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">MICROAXIAL FLOW</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">MICROAXIAL FLOW</span>
                     <span className="text-lg font-black text-white">{patient.microaxialTelemetry.impellaFlowLpm} L/min</span>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">MOTOR CURRENT</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">MOTOR CURRENT</span>
                     <span className="text-base font-bold text-slate-300">{patient.microaxialTelemetry.motorCurrentMilliamps} mA</span>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">PURGE PRESSURE & FLOW</span>
+                  <div className="bg-primary-blue/80 p-3 rounded-xl border border-border-theme">
+                    <span className="text-text-muted block text-[10px]">PURGE PRESSURE & FLOW</span>
                     <span className="text-sm font-bold text-slate-300">{patient.microaxialTelemetry.purgePressureMmHg} mmHg ({patient.microaxialTelemetry.purgeFlowRateMlHr} mL/hr)</span>
                   </div>
                 </div>
 
-                <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 font-mono text-xs space-y-1">
+                <div className="bg-primary-blue/80 border border-border-theme rounded-xl p-3 font-mono text-xs space-y-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Optical Placement Signal:</span>
+                    <span className="text-text-muted">Optical Placement Signal:</span>
                     <span className="font-bold text-emerald-400">{patient.microaxialTelemetry.opticalPlacementSignalStatus}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400">IABP Augmentation Ratio:</span>
+                    <span className="text-text-muted">IABP Augmentation Ratio:</span>
                     <span className="font-bold text-blue-400">{patient.microaxialTelemetry.iabpAugmentationRatio} (Aug DBP: {patient.microaxialTelemetry.iabpAugmentedDiastolicMmHg} mmHg)</span>
                   </div>
                 </div>
@@ -493,17 +493,17 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
           {/* TAB 4: VASOACTIVES */}
           {activeTab === "VASOACTIVES" && (
             <div className="space-y-5">
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 flex items-center justify-between">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-6 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">TOTAL VASOACTIVE-INOTROPIC SCORE (VIS)</span>
+                  <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">TOTAL VASOACTIVE-INOTROPIC SCORE (VIS)</span>
                   <div className="text-3xl font-black text-cyan-400 font-mono mt-1">
                     {patient.vasoactiveSupport.vasoactiveInotropicScore}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-text-muted mt-1">
                     Formula: Dopamine + Dobutamine + 100*Epi + 100*Norepi + 10*Milrinone + 10,000*Vasopressin
                   </p>
                 </div>
-                <div className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 font-mono">
+                <div className="px-4 py-2 rounded-xl bg-primary-blue border border-border-theme text-xs text-slate-300 font-mono">
                   Vasopressor Burden: <strong className={patient.vasoactiveSupport.vasoactiveInotropicScore > 30 ? "text-red-400" : "text-emerald-400"}>
                     {patient.vasoactiveSupport.vasoactiveInotropicScore > 30 ? "High Intensity" : "Moderate Support"}
                   </strong>
@@ -511,35 +511,35 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono">
-                  <span className="text-[10px] text-slate-400 uppercase">EPINEPHRINE</span>
+                <div className="bg-slate-950 border border-border-theme rounded-xl p-4 font-mono">
+                  <span className="text-[10px] text-text-muted uppercase">EPINEPHRINE</span>
                   <span className="text-lg font-black text-white block mt-1">{patient.vasoactiveSupport.epinephrineMcgKgMin}</span>
-                  <span className="text-[11px] text-slate-500">mcg/kg/min</span>
+                  <span className="text-[11px] text-text-muted">mcg/kg/min</span>
                 </div>
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono">
-                  <span className="text-[10px] text-slate-400 uppercase">NOREPINEPHRINE</span>
+                <div className="bg-slate-950 border border-border-theme rounded-xl p-4 font-mono">
+                  <span className="text-[10px] text-text-muted uppercase">NOREPINEPHRINE</span>
                   <span className="text-lg font-black text-white block mt-1">{patient.vasoactiveSupport.norepinephrineMcgKgMin}</span>
-                  <span className="text-[11px] text-slate-500">mcg/kg/min</span>
+                  <span className="text-[11px] text-text-muted">mcg/kg/min</span>
                 </div>
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono">
-                  <span className="text-[10px] text-slate-400 uppercase">VASOPRESSIN</span>
+                <div className="bg-slate-950 border border-border-theme rounded-xl p-4 font-mono">
+                  <span className="text-[10px] text-text-muted uppercase">VASOPRESSIN</span>
                   <span className="text-lg font-black text-white block mt-1">{patient.vasoactiveSupport.vasopressinUnitsMin}</span>
-                  <span className="text-[11px] text-slate-500">units/min</span>
+                  <span className="text-[11px] text-text-muted">units/min</span>
                 </div>
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono">
-                  <span className="text-[10px] text-slate-400 uppercase">DOBUTAMINE</span>
+                <div className="bg-slate-950 border border-border-theme rounded-xl p-4 font-mono">
+                  <span className="text-[10px] text-text-muted uppercase">DOBUTAMINE</span>
                   <span className="text-lg font-black text-white block mt-1">{patient.vasoactiveSupport.dobutamineMcgKgMin}</span>
-                  <span className="text-[11px] text-slate-500">mcg/kg/min</span>
+                  <span className="text-[11px] text-text-muted">mcg/kg/min</span>
                 </div>
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono">
-                  <span className="text-[10px] text-slate-400 uppercase">MILRINONE</span>
+                <div className="bg-slate-950 border border-border-theme rounded-xl p-4 font-mono">
+                  <span className="text-[10px] text-text-muted uppercase">MILRINONE</span>
                   <span className="text-lg font-black text-white block mt-1">{patient.vasoactiveSupport.milrinoneMcgKgMin}</span>
-                  <span className="text-[11px] text-slate-500">mcg/kg/min</span>
+                  <span className="text-[11px] text-text-muted">mcg/kg/min</span>
                 </div>
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono">
-                  <span className="text-[10px] text-slate-400 uppercase">DOPAMINE</span>
+                <div className="bg-slate-950 border border-border-theme rounded-xl p-4 font-mono">
+                  <span className="text-[10px] text-text-muted uppercase">DOPAMINE</span>
                   <span className="text-lg font-black text-white block mt-1">{patient.vasoactiveSupport.dopamineMcgKgMin}</span>
-                  <span className="text-[11px] text-slate-500">mcg/kg/min</span>
+                  <span className="text-[11px] text-text-muted">mcg/kg/min</span>
                 </div>
               </div>
             </div>
@@ -548,60 +548,60 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
           {/* TAB 5: ANTICOAGULATION & LABS */}
           {activeTab === "ANTICOAG_LABS" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-5 space-y-3">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-border-theme pb-2">
                   <Droplets className="w-4 h-4 text-emerald-400" />
                   Anticoagulation & Hemostasis
                 </h3>
                 <div className="flex justify-between py-1 border-b border-slate-900">
-                  <span className="text-slate-400">Activated Clotting Time (ACT):</span>
+                  <span className="text-text-muted">Activated Clotting Time (ACT):</span>
                   <span className="font-bold text-white">{patient.anticoagulationLabs.activatedClottingTimeSeconds} seconds (Target: 180-220s)</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-900">
-                  <span className="text-slate-400">Anti-Xa Activity:</span>
+                  <span className="text-text-muted">Anti-Xa Activity:</span>
                   <span className="font-bold text-cyan-300">{patient.anticoagulationLabs.antiXaActivityIuMl} IU/mL (Target: 0.3-0.7)</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-900">
-                  <span className="text-slate-400">Heparin Infusion Rate:</span>
+                  <span className="text-text-muted">Heparin Infusion Rate:</span>
                   <span className="font-bold text-white">{patient.anticoagulationLabs.unfractionatedHeparinUnitsHr} units/hr</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-900">
-                  <span className="text-slate-400">Fibrinogen:</span>
+                  <span className="text-text-muted">Fibrinogen:</span>
                   <span className="font-bold text-white">{patient.anticoagulationLabs.fibrinogenMgDl} mg/dL</span>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span className="text-slate-400">Free Plasma Hemoglobin (fHb):</span>
+                  <span className="text-text-muted">Free Plasma Hemoglobin (fHb):</span>
                   <span className={`font-black ${patient.anticoagulationLabs.freePlasmaHemoglobinMgDl >= 50 ? "text-amber-400" : "text-emerald-400"}`}>
                     {patient.anticoagulationLabs.freePlasmaHemoglobinMgDl} mg/dL
                   </span>
                 </div>
               </div>
 
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+              <div className="bg-slate-950 border border-border-theme rounded-2xl p-5 space-y-3">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-border-theme pb-2">
                   <Activity className="w-4 h-4 text-cyan-400" />
                   Metabolic & Acid-Base Profile
                 </h3>
                 <div className="flex justify-between py-1 border-b border-slate-900">
-                  <span className="text-slate-400">Serum Lactate:</span>
+                  <span className="text-text-muted">Serum Lactate:</span>
                   <span className={`font-black ${patient.anticoagulationLabs.lactateMmolL >= 4.0 ? "text-red-400" : "text-amber-400"}`}>
                     {patient.anticoagulationLabs.lactateMmolL} mmol/L
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-900">
-                  <span className="text-slate-400">Arterial pH:</span>
+                  <span className="text-text-muted">Arterial pH:</span>
                   <span className="font-bold text-white">{patient.anticoagulationLabs.arterialPh}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-900">
-                  <span className="text-slate-400">Base Excess:</span>
+                  <span className="text-text-muted">Base Excess:</span>
                   <span className="font-bold text-white">{patient.anticoagulationLabs.arterialBaseExcessMeqL} mEq/L</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-900">
-                  <span className="text-slate-400">Serum Creatinine:</span>
+                  <span className="text-text-muted">Serum Creatinine:</span>
                   <span className="font-bold text-white">{patient.anticoagulationLabs.serumCreatinineMgDl} mg/dL</span>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span className="text-slate-400">Platelet Count:</span>
+                  <span className="text-text-muted">Platelet Count:</span>
                   <span className="font-bold text-white">{patient.anticoagulationLabs.plateletCountKUl} k/μL</span>
                 </div>
               </div>
@@ -612,27 +612,27 @@ export const CardioTelemetryInspectorModal: React.FC<CardioTelemetryInspectorMod
           {activeTab === "FHIR_EXPORT" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400 font-mono">
+                <span className="text-xs text-text-muted font-mono">
                   HL7 FHIR R4 Bundle with LOINC & SNOMED CT Terminology Bindings
                 </span>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleCopyFhir}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-secondary hover:bg-slate-700 text-slate-300 border border-border-theme transition-all"
                   >
                     {copiedFhir ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
                     {copiedFhir ? "Copied FHIR" : "Copy JSON"}
                   </button>
                   <button
                     onClick={handleDownloadCsv}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md shadow-cyan-600/30"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-500/200 text-white transition-all shadow-md shadow-cyan-600/30"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Download CSV
                   </button>
                 </div>
               </div>
-              <pre className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs font-mono text-cyan-300 max-h-96 overflow-y-auto">
+              <pre className="bg-slate-950 border border-border-theme rounded-2xl p-4 text-xs font-mono text-cyan-300 max-h-96 overflow-y-auto">
                 {JSON.stringify(fhirBundle, null, 2)}
               </pre>
             </div>

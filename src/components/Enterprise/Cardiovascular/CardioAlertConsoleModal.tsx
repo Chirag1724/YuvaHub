@@ -43,25 +43,25 @@ export const CardioAlertConsoleModal: React.FC<CardioAlertConsoleModalProps> = (
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-primary-blue border border-border-theme rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-theme bg-slate-950/80">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/200/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white tracking-tight">
                 Cardiovascular Alarm Console & Sign-Off
               </h2>
-              <p className="text-xs text-slate-400 font-mono">
+              <p className="text-xs text-text-muted font-mono">
                 Bed: {patient.bedNumber} • {patient.name} ({patient.mrn})
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-text-muted hover:text-white hover:bg-surface-secondary transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -74,7 +74,7 @@ export const CardioAlertConsoleModal: React.FC<CardioAlertConsoleModalProps> = (
           </div>
 
           {patient.alerts.length === 0 ? (
-            <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-6 text-center text-slate-400 font-mono text-xs">
+            <div className="bg-slate-950/60 border border-border-theme rounded-xl p-6 text-center text-text-muted font-mono text-xs">
               <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
               No active unacknowledged clinical safety alarms.
             </div>
@@ -103,15 +103,15 @@ export const CardioAlertConsoleModal: React.FC<CardioAlertConsoleModalProps> = (
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
                     <div>
-                      <span className="text-slate-400">Trigger:</span> <strong className="text-white">{alert.triggerMeasurement}</strong>
+                      <span className="text-text-muted">Trigger:</span> <strong className="text-white">{alert.triggerMeasurement}</strong>
                     </div>
                     <div>
-                      <span className="text-slate-400">Expected:</span> <span className="text-slate-300">{alert.expectedRange}</span>
+                      <span className="text-text-muted">Expected:</span> <span className="text-slate-300">{alert.expectedRange}</span>
                     </div>
                   </div>
 
                   <div className="text-[11px] text-slate-300 font-sans">
-                    <strong className="text-slate-400">Pathophysiology:</strong> {alert.clinicalMeaning}
+                    <strong className="text-text-muted">Pathophysiology:</strong> {alert.clinicalMeaning}
                   </div>
 
                   <div className="text-[11px] text-cyan-300 font-sans bg-black/40 p-2 rounded-lg border border-cyan-500/20">
@@ -123,22 +123,22 @@ export const CardioAlertConsoleModal: React.FC<CardioAlertConsoleModalProps> = (
           )}
 
           {/* Sign-off Form */}
-          <form onSubmit={handleSubmit} className="pt-4 border-t border-slate-800 space-y-3">
+          <form onSubmit={handleSubmit} className="pt-4 border-t border-border-theme space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                <label className="block text-xs font-semibold text-text-muted mb-1">
                   Attending Clinician / Perfusionist
                 </label>
                 <input
                   type="text"
                   value={clinicianName}
                   onChange={(e) => setClinicianName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  className="w-full bg-slate-950 border border-border-theme rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                <label className="block text-xs font-semibold text-text-muted mb-1">
                   Clinical Action / Bedside Countermeasure
                 </label>
                 <input
@@ -146,7 +146,7 @@ export const CardioAlertConsoleModal: React.FC<CardioAlertConsoleModalProps> = (
                   value={rationale}
                   onChange={(e) => setRationale(e.target.value)}
                   placeholder="e.g. Primed backup oxygenator, titrated inotropes"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  className="w-full bg-slate-950 border border-border-theme rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
                   required
                 />
               </div>
@@ -156,14 +156,14 @@ export const CardioAlertConsoleModal: React.FC<CardioAlertConsoleModalProps> = (
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-text-muted hover:text-white bg-surface-secondary hover:bg-slate-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md shadow-cyan-600/30"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500/200 text-white transition-all shadow-md shadow-cyan-600/30"
               >
                 <UserCheck className="w-4 h-4" />
                 {isSubmitting ? "Signing Off..." : "Acknowledge & Clear Alarms"}

@@ -381,7 +381,7 @@ export default function OpportunityMatchStudio() {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700'
+                  : 'bg-surface dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700'
               }`}
             >
               <Icon size={14} />
@@ -398,7 +398,7 @@ export default function OpportunityMatchStudio() {
         <div className="space-y-6">
           
           {/* Controls & Filter Bar */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm space-y-4">
+          <div className="bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               
               {/* Search Bar */}
@@ -461,7 +461,7 @@ export default function OpportunityMatchStudio() {
               <p className="text-xs font-bold">Computing candidate profile alignment vectors...</p>
             </div>
           ) : filteredMatches.length === 0 ? (
-            <div className="p-12 text-center bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-3">
+            <div className="p-12 text-center bg-surface dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-3">
               <Search className="mx-auto text-gray-400" size={32} />
               <h4 className="font-bold text-gray-800 dark:text-white text-sm">No matches found for current filter</h4>
               <p className="text-xs text-gray-500">Try lowering the minimum match score threshold or clearing category filters.</p>
@@ -480,7 +480,7 @@ export default function OpportunityMatchStudio() {
                 const matchScore = m.matchScore || 85;
 
                 return (
-                  <div key={id} className="p-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-4 flex flex-col justify-between text-xs shadow-sm hover:shadow-md transition">
+                  <div key={id} className="p-5 bg-surface dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-4 flex flex-col justify-between text-xs shadow-sm hover:shadow-md transition">
                     <div className="space-y-3">
                       
                       {/* Header Badge */}
@@ -578,7 +578,7 @@ export default function OpportunityMatchStudio() {
 
       {/* TAB 2: PREFERENCES */}
       {activeTab === 'preferences' && (
-        <form onSubmit={handleSavePreferences} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 space-y-6 shadow-sm">
+        <form onSubmit={handleSavePreferences} className="bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 space-y-6 shadow-sm">
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Sliders size={18} className="text-blue-500" /> Saved Recommendation Parameters
@@ -675,7 +675,7 @@ export default function OpportunityMatchStudio() {
 
       {/* TAB 3: PIPELINE */}
       {activeTab === 'pipeline' && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 space-y-6 shadow-sm">
+        <div className="bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 space-y-6 shadow-sm">
           <div>
             <h3 className="text-base font-bold text-gray-900 dark:text-white">Application Stage Telemetry</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">Track active applications across recruitment stages.</p>
@@ -717,7 +717,7 @@ export default function OpportunityMatchStudio() {
 
       {/* TAB 4: EXPORT */}
       {activeTab === 'export' && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 space-y-6 shadow-sm">
+        <div className="bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 space-y-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold text-gray-900 dark:text-white">Opportunity Match Manifest JSON</h3>
@@ -751,7 +751,7 @@ export default function OpportunityMatchStudio() {
       {/* AI Explanation Rationale Modal */}
       {explanationModal.open && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-6 max-w-lg w-full space-y-5 shadow-2xl relative">
+          <div className="bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-6 max-w-lg w-full space-y-5 shadow-2xl relative">
             
             <button
               onClick={() => setExplanationModal({ open: false, loading: false, data: null })}
@@ -837,7 +837,7 @@ export default function OpportunityMatchStudio() {
       {/* Profile Completeness Breakdown Modal */}
       {showCompletenessModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-6 max-w-lg w-full space-y-5 shadow-2xl relative">
+          <div className="bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-6 max-w-lg w-full space-y-5 shadow-2xl relative">
             <button
               onClick={() => setShowCompletenessModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white"

@@ -1,8 +1,8 @@
-import { eventBus } from '../utils/eventBus';
-import { User } from '../models/User';
-import { ReputationLog } from '../models/ReputationLog';
-import { redisClient } from '../config/redis';
-import { logger } from '../utils/logger';
+import { eventBus } from '../utils/eventBus.js';
+import { User } from '../models/User.js';
+import { ReputationLog } from '../models/ReputationLog.js';
+import { redisClient } from '../config/redis.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Configuration mapping actions to point values.
@@ -20,7 +20,7 @@ const POINT_RULES: Record<string, number> = {
  */
 export const initializeReputationWorker = () => {
     Object.keys(POINT_RULES).forEach((action) => {
-        eventBus.on(action, async (data: { userId: string;[key: string]: any }) => {
+        eventBus.on(action, async (data: { userId: string; [key: string]: any }) => {
             try {
                 const points = POINT_RULES[action];
                 if (!points) return;
@@ -47,14 +47,11 @@ export const initializeReputationWorker = () => {
 
                 // 3. Update Redis Sorted Set for real-time leaderboard
                 // ZADD leaderboard score member
-                await redisClient.zAdd('reputation_leaderboard_weekly', {
-                    score: user.reputation_score,
-                    value: data.userId,
-                });
+                await redisClient.zadd('reputation_leaderboard_weekly', user.reputation_score, data.userId);
 
                 logger.info(`Reputation updated for user ${data.userId}: +${points} points (${action})`);
             } catch (error) {
-                logger.error(`Error processing reputation event ${action}:`, error);
+                (logger.error as any)({ error }, `Error processing reputation event ${action}:`);
             }
         });
     });

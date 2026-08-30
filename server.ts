@@ -15,6 +15,10 @@ import rateLimit from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import Redis from "ioredis";
 import { v2 as cloudinary } from "cloudinary";
+import { authMiddleware } from "./src/api/middlewares/auth.js";
+import { requestExport, getExportHistory } from "./src/api/controllers/exportController.js";
+import { logStartupHealthReport } from "./src/api/services/healthService.js";
+import { AICacheMetrics } from "./src/api/services/aiCacheMetrics.js";
 
 dotenv.config();
 
@@ -635,6 +639,8 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGBREAK", () => gracefulShutdown("SIGBREAK"));
 
+export let io: Server;
+
 async function startServer() {
   const app = express();
   const server = http.createServer(app);
@@ -642,7 +648,7 @@ async function startServer() {
   const frontendUrl = process.env.FRONTEND_URL;
   const corsOptions = frontendUrl ? { origin: frontendUrl } : { origin: "*" };
   
-  const io = new Server(server, { cors: corsOptions });
+  io = new Server(server, { cors: corsOptions });
   const PORT = 5173;
 
   // Trust reverse proxy (Cloud Run, nginx / Cloudflare reverse proxies)
@@ -781,6 +787,10 @@ async function startServer() {
       ]
     });
   });
+
+  // --- Export Routes ---
+  app.post("/api/v1/export/request", authMiddleware, requestExport);
+  app.get("/api/v1/export/history", authMiddleware, getExportHistory);
 
   // --- Real API Routes ---
   app.get("/api/v1/opportunities", async (req, res) => {
@@ -1242,17 +1252,61 @@ async function startServer() {
   // In-memory cache for AI generation prompts and resume reviews
   const aiCache = new Map<string, { data: any; timestamp: number }>();
   const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+  const cacheMetrics = new AICacheMetrics();
 
   function getCachedResponse(key: string): any | null {
     const entry = aiCache.get(key);
     if (entry && (Date.now() - entry.timestamp < CACHE_TTL_MS)) {
+      cacheMetrics.recordHit();
       return entry.data;
     }
+    if (entry) {
+      // Entry expired — count as eviction and clean up
+      cacheMetrics.recordEviction();
+      aiCache.delete(key);
+    }
+    cacheMetrics.recordMiss();
     return null;
   }
 
   function setCachedResponse(key: string, data: any) {
     aiCache.set(key, { data, timestamp: Date.now() });
+  }
+
+  /**
+   * Build a cache key scoped to the authenticated user.
+   * Format: userId:promptHash
+   * Anonymous users get a synthetic ID derived from their IP to prevent
+   * cross-user cache leakage while still allowing per-visitor caching.
+   */
+  function buildUserScopedCacheKey(userId: string, prompt: string): string {
+    // Simple djb2 hash for deterministic, fast key generation
+    let hash = 5381;
+    for (let i = 0; i < prompt.length; i++) {
+      hash = ((hash << 5) + hash + prompt.charCodeAt(i)) | 0;
+    }
+    return `${userId}:${hash.toString(36)}`;
+  }
+
+  /**
+   * Extract user ID from Authorization header or fall back to a synthetic
+   * anonymous identifier derived from the client IP.
+   */
+  function resolveUserId(req: any): string {
+    const authHeader = req.headers?.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.substring(7);
+        const parts = token.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
+          return payload.user_id || payload.sub || `anon:${req.ip || "unknown"}`;
+        }
+      } catch {
+        // Fall through to anonymous
+      }
+    }
+    return `anon:${req.ip || "unknown"}`;
   }
 
   function getAIFallback(prompt: string, expectJson: boolean): string {
@@ -1362,8 +1416,10 @@ Sincerely,
       const { prompt, expectJson } = req.body;
       if (!prompt) return res.status(400).json({ error: "No prompt" });
 
-      // Check cache first
-      const cached = getCachedResponse(prompt);
+      // Check cache first (scoped per user to prevent cross-user leakage)
+      const userId = resolveUserId(req);
+      const cacheKey = buildUserScopedCacheKey(userId, prompt);
+      const cached = getCachedResponse(cacheKey);
       if (cached) {
         return res.json({ text: cached });
       }
@@ -1408,7 +1464,7 @@ Sincerely,
         responseText = getAIFallback(prompt, !!expectJson);
       }
 
-      setCachedResponse(prompt, responseText);
+      setCachedResponse(cacheKey, responseText);
       res.json({ text: responseText });
     } catch (err) {
       // General safety fallback, don't fail the request
@@ -1423,7 +1479,8 @@ Sincerely,
       const { resume } = req.body;
       if (!resume) return res.status(400).json({ error: "No resume provided" });
 
-      const cacheKey = `resume_review:${resume.substring(0, 300)}`;
+      const userId = resolveUserId(req);
+      const cacheKey = buildUserScopedCacheKey(userId, `resume_review:${resume.substring(0, 300)}`);
       const cached = getCachedResponse(cacheKey);
       if (cached) {
         return res.json(cached);
@@ -1516,9 +1573,10 @@ Return JSON strictly in this format:
         return res.status(400).json({ error: "No job description provided" });
       }
 
-      // Check cache using a combination of the inputs
+      // Check cache using a combination of the inputs (scoped per user)
+      const userId = resolveUserId(req);
       const cacheInput = resumeBase64 ? resumeBase64.substring(0, 200) : (resumeText || "").substring(0, 200);
-      const cacheKey = `resume_analysis:${cacheInput}:${jobDescription.substring(0, 100)}`;
+      const cacheKey = buildUserScopedCacheKey(userId, `resume_analysis:${cacheInput}:${jobDescription.substring(0, 100)}`);
       const cached = getCachedResponse(cacheKey);
       if (cached) {
         return res.json(cached);
@@ -1889,6 +1947,12 @@ Return JSON strictly in this format:
       fallbackRate: 2.1,
       apiLatency: 120
     });
+  });
+
+  // --- AI Cache Metrics ---
+  app.get("/api/v1/admin/cache-metrics", (_req, res) => {
+    const metrics = cacheMetrics.snapshot(aiCache);
+    res.json(metrics);
   });
 
   app.get("/api/v1/admin/scrapers", async (req, res) => {
@@ -2979,6 +3043,15 @@ ${JSON.stringify(userProfile, null, 2)}
 
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+
+    // Run startup health checks for all configured services
+    logStartupHealthReport({
+      redisClient: redisClient ?? null,
+      geminiApiKey: process.env.GEMINI_API_KEY,
+      firebaseInitialized: !!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64,
+    }).catch((err) => {
+      console.error("[Health] Startup health check failed:", err);
+    });
     
     // Auto-open browser in development mode
     if (process.env.NODE_ENV !== "production") {

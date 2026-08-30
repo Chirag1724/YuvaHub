@@ -47,7 +47,7 @@ export const scraperWorker = new Worker(
           deadline: rawDeadline,
           description: rawDescription,
           organization: rawOrg,
-          source: `custom_blueprint:${blueprint._id || 'test'}`,
+          source: `custom_blueprint:${(blueprint as any)._id || 'test'}`,
         });
       }
     });

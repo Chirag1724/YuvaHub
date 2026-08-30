@@ -271,16 +271,16 @@ export default function LearningPathTracker() {
         {DAILY_GOALS.map(goal => {
           const pct = Math.min(Math.round((goal.current / goal.target) * 100), 100);
           return (
-            <div key={goal.id} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+            <div key={goal.id} className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
               <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-xl bg-white/5 ${goal.color}`}>{goal.icon}</div>
+                <div className={`p-2 rounded-xl bg-surface/5 ${goal.color}`}>{goal.icon}</div>
                 <span className="text-gray-400 text-sm">{goal.title}</span>
               </div>
               <div className="flex items-end gap-2 mb-2">
                 <div className="text-2xl font-bold text-white">{goal.current}</div>
                 <div className="text-gray-500 text-sm mb-0.5">/ {goal.target} {goal.unit}</div>
               </div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-2 bg-surface/10 rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-1000" style={{
                   width: `${pct}%`,
                   backgroundColor: pct >= 100 ? '#10b981' : pct >= 70 ? '#f59e0b' : '#3b82f6',
@@ -301,7 +301,7 @@ export default function LearningPathTracker() {
           { label: 'Avg Progress', value: `${avgProgress}%`, color: 'text-purple-400' },
           { label: 'Total XP', value: totalXP.toLocaleString(), color: 'text-amber-400' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 text-center">
+          <div key={i} className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 text-center">
             <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
             <div className="text-gray-400 text-xs mt-1">{stat.label}</div>
           </div>
@@ -318,7 +318,7 @@ export default function LearningPathTracker() {
             <motion.div key={path.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               onClick={() => { setSelectedPath(path.id); setActiveTab('paths'); }}
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-white/20 transition-all">
+              className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-white/20 transition-all">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`p-2.5 rounded-xl bg-gradient-to-br ${path.color} text-white`}>{path.icon}</div>
                 <div>
@@ -332,7 +332,7 @@ export default function LearningPathTracker() {
                   <span className="text-gray-400">{path.completedSkills}/{path.totalSkills} skills</span>
                   <span className="text-gray-400">{Math.round((path.completedSkills / path.totalSkills) * 100)}%</span>
                 </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-2 bg-surface/10 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
                     style={{ width: `${(path.completedSkills / path.totalSkills) * 100}%` }} />
                 </div>
@@ -354,14 +354,14 @@ export default function LearningPathTracker() {
         </h3>
         <div className="space-y-2">
           {SKILLS.sort((a, b) => b.progress - a.progress).slice(0, 6).map(skill => (
-            <div key={skill.id} className="flex items-center gap-4 p-3 bg-white/5 rounded-xl">
+            <div key={skill.id} className="flex items-center gap-4 p-3 bg-surface/5 rounded-xl">
               <span className="text-lg">{skill.icon}</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-white text-sm font-medium">{skill.name}</span>
                   <span className={`px-2 py-0.5 rounded text-[9px] font-medium ${LEVEL_CONFIG[skill.level].color}`}>{LEVEL_CONFIG[skill.level].label}</span>
                 </div>
-                <div className="h-1.5 bg-white/10 rounded-full mt-1.5">
+                <div className="h-1.5 bg-surface/10 rounded-full mt-1.5">
                   <div className="h-full rounded-full" style={{ width: `${skill.progress}%`, backgroundColor: skill.color }} />
                 </div>
               </div>
@@ -381,7 +381,7 @@ export default function LearningPathTracker() {
         </h3>
         <div className="space-y-2">
           {ACTIVITIES.slice(0, 5).map(activity => (
-            <div key={activity.id} className="flex items-center gap-4 p-3 bg-white/5 rounded-xl">
+            <div key={activity.id} className="flex items-center gap-4 p-3 bg-surface/5 rounded-xl">
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                 activity.type === 'course' ? 'bg-blue-500/20 text-blue-400' :
                 activity.type === 'project' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -419,7 +419,7 @@ export default function LearningPathTracker() {
           <motion.div key={path.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }}
             onClick={() => setSelectedPath(selectedPath === path.id ? null : path.id)}
-            className={`bg-white/5 backdrop-blur-md border rounded-2xl p-5 cursor-pointer transition-all ${
+            className={`bg-surface/5 backdrop-blur-md border rounded-2xl p-5 cursor-pointer transition-all ${
               selectedPath === path.id ? "border-cyan-500/50 ring-1 ring-cyan-500/30" : "border-white/10 hover:border-white/20"
             }`}>
             <div className="flex items-center justify-between mb-3">
@@ -438,7 +438,7 @@ export default function LearningPathTracker() {
                 <span className="text-gray-400">{path.completedSkills}/{path.totalSkills} skills</span>
                 <span className="text-white">{Math.round((path.completedSkills / path.totalSkills) * 100)}%</span>
               </div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-2 bg-surface/10 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
                   style={{ width: `${(path.completedSkills / path.totalSkills) * 100}%` }} />
               </div>
@@ -459,7 +459,7 @@ export default function LearningPathTracker() {
         return (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
             className="overflow-hidden">
-            <div className="bg-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-6">
+            <div className="bg-surface/5 backdrop-blur-md border border-white/20 rounded-2xl p-6">
               <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
                 {path.icon} {path.title} — Milestones
               </h3>
@@ -486,7 +486,7 @@ export default function LearningPathTracker() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-gray-400">{milestone.reward}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-surface/5 text-gray-400">{milestone.reward}</span>
                           {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
                         </div>
                       </div>
@@ -499,7 +499,7 @@ export default function LearningPathTracker() {
                               {milestone.requiredSkills.map(skId => {
                                 const skill = SKILLS.find(s => s.id === skId);
                                 return skill ? (
-                                  <span key={skId} className="px-2 py-0.5 rounded bg-white/5 text-gray-300 text-[10px]">
+                                  <span key={skId} className="px-2 py-0.5 rounded bg-surface/5 text-gray-300 text-[10px]">
                                     {skill.icon} {skill.name} ({skill.progress}%)
                                   </span>
                                 ) : null;
@@ -531,10 +531,10 @@ export default function LearningPathTracker() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search skills..."
-              className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm w-56 focus:outline-none focus:border-cyan-500/50" />
+              className="bg-surface/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm w-56 focus:outline-none focus:border-cyan-500/50" />
           </div>
           <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none">
+            className="bg-surface/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none">
             <option value="all">All Categories</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -549,7 +549,7 @@ export default function LearningPathTracker() {
             <motion.div key={skill.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
               onClick={() => setSelectedSkill(selectedSkill === skill.id ? null : skill.id)}
-              className={`bg-white/5 backdrop-blur-md border rounded-2xl p-5 cursor-pointer transition-all ${
+              className={`bg-surface/5 backdrop-blur-md border rounded-2xl p-5 cursor-pointer transition-all ${
                 selectedSkill === skill.id ? "border-cyan-500/50 ring-1 ring-cyan-500/30" : "border-white/10 hover:border-white/20"
               }`}>
               <div className="flex items-center justify-between mb-3">
@@ -564,19 +564,19 @@ export default function LearningPathTracker() {
                   <div className="text-white font-bold">{skill.progress}%</div>
                 </div>
               </div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-3">
+              <div className="h-2 bg-surface/10 rounded-full overflow-hidden mb-3">
                 <div className="h-full rounded-full" style={{ width: `${skill.progress}%`, backgroundColor: skill.color }} />
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="bg-white/5 rounded-lg p-2">
+                <div className="bg-surface/5 rounded-lg p-2">
                   <div className="text-white text-xs font-medium">{skill.hoursSpent}h</div>
                   <div className="text-[9px] text-gray-500">Hours</div>
                 </div>
-                <div className="bg-white/5 rounded-lg p-2">
+                <div className="bg-surface/5 rounded-lg p-2">
                   <div className="text-white text-xs font-medium">{skill.projectsCompleted}</div>
                   <div className="text-[9px] text-gray-500">Projects</div>
                 </div>
-                <div className="bg-white/5 rounded-lg p-2">
+                <div className="bg-surface/5 rounded-lg p-2">
                   <div className="text-amber-400 text-xs font-medium">🔥 {skill.streak}</div>
                   <div className="text-[9px] text-gray-500">Streak</div>
                 </div>
@@ -602,20 +602,20 @@ export default function LearningPathTracker() {
           { label: 'Activities', value: ACTIVITIES.length, color: 'text-cyan-400' },
           { label: 'Avg Score', value: `${Math.round(ACTIVITIES.filter(a => a.score).reduce((s, a) => s + (a.score || 0), 0) / ACTIVITIES.filter(a => a.score).length)}%`, color: 'text-purple-400' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 text-center">
+          <div key={i} className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 text-center">
             <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
             <div className="text-gray-400 text-xs mt-1">{stat.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+      <div className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
           <Clock className="w-5 h-5 text-cyan-400" /> Activity Timeline
         </h3>
         <div className="space-y-3">
           {ACTIVITIES.map(activity => (
-            <div key={activity.id} className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+            <div key={activity.id} className="flex items-center gap-4 p-4 bg-surface/5 rounded-xl hover:bg-surface/10 transition-all">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                 activity.type === 'course' ? 'bg-blue-500/20 text-blue-400' :
                 activity.type === 'project' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -662,7 +662,7 @@ export default function LearningPathTracker() {
         {RECOMMENDATIONS.map((rec, i) => (
           <motion.div key={rec.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }}
-            className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+            className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className={`p-2.5 rounded-xl ${
@@ -690,14 +690,14 @@ export default function LearningPathTracker() {
               </span>
             </div>
             <p className="text-gray-300 text-sm mb-2">{rec.description}</p>
-            <div className="bg-white/5 rounded-xl p-3 mb-3">
+            <div className="bg-surface/5 rounded-xl p-3 mb-3">
               <div className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
                 <Lightbulb className="w-3 h-3 text-amber-400" /> Why this?
               </div>
               <div className="text-xs text-gray-300">{rec.reason}</div>
             </div>
             <div className="flex justify-end gap-2">
-              <button className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-gray-400 text-xs hover:text-white transition-all">
+              <button className="px-3 py-1.5 bg-surface/5 border border-white/10 rounded-lg text-gray-400 text-xs hover:text-white transition-all">
                 Later
               </button>
               <button className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-white text-xs font-medium transition-all flex items-center gap-1">
@@ -734,7 +734,7 @@ export default function LearningPathTracker() {
             ].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
-                  activeTab === tab.id ? "bg-white/10 text-white border border-white/20 shadow-lg" : "text-gray-400 hover:text-white hover:bg-white/5"
+                  activeTab === tab.id ? "bg-surface/10 text-white border border-white/20 shadow-lg" : "text-gray-400 hover:text-white hover:bg-surface/5"
                 }`}>
                 {tab.icon}{tab.label}
                 {tab.count !== undefined && <span className="text-xs opacity-60">({tab.count})</span>}

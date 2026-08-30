@@ -96,7 +96,7 @@ export const CardioEmergencyEscalationModal: React.FC<CardioEmergencyEscalationM
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-rose-800/80 rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-primary-blue border border-rose-800/80 rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-rose-900/60 bg-gradient-to-r from-rose-950/90 to-slate-950">
           <div className="flex items-center gap-3">
@@ -119,7 +119,7 @@ export const CardioEmergencyEscalationModal: React.FC<CardioEmergencyEscalationM
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-text-muted hover:text-white hover:bg-surface-secondary transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -142,15 +142,15 @@ export const CardioEmergencyEscalationModal: React.FC<CardioEmergencyEscalationM
                     className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
                       isSelected
                         ? "bg-rose-950/40 border-rose-500 text-white shadow-lg shadow-rose-950/50"
-                        : "bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700"
+                        : "bg-slate-950/60 border-border-theme text-slate-300 hover:border-border-theme"
                     }`}
                   >
-                    <div className={`p-2 rounded-xl shrink-0 ${isSelected ? "bg-rose-600 text-white" : "bg-slate-800 text-slate-400"}`}>
+                    <div className={`p-2 rounded-xl shrink-0 ${isSelected ? "bg-rose-600 text-white" : "bg-surface-secondary text-text-muted"}`}>
                       <IconComp className="w-5 h-5" />
                     </div>
                     <div className="overflow-hidden">
                       <div className="text-xs font-bold truncate">{proto.title}</div>
-                      <div className="text-[10px] text-slate-400 font-mono mt-0.5 line-clamp-1">{proto.indication}</div>
+                      <div className="text-[10px] text-text-muted font-mono mt-0.5 line-clamp-1">{proto.indication}</div>
                     </div>
                   </div>
                 );
@@ -159,8 +159,8 @@ export const CardioEmergencyEscalationModal: React.FC<CardioEmergencyEscalationM
           </div>
 
           {/* Selected Protocol Details Card */}
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="bg-slate-950 border border-border-theme rounded-2xl p-4 space-y-3 font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-border-theme pb-2">
               <span className="text-rose-400 font-bold flex items-center gap-1.5">
                 <ShieldAlert className="w-4 h-4" />
                 {activeProto.title}
@@ -170,11 +170,11 @@ export const CardioEmergencyEscalationModal: React.FC<CardioEmergencyEscalationM
               </span>
             </div>
             <div>
-              <span className="text-slate-400 font-sans">Primary Indication:</span>
+              <span className="text-text-muted font-sans">Primary Indication:</span>
               <p className="text-slate-200 font-sans mt-0.5 text-[11px]">{activeProto.indication}</p>
             </div>
             <div>
-              <span className="text-slate-400 font-sans">Rapid Response Team:</span>
+              <span className="text-text-muted font-sans">Rapid Response Team:</span>
               <p className="text-cyan-300 mt-0.5 text-[11px]">{activeProto.team}</p>
             </div>
             <div className="bg-rose-950/20 p-2.5 rounded-xl border border-rose-900/40">
@@ -185,7 +185,7 @@ export const CardioEmergencyEscalationModal: React.FC<CardioEmergencyEscalationM
 
           {/* Clinician Notes */}
           <div>
-            <label className="block text-xs font-bold text-slate-400 mb-1">
+            <label className="block text-xs font-bold text-text-muted mb-1">
               Escalation Notes & Authorization Code
             </label>
             <input
@@ -193,17 +193,17 @@ export const CardioEmergencyEscalationModal: React.FC<CardioEmergencyEscalationM
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Attending Dr. Sterling authorized STAT bedside cannulation, blood bank notified"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-rose-500 font-mono"
+              className="w-full bg-slate-950 border border-border-theme rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-rose-500 font-mono"
               required
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-theme">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-text-muted hover:text-white bg-surface-secondary hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>

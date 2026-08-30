@@ -61,7 +61,7 @@ export default function CareerPathSimulator() {
   const ExploreTab = () => (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <select value={dmnd} onChange={e=>setDmnd(e.target.value as DemandLevel|'all')} className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none">
+        <select value={dmnd} onChange={e=>setDmnd(e.target.value as DemandLevel|'all')} className="bg-surface/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none">
           <option value="all">All Demand</option>
           {Object.entries(DMND).map(([k,v])=><option key={k} value={k}>{v.l}</option>)}
         </select>
@@ -71,7 +71,7 @@ export default function CareerPathSimulator() {
         {roles.map(role=>{
           const m=getMatch(role);const gaps=getGaps(role);
           return(
-          <div key={role.id} onClick={()=>setSel(sel===role.id?null:role.id)} className={`bg-white/5 backdrop-blur-md border rounded-2xl p-5 cursor-pointer transition-all ${sel===role.id?'border-cyan-500/50 ring-1 ring-cyan-500/30':'border-white/10 hover:border-white/20'}`}>
+          <div key={role.id} onClick={()=>setSel(sel===role.id?null:role.id)} className={`bg-surface/5 backdrop-blur-md border rounded-2xl p-5 cursor-pointer transition-all ${sel===role.id?'border-cyan-500/50 ring-1 ring-cyan-500/30':'border-white/10 hover:border-white/20'}`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className={`p-2.5 rounded-xl ${role.bgColor} ${role.color}`}>{role.icon}</div>
@@ -81,13 +81,13 @@ export default function CareerPathSimulator() {
             </div>
             <div className="mb-3">
               <div className="flex justify-between text-xs mb-1"><span className="text-gray-400">Your Match</span><span className={`font-bold ${m>=80?'text-emerald-400':m>=50?'text-amber-400':'text-red-400'}`}>{m}%</span></div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{width:`${m}%`,backgroundColor:m>=80?'#10b981':m>=50?'#f59e0b':'#ef4444'}}/></div>
+              <div className="h-2 bg-surface/10 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{width:`${m}%`,backgroundColor:m>=80?'#10b981':m>=50?'#f59e0b':'#ef4444'}}/></div>
             </div>
             <div className="grid grid-cols-4 gap-2 mb-3">
-              <div className="bg-white/5 rounded-lg p-2 text-center"><div className="text-emerald-400 text-xs font-medium">₹{(role.avgSalary/100000).toFixed(1)}L</div><div className="text-[9px] text-gray-500">Avg</div></div>
-              <div className="bg-white/5 rounded-lg p-2 text-center"><div className="text-cyan-400 text-xs font-medium">+{role.growthRate}%</div><div className="text-[9px] text-gray-500">Growth</div></div>
-              <div className="bg-white/5 rounded-lg p-2 text-center"><div className="text-purple-400 text-xs font-medium">{role.workLifeBalance}/10</div><div className="text-[9px] text-gray-500">Balance</div></div>
-              <div className="bg-white/5 rounded-lg p-2 text-center"><div className="text-amber-400 text-xs font-medium">{role.remoteFriendly?'🌍':'🏢'}</div><div className="text-[9px] text-gray-500">{role.remoteFriendly?'Remote':'Office'}</div></div>
+              <div className="bg-surface/5 rounded-lg p-2 text-center"><div className="text-emerald-400 text-xs font-medium">₹{(role.avgSalary/100000).toFixed(1)}L</div><div className="text-[9px] text-gray-500">Avg</div></div>
+              <div className="bg-surface/5 rounded-lg p-2 text-center"><div className="text-cyan-400 text-xs font-medium">+{role.growthRate}%</div><div className="text-[9px] text-gray-500">Growth</div></div>
+              <div className="bg-surface/5 rounded-lg p-2 text-center"><div className="text-purple-400 text-xs font-medium">{role.workLifeBalance}/10</div><div className="text-[9px] text-gray-500">Balance</div></div>
+              <div className="bg-surface/5 rounded-lg p-2 text-center"><div className="text-amber-400 text-xs font-medium">{role.remoteFriendly?'🌍':'🏢'}</div><div className="text-[9px] text-gray-500">{role.remoteFriendly?'Remote':'Office'}</div></div>
             </div>
             <div className="flex flex-wrap gap-1 mb-2">
               {role.requiredSkills.map(rs=>{const s=SKILLS.find(sk=>sk.id===rs.skillId);const ok=(s?.currentLevel||0)>=rs.level;return<span key={rs.skillId} className={`px-2 py-0.5 rounded text-[9px] ${ok?'bg-emerald-500/20 text-emerald-400':'bg-amber-500/20 text-amber-400'}`}>{s?.icon} {s?.name} {ok?'✓':`${s?.currentLevel||0}/${rs.level}`}</span>;})}
@@ -101,7 +101,7 @@ export default function CareerPathSimulator() {
               </div>
             </div>)}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-              <button onClick={e=>{e.stopPropagation();toggle(role.id)}} className={`px-3 py-1.5 rounded-lg text-[10px] font-medium border transition-all ${cmp.includes(role.id)?'bg-cyan-500/20 border-cyan-500/40 text-cyan-400':'bg-white/5 border-white/10 text-gray-400'}`}>{cmp.includes(role.id)?'✓ Comparing':'Compare'}</button>
+              <button onClick={e=>{e.stopPropagation();toggle(role.id)}} className={`px-3 py-1.5 rounded-lg text-[10px] font-medium border transition-all ${cmp.includes(role.id)?'bg-cyan-500/20 border-cyan-500/40 text-cyan-400':'bg-surface/5 border-white/10 text-gray-400'}`}>{cmp.includes(role.id)?'✓ Comparing':'Compare'}</button>
               <span className="text-[10px] text-gray-500">₹{(role.salaryRange[0]/100000).toFixed(0)}L - ₹{(role.salaryRange[1]/100000).toFixed(0)}L</span>
             </div>
           </div>);})}
@@ -114,18 +114,18 @@ export default function CareerPathSimulator() {
     if(rs.length<2)return<div className="text-center py-16"><Swords className="w-12 h-12 text-gray-600 mx-auto mb-4"/><div className="text-white font-semibold">Select 2-4 roles to compare</div></div>;
     return(
     <div className="space-y-6">
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden">
-        <div className="grid gap-px bg-white/5" style={{gridTemplateColumns:`200px repeat(${rs.length},1fr)`}}>
-          <div className="bg-white/5 p-4 text-xs text-gray-400 font-medium">Metric</div>
+      <div className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden">
+        <div className="grid gap-px bg-surface/5" style={{gridTemplateColumns:`200px repeat(${rs.length},1fr)`}}>
+          <div className="bg-surface/5 p-4 text-xs text-gray-400 font-medium">Metric</div>
           {rs.map(r=><div key={r.id} className={`p-4 text-center ${r.bgColor}`}><div className={`text-sm font-semibold ${r.color}`}>{r.title}</div></div>)}
           {[{l:'Avg Salary',v:rs.map(r=>`₹${(r.avgSalary/100000).toFixed(1)}L`)},{l:'Demand',v:rs.map(r=>DMND[r.demand].l)},{l:'Growth',v:rs.map(r=>`+${r.growthRate}%`)},{l:'Work-Life',v:rs.map(r=>`${r.workLifeBalance}/10`)},{l:'Remote',v:rs.map(r=>r.remoteFriendly?'Yes ✓':'No ✗')},{l:'Entry Barrier',v:rs.map(r=>r.entryBarrier)},{l:'Your Match',v:rs.map(r=>`${getMatch(r)}%`)},{l:'Skill Gaps',v:rs.map(r=>`${getGaps(r).length} gaps`)}].map((row,i)=>(
-            <React.Fragment key={i}><div className={`bg-white/5 p-3 text-xs text-gray-400 ${i%2===0?'':'bg-white/[0.02]'}`}>{row.l}</div>{row.v.map((v,j)=><div key={j} className={`p-3 text-center text-xs text-white ${i%2===0?'bg-white/[0.02]':'bg-white/5'}`}>{v}</div>)}</React.Fragment>
+            <React.Fragment key={i}><div className={`bg-surface/5 p-3 text-xs text-gray-400 ${i%2===0?'':'bg-surface/[0.02]'}`}>{row.l}</div>{row.v.map((v,j)=><div key={j} className={`p-3 text-center text-xs text-white ${i%2===0?'bg-surface/[0.02]':'bg-surface/5'}`}>{v}</div>)}</React.Fragment>
           ))}
         </div>
       </div>
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+      <div className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <h3 className="text-white font-semibold mb-4">Skill Match Comparison</h3>
-        <div className="space-y-4">{rs.map(r=>{const m=getMatch(r);return(<div key={r.id}><div className="flex items-center justify-between mb-1"><span className={`text-sm font-medium ${r.color}`}>{r.title}</span><span className="text-xs text-gray-400">{m}%</span></div><div className="h-3 bg-white/10 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{width:`${m}%`,backgroundColor:m>=80?'#10b981':m>=50?'#f59e0b':'#ef4444'}}/></div></div>);})}</div>
+        <div className="space-y-4">{rs.map(r=>{const m=getMatch(r);return(<div key={r.id}><div className="flex items-center justify-between mb-1"><span className={`text-sm font-medium ${r.color}`}>{r.title}</span><span className="text-xs text-gray-400">{m}%</span></div><div className="h-3 bg-surface/10 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{width:`${m}%`,backgroundColor:m>=80?'#10b981':m>=50?'#f59e0b':'#ef4444'}}/></div></div>);})}</div>
       </div>
     </div>);
   };
@@ -134,18 +134,18 @@ export default function CareerPathSimulator() {
     const yi=tf==='1yr'?0:tf==='3yr'?1:tf==='5yr'?2:3;
     return(
     <div className="space-y-6">
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+      <div className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <h3 className="text-white font-semibold mb-4">Salary Projections</h3>
-        <div className="flex gap-2 mb-4">{(['1yr','3yr','5yr','10yr'] as TimeFrame[]).map(t=><button key={t} onClick={()=>setTf(t)} className={`px-4 py-2 rounded-xl text-xs font-medium transition-all ${tf===t?'bg-cyan-500/20 border border-cyan-500/40 text-cyan-400':'bg-white/5 border border-white/10 text-gray-400'}`}>{t==='1yr'?'1 Year':t==='3yr'?'3 Years':t==='5yr'?'5 Years':'10 Years'}</button>)}</div>
+        <div className="flex gap-2 mb-4">{(['1yr','3yr','5yr','10yr'] as TimeFrame[]).map(t=><button key={t} onClick={()=>setTf(t)} className={`px-4 py-2 rounded-xl text-xs font-medium transition-all ${tf===t?'bg-cyan-500/20 border border-cyan-500/40 text-cyan-400':'bg-surface/5 border border-white/10 text-gray-400'}`}>{t==='1yr'?'1 Year':t==='3yr'?'3 Years':t==='5yr'?'5 Years':'10 Years'}</button>)}</div>
         <div className="space-y-6">{SAL_PROJ.map(p=>{const d=p.data[yi];return(<div key={p.role}><div className="text-sm text-gray-300 mb-2">{p.role}</div><div className="flex gap-1 items-end h-10"><div className="flex-1 bg-red-500/30 rounded-l-lg flex items-center px-2" style={{height:`${(d.l/100)*100}%`}}><span className="text-[10px] text-red-300">₹{d.l}L</span></div><div className="flex-1 bg-amber-500/40 flex items-center px-2" style={{height:`${(d.m/100)*100}%`}}><span className="text-[10px] text-amber-300">₹{d.m}L</span></div><div className="flex-1 bg-emerald-500/40 rounded-r-lg flex items-center px-2" style={{height:`${(d.h/100)*100}%`}}><span className="text-[10px] text-emerald-300">₹{d.h}L</span></div></div></div>);})}</div>
         <div className="flex items-center gap-4 mt-4 text-[10px] text-gray-400"><div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-red-500/30"/>Low</div><div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-amber-500/40"/>Mid</div><div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-emerald-500/40"/>High</div></div>
       </div>
       <div className="bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 rounded-2xl p-6">
         <h3 className="text-white font-semibold mb-3">💡 Salary Insights</h3>
         <div className="space-y-2">
-          <div className="text-sm text-gray-300 bg-white/5 rounded-xl p-3">🤖 ML Engineer: highest growth (+35%) and top salaries at ₹30L+</div>
-          <div className="text-sm text-gray-300 bg-white/5 rounded-xl p-3">📈 Full-Stack: broadest demand (+20%) — most versatile path</div>
-          <div className="text-sm text-gray-300 bg-white/5 rounded-xl p-3">🔒 Security: 20% salary premium due to talent shortage</div>
+          <div className="text-sm text-gray-300 bg-surface/5 rounded-xl p-3">🤖 ML Engineer: highest growth (+35%) and top salaries at ₹30L+</div>
+          <div className="text-sm text-gray-300 bg-surface/5 rounded-xl p-3">📈 Full-Stack: broadest demand (+20%) — most versatile path</div>
+          <div className="text-sm text-gray-300 bg-surface/5 rounded-xl p-3">🔒 Security: 20% salary premium due to talent shortage</div>
         </div>
       </div>
     </div>);
@@ -153,13 +153,13 @@ export default function CareerPathSimulator() {
 
   const PathsTab = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{PATHS.map(p=>(<div key={p.id} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{PATHS.map(p=>(<div key={p.id} className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
         <div className="flex items-center justify-between mb-3"><h3 className="text-white font-semibold text-sm">{p.title}</h3><span className="text-[10px] text-gray-500">{p.time}</span></div>
-        <div className="flex items-center gap-1 flex-wrap">{p.steps.map((s,i)=><React.Fragment key={i}><span className="px-2 py-1 rounded-lg text-[10px] bg-white/5 text-gray-300 border border-white/10">{s}</span>{i<p.steps.length-1&&<ArrowRight className="w-3 h-3 text-gray-500"/>}</React.Fragment>)}</div>
+        <div className="flex items-center gap-1 flex-wrap">{p.steps.map((s,i)=><React.Fragment key={i}><span className="px-2 py-1 rounded-lg text-[10px] bg-surface/5 text-gray-300 border border-white/10">{s}</span>{i<p.steps.length-1&&<ArrowRight className="w-3 h-3 text-gray-500"/>}</React.Fragment>)}</div>
       </div>))}</div>
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+      <div className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <h3 className="text-white font-semibold mb-4">Salary Growth Timeline</h3>
-        <div className="relative"><div className="absolute left-4 top-0 bottom-0 w-px bg-white/10"/>{[{y:'Year 0-1',s:'₹8-12L',r:'Junior/Entry',c:'text-gray-400'},{y:'Year 2-3',s:'₹12-20L',r:'Mid-Level',c:'text-blue-400'},{y:'Year 4-6',s:'₹20-35L',r:'Senior Engineer',c:'text-purple-400'},{y:'Year 7-9',s:'₹35-55L',r:'Staff/Principal',c:'text-amber-400'},{y:'Year 10+',s:'₹55-100L+',r:'Director/VP/CTO',c:'text-emerald-400'}].map((l,i)=>(<div key={i} className="flex items-start gap-4 py-4 relative"><div className="w-8 h-8 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-xs font-bold text-white z-10">{i+1}</div><div className="flex-1"><div className="flex items-center justify-between"><div className={`font-semibold text-sm ${l.c}`}>{l.r}</div><div className="text-white font-bold text-sm">{l.s}</div></div><div className="text-gray-500 text-[10px]">{l.y}</div></div></div>))}</div>
+        <div className="relative"><div className="absolute left-4 top-0 bottom-0 w-px bg-surface/10"/>{[{y:'Year 0-1',s:'₹8-12L',r:'Junior/Entry',c:'text-gray-400'},{y:'Year 2-3',s:'₹12-20L',r:'Mid-Level',c:'text-blue-400'},{y:'Year 4-6',s:'₹20-35L',r:'Senior Engineer',c:'text-purple-400'},{y:'Year 7-9',s:'₹35-55L',r:'Staff/Principal',c:'text-amber-400'},{y:'Year 10+',s:'₹55-100L+',r:'Director/VP/CTO',c:'text-emerald-400'}].map((l,i)=>(<div key={i} className="flex items-start gap-4 py-4 relative"><div className="w-8 h-8 rounded-full bg-surface/10 border-2 border-white/20 flex items-center justify-center text-xs font-bold text-white z-10">{i+1}</div><div className="flex-1"><div className="flex items-center justify-between"><div className={`font-semibold text-sm ${l.c}`}>{l.r}</div><div className="text-white font-bold text-sm">{l.s}</div></div><div className="text-gray-500 text-[10px]">{l.y}</div></div></div>))}</div>
       </div>
     </div>
   );
@@ -171,10 +171,10 @@ export default function CareerPathSimulator() {
         <p className="text-gray-400 text-sm">See what skills you need for each target role.</p>
       </div>
       {ROLES.map(role=>{const gaps=getGaps(role);const m=getMatch(role);if(!gaps.length)return null;return(
-        <div key={role.id} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5">
+        <div key={role.id} className="bg-surface/5 backdrop-blur-md border border-white/10 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4"><div className="flex items-center gap-3"><div className={`p-2 rounded-xl ${role.bgColor} ${role.color}`}>{role.icon}</div><div><div className="text-white font-semibold">{role.title}</div><div className="text-gray-500 text-[10px]">{m}% match · {gaps.length} gaps</div></div></div>
           <div className={`px-3 py-1 rounded-lg text-xs font-bold ${m>=80?'bg-emerald-500/20 text-emerald-400':m>=50?'bg-amber-500/20 text-amber-400':'bg-red-500/20 text-red-400'}`}>{m}% Ready</div></div>
-          <div className="space-y-3">{gaps.map(g=>(<div key={g.skill}><div className="flex items-center justify-between mb-1"><span className="text-xs text-gray-300">{g.icon} {g.skill}</span><span className="text-[10px] text-amber-400">Gap: {g.gap}% ({g.current}%→{g.required}%)</span></div><div className="h-2 bg-white/10 rounded-full overflow-hidden relative"><div className="h-full bg-cyan-500 rounded-full" style={{width:`${g.current}%`}}/><div className="absolute inset-y-0 border-r-2 border-dashed border-amber-400" style={{left:`${g.required}%`}}/></div></div>))}</div>
+          <div className="space-y-3">{gaps.map(g=>(<div key={g.skill}><div className="flex items-center justify-between mb-1"><span className="text-xs text-gray-300">{g.icon} {g.skill}</span><span className="text-[10px] text-amber-400">Gap: {g.gap}% ({g.current}%→{g.required}%)</span></div><div className="h-2 bg-surface/10 rounded-full overflow-hidden relative"><div className="h-full bg-cyan-500 rounded-full" style={{width:`${g.current}%`}}/><div className="absolute inset-y-0 border-r-2 border-dashed border-amber-400" style={{left:`${g.required}%`}}/></div></div>))}</div>
           <div className="mt-3 p-3 bg-amber-500/5 rounded-xl flex items-start gap-2"><Lightbulb className="w-4 h-4 text-amber-400 mt-0.5"/><div className="text-[11px] text-gray-300">Est. <span className="text-amber-400 font-medium">{Math.round(gaps.reduce((s,g)=>s+g.gap*0.5,0))}h</span> to close. Focus on <span className="text-white font-medium">{gaps[0]?.skill}</span> first.</div></div>
         </div>);})}
     </div>
@@ -189,7 +189,7 @@ export default function CareerPathSimulator() {
           <p className="text-gray-400 mt-2">{ROLES.length} roles · Compare salaries · Find gaps · Plan your path</p>
           <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2">
             {[{id:'explore' as const,l:'Explore',i:<Eye className="w-4 h-4"/>},{id:'compare' as const,l:'Compare',i:<Swords className="w-4 h-4"/>,c:cmp.length},{id:'salary' as const,l:'Salary',i:<DollarSign className="w-4 h-4"/>},{id:'paths' as const,l:'Paths',i:<Map className="w-4 h-4"/>},{id:'gap' as const,l:'Gap Analysis',i:<Target className="w-4 h-4"/>}].map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab===t.id?"bg-white/10 text-white border border-white/20 shadow-lg":"text-gray-400 hover:text-white hover:bg-white/5"}`}>{t.i}{t.l}{t.c!==undefined&&<span className="text-xs opacity-60">({t.c})</span>}</button>
+              <button key={t.id} onClick={()=>setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab===t.id?"bg-surface/10 text-white border border-white/20 shadow-lg":"text-gray-400 hover:text-white hover:bg-surface/5"}`}>{t.i}{t.l}{t.c!==undefined&&<span className="text-xs opacity-60">({t.c})</span>}</button>
             ))}
           </div>
         </div>
