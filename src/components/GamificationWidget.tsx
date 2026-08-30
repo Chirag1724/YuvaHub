@@ -37,7 +37,7 @@ export const GamificationWidget: React.FC<GamificationWidgetProps> = ({
     }, [level, prevLevel]);
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+        <div className="bg-surface dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
             <AnimatePresence>
                 {showLevelUp && (
                     <motion.div

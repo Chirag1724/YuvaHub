@@ -1,5 +1,6 @@
-import { getApps, initializeApp, cert, applicationDefault } from 'firebase-admin/app';
+import { initializeApp, getApps, applicationDefault, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 
 /**
  * Initializes the Firebase Admin SDK for server-side operations.
@@ -19,3 +20,4 @@ if (!getApps().length) {
 }
 
 export const auth = getAuth();
+export const db = getFirestore();

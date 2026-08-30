@@ -33,11 +33,11 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
   const getScaiBadge = (stage: ScaiShockStage) => {
     switch (stage) {
       case "STAGE_A_AT_RISK":
-        return <span className="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">SCAI A (At Risk)</span>;
+        return <span className="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/200/20 text-emerald-300 border border-emerald-500/40">SCAI A (At Risk)</span>;
       case "STAGE_B_BEGINNING":
-        return <span className="px-2 py-0.5 rounded text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">SCAI B (Beginning)</span>;
+        return <span className="px-2 py-0.5 rounded text-xs font-bold bg-blue-500/200/20 text-blue-300 border border-blue-500/40">SCAI B (Beginning)</span>;
       case "STAGE_C_CLASSIC":
-        return <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">SCAI C (Classic Shock)</span>;
+        return <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/200/20 text-amber-300 border border-amber-500/40">SCAI C (Classic Shock)</span>;
       case "STAGE_D_DETERIORATING":
         return <span className="px-2 py-0.5 rounded text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">SCAI D (Deteriorating)</span>;
       case "STAGE_E_EXTREMIS":
@@ -52,17 +52,17 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
       case "VA_ECMO":
         return <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/40">VA-ECMO (Circulatory)</span>;
       case "VV_ECMO":
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">VV-ECMO (Respiratory)</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-cyan-500/200/20 text-cyan-300 border border-cyan-500/40">VV-ECMO (Respiratory)</span>;
       case "IMPELLA_CP":
       case "IMPELLA_5_5":
       case "IMPELLA_RP":
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40">{device.replace("_", " ")}</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-500/200/20 text-amber-300 border border-amber-500/40">{device.replace("_", " ")}</span>;
       case "IABP":
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-500/20 text-blue-300 border border-blue-500/40">IABP Counterpulsation</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-500/200/20 text-blue-300 border border-blue-500/40">IABP Counterpulsation</span>;
       case "HEARTMATE_3_LVAD":
         return <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-violet-500/20 text-violet-300 border border-violet-500/40">HeartMate 3 LVAD</span>;
       default:
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700">Pharmacologic Support</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-secondary text-text-muted border border-border-theme">Pharmacologic Support</span>;
     }
   };
 
@@ -73,20 +73,20 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
   const isLactateElevated = patient.anticoagulationLabs.lactateMmolL >= 3.0;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-xl transition-all flex flex-col justify-between relative overflow-hidden group">
+    <div className="bg-primary-blue border border-border-theme hover:border-border-theme rounded-2xl p-5 shadow-xl transition-all flex flex-col justify-between relative overflow-hidden group">
       {/* Top Header */}
       <div>
-        <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-800/80">
+        <div className="flex items-start justify-between gap-3 pb-3 border-b border-border-theme/80">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-mono font-bold text-cyan-400 text-sm">
+            <div className="w-10 h-10 rounded-xl bg-surface-secondary border border-border-theme flex items-center justify-center font-mono font-bold text-cyan-400 text-sm">
               {patient.bedNumber}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-white tracking-tight">{patient.name}</h3>
-                <span className="text-xs text-slate-400 font-mono">({patient.age}y {patient.sex === "MALE" ? "M" : "F"})</span>
+                <span className="text-xs text-text-muted font-mono">({patient.age}y {patient.sex === "MALE" ? "M" : "F"})</span>
               </div>
-              <p className="text-xs text-slate-400 font-mono">
+              <p className="text-xs text-text-muted font-mono">
                 {patient.mrn} • Support: <strong className="text-slate-200">{patient.hoursOnSupport}h</strong> (Day {patient.dayInIcu})
               </p>
             </div>
@@ -100,15 +100,15 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
         {/* Diagnosis */}
         <div className="mt-3">
           <p className="text-xs text-slate-300 font-medium line-clamp-1">
-            <strong className="text-slate-400">Dx:</strong> {patient.primaryDiagnosis}
+            <strong className="text-text-muted">Dx:</strong> {patient.primaryDiagnosis}
           </p>
         </div>
 
         {/* Hemodynamic Metric Grid (4-Column Matrix) */}
-        <div className="grid grid-cols-4 gap-2 mt-4 bg-slate-950/70 border border-slate-800/60 rounded-xl p-3">
+        <div className="grid grid-cols-4 gap-2 mt-4 bg-slate-950/70 border border-border-theme/60 rounded-xl p-3">
           {/* BP & MAP */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 font-semibold uppercase">ART BP (MAP)</span>
+            <span className="text-[10px] text-text-muted font-semibold uppercase">ART BP (MAP)</span>
             <span className="text-sm font-black text-white font-mono">
               {patient.hemodynamics.systolicBloodPressureMmHg}/{patient.hemodynamics.diastolicBloodPressureMmHg}
             </span>
@@ -119,18 +119,18 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
 
           {/* CPO (Cardiac Power Output) */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 font-semibold uppercase">CPO (WATTS)</span>
+            <span className="text-[10px] text-text-muted font-semibold uppercase">CPO (WATTS)</span>
             <span className={`text-sm font-black font-mono ${isCpoCritical ? "text-red-400 animate-pulse" : "text-emerald-400"}`}>
               {patient.hemodynamics.cardiacPowerOutputWatts} W
             </span>
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className="text-[11px] text-text-muted font-mono">
               CPI: {patient.hemodynamics.cardiacPowerIndexWattsM2} W/m²
             </span>
           </div>
 
           {/* Cardiac Output & Index */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 font-semibold uppercase">CO / CI</span>
+            <span className="text-[10px] text-text-muted font-semibold uppercase">CO / CI</span>
             <span className="text-sm font-black text-white font-mono">
               {patient.hemodynamics.cardiacOutputLpm} L/min
             </span>
@@ -141,11 +141,11 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
 
           {/* PAPi / CVP */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 font-semibold uppercase">PAPi / CVP</span>
+            <span className="text-[10px] text-text-muted font-semibold uppercase">PAPi / CVP</span>
             <span className={`text-sm font-black font-mono ${isPapiLow ? "text-amber-400" : "text-slate-200"}`}>
               {patient.hemodynamics.pulmonaryArteryPulsatilityIndex}
             </span>
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className="text-[11px] text-text-muted font-mono">
               CVP: {patient.hemodynamics.centralVenousPressureMmHg} | PCWP: {patient.hemodynamics.pulmonaryCapillaryWedgePressureMmHg}
             </span>
           </div>
@@ -153,7 +153,7 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
 
         {/* ECMO / MCS Circuit Details Strip */}
         {patient.mcsDevice !== "NONE_PHARMACOLOGIC" && (
-          <div className="mt-3 bg-slate-950/40 border border-slate-800/40 rounded-xl p-2.5 flex items-center justify-between text-xs font-mono">
+          <div className="mt-3 bg-slate-950/40 border border-border-theme/40 rounded-xl p-2.5 flex items-center justify-between text-xs font-mono">
             {patient.mcsDevice.includes("ECMO") || patient.mcsDevice === "ECPELLA" ? (
               <>
                 <div className="flex items-center gap-1.5 text-rose-300">
@@ -161,12 +161,12 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
                   <span>Flow: <strong>{patient.ecmoTelemetry.bloodFlowLpm} L/min</strong> ({patient.ecmoTelemetry.pumpSpeedRpm} RPM)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className={`${isTmpHigh ? "text-amber-400 font-bold" : "text-slate-400"}`}>
+                  <span className={`${isTmpHigh ? "text-amber-400 font-bold" : "text-text-muted"}`}>
                     TMP ΔP: {patient.ecmoTelemetry.transmembranePressureGradientMmHg} mmHg
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className={`${isHarlequin ? "text-rose-400 font-bold animate-pulse" : "text-slate-400"}`}>
+                  <span className={`${isHarlequin ? "text-rose-400 font-bold animate-pulse" : "text-text-muted"}`}>
                     Δ SpO₂: {patient.ecmoTelemetry.harlequinDeltaSpO2Percent}%
                   </span>
                 </div>
@@ -177,10 +177,10 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
                   <Zap className="w-3.5 h-3.5 text-amber-400" />
                   <span>Level: <strong>{patient.microaxialTelemetry.impellaPLevel}</strong> (Flow: {patient.microaxialTelemetry.impellaFlowLpm} L/min)</span>
                 </div>
-                <div className="text-slate-400">
+                <div className="text-text-muted">
                   Purge: {patient.microaxialTelemetry.purgePressureMmHg} mmHg
                 </div>
-                <div className="text-slate-400">
+                <div className="text-text-muted">
                   Motor: {patient.microaxialTelemetry.motorCurrentMilliamps} mA
                 </div>
               </>
@@ -195,7 +195,7 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
                 </div>
               </>
             ) : (
-              <div className="text-slate-400">
+              <div className="text-text-muted">
                 Central Cannulation Continuous Flow
               </div>
             )}
@@ -203,7 +203,7 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
         )}
 
         {/* Labs, VIS & Anticoagulation Bar */}
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-400 px-1 font-mono">
+        <div className="mt-3 flex items-center justify-between text-xs text-text-muted px-1 font-mono">
           <span className="flex items-center gap-1">
             <Syringe className="w-3.5 h-3.5 text-cyan-400" />
             VIS Score: <strong className="text-cyan-300">{patient.vasoactiveSupport.vasoactiveInotropicScore}</strong>
@@ -225,10 +225,10 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
                 onClick={() => onOpenAlerts(patient)}
                 className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
                   alt.severity === "CRITICAL"
-                    ? "bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30"
+                    ? "bg-red-500/200/20 text-red-300 border border-red-500/40 hover:bg-red-500/200/30"
                     : alt.severity === "WARNING"
-                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30"
-                    : "bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/30"
+                    ? "bg-amber-500/200/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/200/30"
+                    : "bg-blue-500/200/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/200/30"
                 }`}
               >
                 <div className="flex items-center gap-2 truncate">
@@ -243,7 +243,7 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
       </div>
 
       {/* Action Footer */}
-      <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+      <div className="mt-4 pt-3 border-t border-border-theme/80 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button
             onClick={() => onOpenEmergency(patient)}
@@ -254,7 +254,7 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
           </button>
           <button
             onClick={() => onOpenAlerts(patient)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-secondary hover:bg-slate-700 text-slate-300 border border-border-theme transition-all"
           >
             <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
             Alerts ({patient.alerts.length})
@@ -263,7 +263,7 @@ export const CardioPatientCard: React.FC<CardioPatientCardProps> = ({
 
         <button
           onClick={() => onInspect(patient)}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md shadow-cyan-600/20"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500/200 text-white transition-all shadow-md shadow-cyan-600/20"
         >
           Inspect Telemetry
           <ChevronRight className="w-3.5 h-3.5" />

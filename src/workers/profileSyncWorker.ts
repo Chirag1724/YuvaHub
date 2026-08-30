@@ -37,7 +37,7 @@ export const profileSyncWorker = new Worker(
 
             return { status: 'success', userId };
         } catch (error) {
-            logger.error(error, `Profile sync failed for user ${userId}:`);
+            logger.error({ err: error }, `Profile sync failed for user ${userId}:`);
             throw error;
         }
     },

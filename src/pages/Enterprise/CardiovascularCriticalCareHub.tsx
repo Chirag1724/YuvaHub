@@ -156,12 +156,12 @@ export const CardiovascularCriticalCareHub: React.FC = () => {
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Live Surveillance Ticker */}
-        <div className="bg-slate-900/90 border border-slate-800/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs font-mono overflow-hidden shadow-inner">
+        <div className="bg-primary-blue/90 border border-border-theme/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs font-mono overflow-hidden shadow-inner">
           <div className="flex items-center gap-2 text-rose-400 font-bold shrink-0">
             <Radio className="w-4 h-4 animate-pulse text-rose-500" />
             <span>CTICU LIVE TELEMETRY STREAM:</span>
           </div>
-          <div className="flex items-center gap-6 overflow-x-auto whitespace-nowrap px-4 text-slate-400">
+          <div className="flex items-center gap-6 overflow-x-auto whitespace-nowrap px-4 text-text-muted">
             <span>Active Beds: <strong className="text-white">{patients.length}</strong></span>
             <span>VA-ECMO: <strong className="text-rose-400">{metrics?.activeVaEcmoCount || 0}</strong></span>
             <span>VV-ECMO: <strong className="text-cyan-400">{metrics?.activeVvEcmoCount || 0}</strong></span>
@@ -170,7 +170,7 @@ export const CardiovascularCriticalCareHub: React.FC = () => {
             <span>Oxygenator Clotting TMP: <strong className="text-amber-400">{metrics?.highTransmembranePressureCount || 0}</strong></span>
             <span>Harlequin Syndrome: <strong className="text-rose-400">{metrics?.harlequinSyndromeAlertCount || 0}</strong></span>
           </div>
-          <div className="text-slate-500 shrink-0 hidden sm:block">
+          <div className="text-text-muted shrink-0 hidden sm:block">
             {new Date().toLocaleTimeString()}
           </div>
         </div>
@@ -217,10 +217,10 @@ export const CardiovascularCriticalCareHub: React.FC = () => {
 
         {/* View Mode 2: Central Station Matrix Table View */}
         {viewMode === "MATRIX" && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-primary-blue border border-border-theme rounded-2xl shadow-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 uppercase text-[10px]">
+                <thead className="bg-slate-950/80 border-b border-border-theme text-text-muted uppercase text-[10px]">
                   <tr>
                     <th className="px-4 py-3">Bed / MRN</th>
                     <th className="px-4 py-3">Patient</th>
@@ -242,18 +242,18 @@ export const CardiovascularCriticalCareHub: React.FC = () => {
                     const isHarlequin = p.ecmoTelemetry && p.ecmoTelemetry.harlequinDeltaSpO2Percent >= 10;
 
                     return (
-                      <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
+                      <tr key={p.id} className="hover:bg-surface-secondary/40 transition-colors">
                         <td className="px-4 py-3">
                           <div className="font-bold text-cyan-400">{p.bedNumber}</div>
-                          <div className="text-[10px] text-slate-500">{p.mrn}</div>
+                          <div className="text-[10px] text-text-muted">{p.mrn}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-bold text-white font-sans">{p.name}</div>
-                          <div className="text-[10px] text-slate-400">{p.age}y {p.sex} • Day {p.dayInIcu}</div>
+                          <div className="text-[10px] text-text-muted">{p.age}y {p.sex} • Day {p.dayInIcu}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-bold text-rose-300">{p.scaiStage.replace("STAGE_", "SCAI ")}</div>
-                          <div className="text-[10px] text-slate-400">{p.mcsDevice}</div>
+                          <div className="text-[10px] text-text-muted">{p.mcsDevice}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div>{p.hemodynamics.systolicBloodPressureMmHg}/{p.hemodynamics.diastolicBloodPressureMmHg}</div>
@@ -263,28 +263,28 @@ export const CardiovascularCriticalCareHub: React.FC = () => {
                           <div className={`font-black ${isCpoLow ? "text-red-400 animate-pulse" : "text-emerald-400"}`}>
                             {p.hemodynamics.cardiacPowerOutputWatts} W
                           </div>
-                          <div className="text-[10px] text-slate-400">CPI: {p.hemodynamics.cardiacPowerIndexWattsM2}</div>
+                          <div className="text-[10px] text-text-muted">CPI: {p.hemodynamics.cardiacPowerIndexWattsM2}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div>{p.hemodynamics.cardiacOutputLpm} L/min</div>
-                          <div className="text-[10px] text-slate-400">CI: {p.hemodynamics.cardiacIndexLpmM2}</div>
+                          <div className="text-[10px] text-text-muted">CI: {p.hemodynamics.cardiacIndexLpmM2}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div className={p.hemodynamics.pulmonaryArteryPulsatilityIndex < 0.9 ? "text-amber-400 font-bold" : ""}>
                             PAPi: {p.hemodynamics.pulmonaryArteryPulsatilityIndex}
                           </div>
-                          <div className="text-[10px] text-slate-400">CVP: {p.hemodynamics.centralVenousPressureMmHg}</div>
+                          <div className="text-[10px] text-text-muted">CVP: {p.hemodynamics.centralVenousPressureMmHg}</div>
                         </td>
                         <td className="px-4 py-3">
                           {p.mcsDevice.includes("ECMO") || p.mcsDevice === "ECPELLA" ? (
                             <>
                               <div className="text-cyan-300">{p.ecmoTelemetry.bloodFlowLpm} L/min</div>
-                              <div className={`text-[10px] ${isTmpHigh ? "text-amber-400 font-bold" : "text-slate-400"}`}>
+                              <div className={`text-[10px] ${isTmpHigh ? "text-amber-400 font-bold" : "text-text-muted"}`}>
                                 TMP: {p.ecmoTelemetry.transmembranePressureGradientMmHg} mmHg
                               </div>
                             </>
                           ) : (
-                            <span className="text-slate-500">N/A</span>
+                            <span className="text-text-muted">N/A</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -293,24 +293,24 @@ export const CardiovascularCriticalCareHub: React.FC = () => {
                               Δ {p.ecmoTelemetry.harlequinDeltaSpO2Percent}%
                             </span>
                           ) : (
-                            <span className="text-slate-500">0%</span>
+                            <span className="text-text-muted">0%</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
                           <div>VIS: <strong className="text-cyan-300">{p.vasoactiveSupport.vasoactiveInotropicScore}</strong></div>
-                          <div className="text-[10px] text-slate-400">Lac: {p.anticoagulationLabs.lactateMmolL} mmol/L</div>
+                          <div className="text-[10px] text-text-muted">Lac: {p.anticoagulationLabs.lactateMmolL} mmol/L</div>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => setAlertPatient(p)}
-                              className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px]"
+                              className="px-2 py-1 rounded bg-surface-secondary hover:bg-slate-700 text-slate-300 text-[11px]"
                             >
                               Alerts ({p.alerts.length})
                             </button>
                             <button
                               onClick={() => setInspectingPatient(p)}
-                              className="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold"
+                              className="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500/200 text-white text-[11px] font-bold"
                             >
                               Inspect
                             </button>
@@ -327,10 +327,10 @@ export const CardiovascularCriticalCareHub: React.FC = () => {
 
         {/* Empty State */}
         {filteredPatients.length === 0 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center space-y-4">
-            <Heart className="w-12 h-12 text-slate-600 mx-auto" />
+          <div className="bg-primary-blue border border-border-theme rounded-3xl p-12 text-center space-y-4">
+            <Heart className="w-12 h-12 text-text-secondary mx-auto" />
             <h3 className="text-lg font-bold text-white">No Matching Patients in CTICU</h3>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
+            <p className="text-xs text-text-muted max-w-md mx-auto">
               No patients match the selected SCAI shock stage, MCS device modality, or search filter criteria.
             </p>
             <button
@@ -340,7 +340,7 @@ export const CardiovascularCriticalCareHub: React.FC = () => {
                 setSelectedMcsDevice("ALL");
                 setSelectedSpecialStatus("ALL");
               }}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition-all"
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-surface-secondary hover:bg-slate-700 text-cyan-300 border border-border-theme transition-all"
             >
               Reset All Filters
             </button>

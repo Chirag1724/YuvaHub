@@ -117,7 +117,7 @@ const DeadlineCalendar: React.FC = () => {
           </div>
           <button 
             onClick={handleExportAll}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 shadow-sm rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-surface border border-gray-200 shadow-sm rounded-lg hover:bg-gray-50 font-medium transition-colors"
           >
             <Download className="w-4 h-4 text-gray-600" />
             Export All to ICS
@@ -132,7 +132,7 @@ const DeadlineCalendar: React.FC = () => {
           <div className="flex flex-col lg:flex-row gap-6">
             
             {/* Calendar Grid */}
-            <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="flex-1 bg-surface rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/50">
                 <h2 className="text-xl font-semibold">
                   {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
@@ -189,7 +189,7 @@ const DeadlineCalendar: React.FC = () => {
                             className={`text-xs px-2 py-1 rounded truncate flex items-center gap-1 text-white shadow-sm ${getEventColor(e.type)}`}
                             title={e.title}
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-surface/50 flex-shrink-0" />
                             {e.title}
                           </div>
                         ))}
@@ -201,7 +201,7 @@ const DeadlineCalendar: React.FC = () => {
             </div>
 
             {/* Side Panel */}
-            <div className={`w-full lg:w-96 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[600px] transition-all
+            <div className={`w-full lg:w-96 bg-surface rounded-xl shadow-sm border border-gray-200 flex flex-col h-[600px] transition-all
               ${selectedDay ? 'opacity-100' : 'opacity-50 pointer-events-none'}
             `}>
               <div className="p-4 border-b border-gray-200 bg-gray-50/50">
@@ -216,7 +216,7 @@ const DeadlineCalendar: React.FC = () => {
                   getEventsForDate(selectedDay.getDate()).map(e => {
                     const existingReminder = reminders.find(r => r.opportunityId === e.id);
                     return (
-                      <div key={e.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div key={e.id} className="bg-surface border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium text-gray-900 leading-tight">{e.title}</h4>
                           <span className={`text-[10px] uppercase tracking-wide font-bold px-2 py-0.5 rounded text-white ${getEventColor(e.type)}`}>
@@ -271,7 +271,7 @@ const DeadlineCalendar: React.FC = () => {
       {/* Reminder Modal */}
       {reminderModalOpen && activeEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="flex justify-between items-center p-4 border-b border-gray-100">
               <h3 className="font-semibold text-lg flex items-center gap-2"><Bell className="w-5 h-5 text-purple-600"/> Set Reminder</h3>
               <button onClick={() => setReminderModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>

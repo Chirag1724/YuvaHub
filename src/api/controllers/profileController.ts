@@ -27,7 +27,7 @@ export const linkDeveloperAccounts = async (req: Request, res: Response) => {
 
         res.status(200).json({ message: 'Accounts linked successfully', data: profile });
     } catch (error) {
-        logger.error(error, 'Error linking developer accounts:');
+        logger.error({ err: error }, 'Error linking developer accounts:');
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -46,7 +46,7 @@ export const getDeveloperProfile = async (req: Request, res: Response) => {
 
         res.status(200).json({ data: profile });
     } catch (error) {
-        logger.error(error, 'Error fetching developer profile:');
+        logger.error({ err: error }, 'Error fetching developer profile:');
         res.status(500).json({ error: 'Internal server error' });
     }
 };

@@ -10,7 +10,8 @@ import {
   toggleBookmark,
   getSimilarOpportunities,
   getOpportunityCalendar,
-  ingestOpportunity
+  ingestOpportunity,
+  compareOpportunities
 } from "../controllers/opportunityController.js";
 import { authMiddleware, adminOnly } from "../middlewares/auth.js";
 import { cacheMiddleware } from "../middlewares/cacheMiddleware.js";
@@ -50,6 +51,7 @@ router.get("/opportunities/latest", getLatestOpportunities);
 
 // ── Authenticated User Routes ────────────────────────────────────────────
 router.post("/opportunities", authMiddleware, validateRequest(z.object({ body: submitOpportunitySchema })), submitOpportunity);
+router.post("/opportunities/compare", authMiddleware, compareOpportunities);
 router.post("/opportunities/:id/bookmark", authMiddleware, toggleBookmark);
 
 // ── Specific Opportunity Routes ──────────────────────────────────────────

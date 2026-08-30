@@ -83,12 +83,12 @@ export default function PortfolioShowcase() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search projects, tech..." className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm w-64 focus:outline-none focus:border-cyan-500/50"/></div>
-          <select value={cat} onChange={e=>setCat(e.target.value as ProjectCategory|'all')} className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none">
+          <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search projects, tech..." className="bg-surface/5 border border-border-theme rounded-xl pl-10 pr-4 py-2.5 text-text-primary text-sm w-64 focus:outline-none focus:border-cyan-500/50"/></div>
+          <select value={cat} onChange={e=>setCat(e.target.value as ProjectCategory|'all')} className="bg-surface/5 border border-border-theme rounded-xl px-4 py-2.5 text-text-primary text-sm focus:outline-none">
             <option value="all">All Categories</option>
             {CATEGORIES.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
-          <select value={sort} onChange={e=>setSort(e.target.value as SortBy)} className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none">
+          <select value={sort} onChange={e=>setSort(e.target.value as SortBy)} className="bg-surface/5 border border-border-theme rounded-xl px-4 py-2.5 text-text-primary text-sm focus:outline-none">
             <option value="stars">Most Stars</option>
             <option value="updated">Recently Updated</option>
             <option value="forks">Most Forks</option>
@@ -96,8 +96,8 @@ export default function PortfolioShowcase() {
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={()=>setView('grid')} className={`p-2 rounded-lg ${view==='grid'?'bg-white/10 text-white':'text-gray-400'}`}><Grid className="w-4 h-4"/></button>
-          <button onClick={()=>setView('list')} className={`p-2 rounded-lg ${view==='list'?'bg-white/10 text-white':'text-gray-400'}`}><List className="w-4 h-4"/></button>
+          <button onClick={()=>setView('grid')} className={`p-2 rounded-lg ${view==='grid'?'bg-surface/10 text-text-primary':'text-gray-400'}`}><Grid className="w-4 h-4"/></button>
+          <button onClick={()=>setView('list')} className={`p-2 rounded-lg ${view==='list'?'bg-surface/10 text-text-primary':'text-gray-400'}`}><List className="w-4 h-4"/></button>
         </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -106,17 +106,17 @@ export default function PortfolioShowcase() {
           {l:'Total Stars',v:STATS.totalStars.toLocaleString(),i:<Star className="w-5 h-5"/>,c:'text-amber-400'},
           {l:'Total Forks',v:STATS.totalForks.toLocaleString(),i:<GitFork className="w-5 h-5"/>,c:'text-purple-400'},
           {l:'Total Views',v:STATS.totalViews.toLocaleString(),i:<EyeIcon className="w-5 h-5"/>,c:'text-cyan-400'},
-        ].map((s,i)=>(<div key={i} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-white/20 transition-all"><div className={`p-2 rounded-xl bg-white/5 ${s.c} mb-2 inline-block`}>{s.i}</div><div className="text-xl font-bold text-white">{s.v}</div><div className="text-gray-400 text-xs">{s.l}</div></div>))}
+        ].map((s,i)=>(<div key={i} className="bg-surface/5 backdrop-blur-md border border-border-theme rounded-2xl p-4 hover:border-white/20 transition-all"><div className={`p-2 rounded-xl bg-surface/5 ${s.c} mb-2 inline-block`}>{s.i}</div><div className="text-xl font-bold text-text-primary">{s.v}</div><div className="text-gray-400 text-xs">{s.l}</div></div>))}
       </div>
       {view==='grid'?(
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(p=>{
             const catCfg=getCatConfig(p.category);
             return(
-            <div key={p.id} onClick={()=>setSel(sel===p.id?null:p.id)} className={`bg-white/5 backdrop-blur-md border rounded-2xl overflow-hidden cursor-pointer transition-all hover:border-white/20 ${sel===p.id?'border-cyan-500/50 ring-1 ring-cyan-500/30':'border-white/10'}`}>
+            <div key={p.id} onClick={()=>setSel(sel===p.id?null:p.id)} className={`bg-surface/5 backdrop-blur-md border rounded-2xl overflow-hidden cursor-pointer transition-all hover:border-white/20 ${sel===p.id?'border-cyan-500/50 ring-1 ring-cyan-500/30':'border-border-theme'}`}>
               <div className="h-32 bg-gradient-to-br from-gray-700 to-gray-900 p-4 flex items-end relative">
                 {p.isFeatured&&<div className="absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/30 text-amber-300">⭐ Featured</div>}
-                <div className="flex items-center gap-1 flex-wrap">{p.techStack.slice(0,4).map(t=><span key={t.name} className="px-1.5 py-0.5 rounded text-[8px] bg-black/40 text-white/80">{t.name}</span>)}{p.techStack.length>4&&<span className="text-[8px] text-white/60">+{p.techStack.length-4}</span>}</div>
+                <div className="flex items-center gap-1 flex-wrap">{p.techStack.slice(0,4).map(t=><span key={t.name} className="px-1.5 py-0.5 rounded text-[8px] bg-black/40 text-text-primary/80">{t.name}</span>)}{p.techStack.length>4&&<span className="text-[8px] text-text-primary/60">+{p.techStack.length-4}</span>}</div>
               </div>
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -126,7 +126,7 @@ export default function PortfolioShowcase() {
                   </div>
                   <span className="text-[10px] text-gray-500">{p.updatedAt}</span>
                 </div>
-                <h3 className="text-white font-semibold text-sm mb-1">{p.title}</h3>
+                <h3 className="text-text-primary font-semibold text-sm mb-1">{p.title}</h3>
                 <p className="text-gray-400 text-xs line-clamp-2 mb-3">{p.description}</p>
                 <div className="flex items-center gap-3 text-[10px] text-gray-500 mb-3">
                   <span className="flex items-center gap-1 text-amber-400"><Star className="w-3 h-3"/>{p.stars}</span>
@@ -136,20 +136,20 @@ export default function PortfolioShowcase() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1">
-                    <a href={p.githubUrl} onClick={e=>e.stopPropagation()} className="p-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white"><Github className="w-3.5 h-3.5"/></a>
-                    {p.liveUrl&&<a href={p.liveUrl} onClick={e=>e.stopPropagation()} className="p-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white"><ExternalLink className="w-3.5 h-3.5"/></a>}
-                    <button onClick={e=>{e.stopPropagation();toggleBookmark(p.id)}} className={`p-1.5 rounded-lg ${bookmarks.has(p.id)?'bg-amber-500/20 text-amber-400':'bg-white/5 text-gray-400 hover:text-white'}`}><Bookmark className="w-3.5 h-3.5" fill={bookmarks.has(p.id)?'currentColor':'none'}/></button>
-                    <button onClick={e=>e.stopPropagation()} className="p-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white"><Share2 className="w-3.5 h-3.5"/></button>
+                    <a href={p.githubUrl} onClick={e=>e.stopPropagation()} className="p-1.5 rounded-lg bg-surface/5 text-gray-400 hover:text-text-primary"><Github className="w-3.5 h-3.5"/></a>
+                    {p.liveUrl&&<a href={p.liveUrl} onClick={e=>e.stopPropagation()} className="p-1.5 rounded-lg bg-surface/5 text-gray-400 hover:text-text-primary"><ExternalLink className="w-3.5 h-3.5"/></a>}
+                    <button onClick={e=>{e.stopPropagation();toggleBookmark(p.id)}} className={`p-1.5 rounded-lg ${bookmarks.has(p.id)?'bg-amber-500/20 text-amber-400':'bg-surface/5 text-gray-400 hover:text-text-primary'}`}><Bookmark className="w-3.5 h-3.5" fill={bookmarks.has(p.id)?'currentColor':'none'}/></button>
+                    <button onClick={e=>e.stopPropagation()} className="p-1.5 rounded-lg bg-surface/5 text-gray-400 hover:text-text-primary"><Share2 className="w-3.5 h-3.5"/></button>
                   </div>
                   <span className="text-[10px] text-gray-500">+{p.weeklyStars[p.weeklyStars.length-1]}⭐ this week</span>
                 </div>
                 {sel===p.id&&(
-                  <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                  <div className="mt-3 pt-3 border-t border-border-theme space-y-2">
                     <p className="text-gray-300 text-xs">{p.longDescription}</p>
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-white/5 rounded-lg p-2 text-center"><div className="text-white text-xs font-medium">{p.commits}</div><div className="text-[9px] text-gray-500">Commits</div></div>
-                      <div className="bg-white/5 rounded-lg p-2 text-center"><div className="text-white text-xs font-medium">{p.license}</div><div className="text-[9px] text-gray-500">License</div></div>
-                      <div className="bg-white/5 rounded-lg p-2 text-center"><div className="text-white text-xs font-medium">{p.topContributor}</div><div className="text-[9px] text-gray-500">Top Dev</div></div>
+                      <div className="bg-surface/5 rounded-lg p-2 text-center"><div className="text-text-primary text-xs font-medium">{p.commits}</div><div className="text-[9px] text-gray-500">Commits</div></div>
+                      <div className="bg-surface/5 rounded-lg p-2 text-center"><div className="text-text-primary text-xs font-medium">{p.license}</div><div className="text-[9px] text-gray-500">License</div></div>
+                      <div className="bg-surface/5 rounded-lg p-2 text-center"><div className="text-text-primary text-xs font-medium">{p.topContributor}</div><div className="text-[9px] text-gray-500">Top Dev</div></div>
                     </div>
                   </div>
                 )}
@@ -161,16 +161,16 @@ export default function PortfolioShowcase() {
           {filtered.map(p=>{
             const catCfg=getCatConfig(p.category);
             return(
-            <div key={p.id} onClick={()=>setSel(sel===p.id?null:p.id)} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 cursor-pointer hover:border-white/20 transition-all flex items-center gap-4">
+            <div key={p.id} onClick={()=>setSel(sel===p.id?null:p.id)} className="bg-surface/5 backdrop-blur-md border border-border-theme rounded-xl p-4 cursor-pointer hover:border-white/20 transition-all flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <span className="flex items-center gap-1 text-amber-400 text-xs"><Star className="w-3 h-3"/>{p.stars}</span>
                 <span className="flex items-center gap-1 text-gray-500 text-xs"><GitFork className="w-3 h-3"/>{p.forks}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2"><h3 className="text-white font-medium text-sm">{p.title}</h3><span className={`px-2 py-0.5 rounded text-[9px] font-medium ${catCfg.color}`}>{catCfg.label}</span></div>
+                <div className="flex items-center gap-2"><h3 className="text-text-primary font-medium text-sm">{p.title}</h3><span className={`px-2 py-0.5 rounded text-[9px] font-medium ${catCfg.color}`}>{catCfg.label}</span></div>
                 <p className="text-gray-400 text-xs truncate">{p.description}</p>
               </div>
-              <div className="flex items-center gap-1">{p.techStack.slice(0,3).map(t=><span key={t.name} className="px-1.5 py-0.5 rounded text-[8px] bg-white/5 text-gray-400">{t.name}</span>)}</div>
+              <div className="flex items-center gap-1">{p.techStack.slice(0,3).map(t=><span key={t.name} className="px-1.5 py-0.5 rounded text-[8px] bg-surface/5 text-gray-400">{t.name}</span>)}</div>
               <span className="text-[10px] text-gray-500">{p.updatedAt}</span>
             </div>);})}
         </div>
@@ -192,28 +192,28 @@ export default function PortfolioShowcase() {
           {l:'Total Commits',v:PROJECTS.reduce((s,p)=>s+p.commits,0).toLocaleString(),i:<Code2 className="w-5 h-5"/>,c:'text-emerald-400'},
           {l:'Contributors',v:PROJECTS.reduce((s,p)=>s+p.collaborators,0),i:<Users className="w-5 h-5"/>,c:'text-purple-400'},
           {l:'Top Project',v:'PixelForge',i:<Award className="w-5 h-5"/>,c:'text-cyan-400'},
-        ].map((s,i)=>(<div key={i} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4"><div className={`p-2 rounded-xl bg-white/5 ${s.c} mb-2 inline-block`}>{s.i}</div><div className="text-xl font-bold text-white">{s.v}</div><div className="text-gray-400 text-xs">{s.l}</div></div>))}
+        ].map((s,i)=>(<div key={i} className="bg-surface/5 backdrop-blur-md border border-border-theme rounded-2xl p-4"><div className={`p-2 rounded-xl bg-surface/5 ${s.c} mb-2 inline-block`}>{s.i}</div><div className="text-xl font-bold text-text-primary">{s.v}</div><div className="text-gray-400 text-xs">{s.l}</div></div>))}
       </div>
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-        <h3 className="text-white font-semibold mb-4">⭐ Stars by Project</h3>
-        <div className="space-y-3">{PROJECTS.sort((a,b)=>b.stars-a.stars).map(p=>(<div key={p.id} className="flex items-center gap-4"><div className="w-36 text-xs text-gray-300 truncate">{p.title}</div><div className="flex-1 h-4 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" style={{width:`${(p.stars/maxStars)*100}%`}}/></div><div className="w-12 text-right text-xs text-amber-400">{p.stars}</div></div>))}</div>
+      <div className="bg-surface/5 backdrop-blur-md border border-border-theme rounded-2xl p-6">
+        <h3 className="text-text-primary font-semibold mb-4">⭐ Stars by Project</h3>
+        <div className="space-y-3">{PROJECTS.sort((a,b)=>b.stars-a.stars).map(p=>(<div key={p.id} className="flex items-center gap-4"><div className="w-36 text-xs text-gray-300 truncate">{p.title}</div><div className="flex-1 h-4 bg-surface/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" style={{width:`${(p.stars/maxStars)*100}%`}}/></div><div className="w-12 text-right text-xs text-amber-400">{p.stars}</div></div>))}</div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-          <h3 className="text-white font-semibold mb-4">🔧 Top Technologies</h3>
-          <div className="space-y-3">{topTechs.map(([tech,count],i)=>(<div key={tech}><div className="flex justify-between text-xs mb-1"><span className="text-gray-300">{tech}</span><span className="text-gray-400">{count} projects</span></div><div className="h-2 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-cyan-500 rounded-full" style={{width:`${(count/topTechs[0][1])*100}%`}}/></div></div>))}</div>
+        <div className="bg-surface/5 backdrop-blur-md border border-border-theme rounded-2xl p-6">
+          <h3 className="text-text-primary font-semibold mb-4">🔧 Top Technologies</h3>
+          <div className="space-y-3">{topTechs.map(([tech,count],i)=>(<div key={tech}><div className="flex justify-between text-xs mb-1"><span className="text-gray-300">{tech}</span><span className="text-gray-400">{count} projects</span></div><div className="h-2 bg-surface/10 rounded-full overflow-hidden"><div className="h-full bg-cyan-500 rounded-full" style={{width:`${(count/topTechs[0][1])*100}%`}}/></div></div>))}</div>
         </div>
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-          <h3 className="text-white font-semibold mb-4">📊 By Category</h3>
-          <div className="space-y-3">{Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).map(([cat,count])=>{const cfg=getCatConfig(cat as ProjectCategory);return(<div key={cat} className="flex items-center gap-3"><span className={`px-2 py-1 rounded-lg text-[10px] font-medium ${cfg.color}`}>{cfg.label}</span><div className="flex-1 h-3 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-purple-500 rounded-full" style={{width:`${(count/PROJECTS.length)*100}%`}}/></div><span className="text-xs text-gray-400">{count}</span></div>);})}</div>
+        <div className="bg-surface/5 backdrop-blur-md border border-border-theme rounded-2xl p-6">
+          <h3 className="text-text-primary font-semibold mb-4">📊 By Category</h3>
+          <div className="space-y-3">{Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).map(([cat,count])=>{const cfg=getCatConfig(cat as ProjectCategory);return(<div key={cat} className="flex items-center gap-3"><span className={`px-2 py-1 rounded-lg text-[10px] font-medium ${cfg.color}`}>{cfg.label}</span><div className="flex-1 h-3 bg-surface/10 rounded-full overflow-hidden"><div className="h-full bg-purple-500 rounded-full" style={{width:`${(count/PROJECTS.length)*100}%`}}/></div><span className="text-xs text-gray-400">{count}</span></div>);})}</div>
         </div>
       </div>
       <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 rounded-2xl p-6">
-        <h3 className="text-white font-semibold mb-3">💡 Portfolio Insights</h3>
+        <h3 className="text-text-primary font-semibold mb-3">💡 Portfolio Insights</h3>
         <div className="space-y-2">
-          <div className="text-sm text-gray-300 bg-white/5 rounded-xl p-3">🏆 PixelForge UI leads with {PROJECTS[5].stars} stars — open-source design systems get massive community love</div>
-          <div className="text-sm text-gray-300 bg-white/5 rounded-xl p-3">🔧 React appears in {techCount['React']||0} projects — the most popular tech in your portfolio</div>
-          <div className="text-sm text-gray-300 bg-white/5 rounded-xl p-3">📈 DevOps projects average {Math.round(PROJECTS.filter(p=>p.category==='devops').reduce((s,p)=>s+p.stars,0)/Math.max(PROJECTS.filter(p=>p.category==='devops').length,1))} stars — highest engagement category</div>
+          <div className="text-sm text-gray-300 bg-surface/5 rounded-xl p-3">🏆 PixelForge UI leads with {PROJECTS[5].stars} stars — open-source design systems get massive community love</div>
+          <div className="text-sm text-gray-300 bg-surface/5 rounded-xl p-3">🔧 React appears in {techCount['React']||0} projects — the most popular tech in your portfolio</div>
+          <div className="text-sm text-gray-300 bg-surface/5 rounded-xl p-3">📈 DevOps projects average {Math.round(PROJECTS.filter(p=>p.category==='devops').reduce((s,p)=>s+p.stars,0)/Math.max(PROJECTS.filter(p=>p.category==='devops').length,1))} stars — highest engagement category</div>
         </div>
       </div>
     </div>);
@@ -223,7 +223,7 @@ export default function PortfolioShowcase() {
     const bmk=PROJECTS.filter(p=>bookmarks.has(p.id));
     return(
     <div className="space-y-6">
-      {bmk.length===0?<div className="text-center py-16"><Bookmark className="w-12 h-12 text-gray-600 mx-auto mb-4"/><div className="text-white font-semibold">No bookmarks yet</div><div className="text-gray-400 text-sm mt-1">Click the bookmark icon on any project to save it here</div></div>:(
+      {bmk.length===0?<div className="text-center py-16"><Bookmark className="w-12 h-12 text-gray-600 mx-auto mb-4"/><div className="text-text-primary font-semibold">No bookmarks yet</div><div className="text-gray-400 text-sm mt-1">Click the bookmark icon on any project to save it here</div></div>:(
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {bmk.map(p=>{const catCfg=getCatConfig(p.category);return(
           <div key={p.id} className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4">
@@ -231,7 +231,7 @@ export default function PortfolioShowcase() {
               <span className={`px-2 py-0.5 rounded text-[9px] font-medium ${catCfg.color}`}>{catCfg.label}</span>
               <button onClick={()=>toggleBookmark(p.id)} className="p-1 rounded bg-amber-500/20 text-amber-400"><Bookmark className="w-3 h-3" fill="currentColor"/></button>
             </div>
-            <h3 className="text-white font-semibold text-sm mb-1">{p.title}</h3>
+            <h3 className="text-text-primary font-semibold text-sm mb-1">{p.title}</h3>
             <p className="text-gray-400 text-xs mb-3">{p.description}</p>
             <div className="flex items-center gap-2 text-[10px] text-gray-500">
               <span className="flex items-center gap-1 text-amber-400"><Star className="w-3 h-3"/>{p.stars}</span>
@@ -249,16 +249,16 @@ export default function PortfolioShowcase() {
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-cyan-600/20"/>
         <div className="relative px-6 py-8">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3"><FolderGit2 className="w-8 h-8 text-blue-400"/>Project Portfolio</h1>
+          <h1 className="text-3xl font-bold text-text-primary flex items-center gap-3"><FolderGit2 className="w-8 h-8 text-blue-400"/>Project Portfolio</h1>
           <p className="text-gray-400 mt-2">{STATS.totalProjects} projects · {STATS.totalStars.toLocaleString()} stars · {STATS.totalForks.toLocaleString()} forks · {STATS.totalViews.toLocaleString()} views</p>
           <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2">
             {[{id:'gallery' as const,l:'Gallery',i:<Grid className="w-4 h-4"/>,c:PROJECTS.length},{id:'analytics' as const,l:'Analytics',i:<BarChart3 className="w-4 h-4"/>},{id:'bookmarks' as const,l:'Bookmarks',i:<Bookmark className="w-4 h-4"/>,c:bookmarks.size}].map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab===t.id?"bg-white/10 text-white border border-white/20 shadow-lg":"text-gray-400 hover:text-white hover:bg-white/5"}`}>{t.i}{t.l}{t.c!==undefined&&<span className="text-xs opacity-60">({t.c})</span>}</button>
+              <button key={t.id} onClick={()=>setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab===t.id?"bg-surface/10 text-text-primary border border-white/20 shadow-lg":"text-gray-400 hover:text-text-primary hover:bg-surface/5"}`}>{t.i}{t.l}{t.c!==undefined&&<span className="text-xs opacity-60">({t.c})</span>}</button>
             ))}
           </div>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="w-full px-6 py-8">
         {tab==='gallery'&&<GalleryTab/>}{tab==='analytics'&&<AnalyticsTab/>}{tab==='bookmarks'&&<BookmarksTab/>}
       </div>
     </div>
