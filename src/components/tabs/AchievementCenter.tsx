@@ -709,35 +709,61 @@ export default function AchievementCenter() {
 
   // ─── Render ─────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-gray-900">
-      {/* Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-600/20 via-purple-600/20 to-cyan-600/20" />
-        <div className="relative px-6 py-8">
-          <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-white flex items-center gap-3">
-            <Trophy className="w-8 h-8 text-amber-400" />
-            Achievement Center
-          </motion.h1>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
-            className="text-gray-400 mt-2">Level {STATS.level} · {STATS.totalXP.toLocaleString()} XP · {STATS.earnedBadges} badges · {STREAK.currentStreak} day streak 🔥</motion.p>
-          <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2">
-            {[
-              { id: 'overview' as const, label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
-              { id: 'badges' as const, label: 'Badges', icon: <Award className="w-4 h-4" />, count: STATS.earnedBadges },
-              { id: 'achievements' as const, label: 'Achievements', icon: <Trophy className="w-4 h-4" />, count: STATS.unlockedAchievements },
-              { id: 'challenges' as const, label: 'Challenges', icon: <Target className="w-4 h-4" />, count: activeChallenges.length },
-              { id: 'leaderboard' as const, label: 'Leaderboard', icon: <Crown className="w-4 h-4" /> },
-            ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
-                  activeTab === tab.id ? "bg-surface/10 text-white border border-white/20 shadow-lg" : "text-gray-400 hover:text-white hover:bg-surface/5"
-                }`}>
-                {tab.icon}{tab.label}
-                {tab.count !== undefined && <span className="text-xs opacity-60">({tab.count})</span>}
-              </button>
-            ))}
+    <div className="min-h-screen  font-sans pb-16">
+      {/* Top Banner Header - Brand Theme */}
+      <div className="m-4 sm:m-6 bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col gap-6 relative z-10">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30 flex items-center gap-1.5 shadow-xs">
+                <Trophy className="w-3.5 h-3.5 text-indigo-400" /> Achievement Hub
+              </span>
+              <span className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
+                Gamified Progression
+              </span>
+            </div>
+
+            <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+              className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
+              Achievement <span className="text-primary-blue italic">Center</span>
+            </motion.h1>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
+              className="text-slate-300 text-xs md:text-sm max-w-2xl font-medium">
+              Earn badges, complete coding challenges, participate in open-source tasks, and climb the developer leaderboard.
+            </motion.p>
           </div>
+
+          <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl w-full shadow-xs">
+            <div className="relative flex items-center justify-center w-14 h-14 rounded-full border-4 border-primary-blue bg-background font-serif font-bold text-xs text-primary-blue">
+              Lvl {STATS.level}
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{STATS.totalXP.toLocaleString()} XP Total</div>
+              <div className="text-xs font-extrabold text-white">{STATS.earnedBadges} Badges Earned</div>
+              <div className="text-[11px] text-emerald-400 font-semibold">{STREAK.currentStreak} Day Streak 🔥</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 sm:px-6">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-white/10 pb-3">
+          {[
+            { id: 'overview' as const, label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
+            { id: 'badges' as const, label: 'Badges', icon: <Award className="w-4 h-4" />, count: STATS.earnedBadges },
+            { id: 'achievements' as const, label: 'Achievements', icon: <Trophy className="w-4 h-4" />, count: STATS.unlockedAchievements },
+            { id: 'challenges' as const, label: 'Challenges', icon: <Target className="w-4 h-4" />, count: activeChallenges.length },
+            { id: 'leaderboard' as const, label: 'Leaderboard', icon: <Crown className="w-4 h-4" /> },
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+                activeTab === tab.id ? "bg-primary-blue text-white shadow-lg" : "text-gray-400 hover:text-white hover:bg-surface/5"
+              }`}>
+              {tab.icon}{tab.label}
+              {tab.count !== undefined && <span className="text-xs opacity-60">({tab.count})</span>}
+            </button>
+          ))}
         </div>
       </div>
 

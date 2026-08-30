@@ -245,17 +245,47 @@ export default function PortfolioShowcase() {
   };
 
   return(
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-gray-900">
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-cyan-600/20"/>
-        <div className="relative px-6 py-8">
-          <h1 className="text-3xl font-bold text-text-primary flex items-center gap-3"><FolderGit2 className="w-8 h-8 text-blue-400"/>Project Portfolio</h1>
-          <p className="text-gray-400 mt-2">{STATS.totalProjects} projects · {STATS.totalStars.toLocaleString()} stars · {STATS.totalForks.toLocaleString()} forks · {STATS.totalViews.toLocaleString()} views</p>
-          <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2">
-            {[{id:'gallery' as const,l:'Gallery',i:<Grid className="w-4 h-4"/>,c:PROJECTS.length},{id:'analytics' as const,l:'Analytics',i:<BarChart3 className="w-4 h-4"/>},{id:'bookmarks' as const,l:'Bookmarks',i:<Bookmark className="w-4 h-4"/>,c:bookmarks.size}].map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab===t.id?"bg-surface/10 text-text-primary border border-white/20 shadow-lg":"text-gray-400 hover:text-text-primary hover:bg-surface/5"}`}>{t.i}{t.l}{t.c!==undefined&&<span className="text-xs opacity-60">({t.c})</span>}</button>
-            ))}
+    <div className="min-h-screen font-sans pb-16">
+      {/* Top Banner Header - Brand Theme */}
+      <div className="m-4 sm:m-6 bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col gap-6 relative z-10">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30 flex items-center gap-1.5 shadow-xs">
+                <FolderGit2 className="w-3.5 h-3.5 text-indigo-400" /> Developer Portfolio
+              </span>
+              <span className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
+                GitHub Integrated
+              </span>
+            </div>
+
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
+              Project <span className="text-primary-blue italic">Portfolio</span>
+            </h1>
+            <p className="text-slate-300 text-xs md:text-sm max-w-2xl font-medium">
+              Showcase your best repositories, track performance analytics, and manage saved bookmarks from the community.
+            </p>
           </div>
+
+          <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl w-full shadow-xs">
+            <div className="relative flex items-center justify-center w-14 h-14 rounded-full border-4 border-primary-blue bg-background font-serif font-bold text-base text-primary-blue">
+              {STATS.totalProjects}
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Projects</div>
+              <div className="text-xs font-extrabold text-white">{STATS.totalStars.toLocaleString()} Stars Earned</div>
+              <div className="text-[11px] text-emerald-400 font-semibold">{STATS.totalForks.toLocaleString()} Forks · {STATS.totalViews.toLocaleString()} Views</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="px-4 sm:px-6">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-white/10 pb-3">
+          {[{id:'gallery' as const,l:'Gallery',i:<Grid className="w-4 h-4"/>,c:PROJECTS.length},{id:'analytics' as const,l:'Analytics',i:<BarChart3 className="w-4 h-4"/>},{id:'bookmarks' as const,l:'Bookmarks',i:<Bookmark className="w-4 h-4"/>,c:bookmarks.size}].map(t=>(
+            <button key={t.id} onClick={()=>setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab===t.id?"bg-primary-blue text-white shadow-lg":"text-gray-400 hover:text-white hover:bg-surface/5"}`}>{t.i}{t.l}{t.c!==undefined&&<span className="text-xs opacity-60">({t.c})</span>}</button>
+          ))}
         </div>
       </div>
       <div className="w-full px-6 py-8">

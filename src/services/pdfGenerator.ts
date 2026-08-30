@@ -16,15 +16,20 @@ import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 
 // Initialise DOMPurify with a JSDOM window (server‑side usage)
+ feat/mentorship-coffee-chat-lottery
 const window = new JSDOM('').window as any;
 const purify = DOMPurify(window);
+
+const window = new JSDOM('').window as unknown as Window;
+const purify = DOMPurify(window as any);
+ main
 
 /**
  * Render a resume template (EJS) with the supplied data and return a PDF buffer.
  * @param templateId - Identifier of the template (e.g., "clean-1").
  * @param data - The resume JSON payload (contact, summary, experience, ...).
  */
-export async function generatePdf(templateId: string, data: any): Promise<Buffer> {
+export async function generatePdf(templateId: string, data: any): Promise<any> {
   const templatePath = path.resolve(__dirname, '..', 'templates', `${templateId}.ejs`);
 
   // Sanitize all string fields recursively
@@ -54,7 +59,7 @@ export async function generatePdf(templateId: string, data: any): Promise<Buffer
   });
   const page = await browser.newPage();
 
-  await page.setContent(html, { waitUntil: 'networkidle0' });
+  await page.setContent(html, { waitUntil: 'load' });
   const pdfBuffer = await page.pdf({
     format: 'A4',
     printBackground: true,

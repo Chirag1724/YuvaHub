@@ -308,30 +308,31 @@ Your response:`;
     <div className="w-full max-w-[1400px] mx-auto space-y-6 font-sans pb-16 px-2 sm:px-4">
 
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#f6efe2] via-[#fcf9f2] to-[#f6efe2] dark:from-slate-900 dark:to-slate-950 border border-border-theme dark:border-slate-800 p-6 md:p-8 shadow-sm">
+      <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white mb-8">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#f3e4bd] bg-[#603620] rounded-full flex items-center gap-1.5">
-                <Mic className="w-3.5 h-3.5 text-[#f3e4bd]" /> AI Mock Interview Room
+              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30 rounded-full flex items-center gap-1.5 shadow-xs">
+                <Mic className="w-3.5 h-3.5 text-indigo-400" /> AI Mock Interview Room
               </span>
-              <span className="px-3 py-1 text-xs font-bold text-[#63703d] bg-[#63703d]/15 border border-[#63703d]/30 rounded-full flex items-center gap-1.5">
+              <span className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center gap-1.5">
                 <Volume2 className="w-3 h-3" /> Voice Enabled
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-primary dark:text-white tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
               AI Mock <span className="text-primary-blue italic">Interview Room</span>
             </h1>
-            <p className="text-text-secondary dark:text-slate-400 text-xs md:text-sm max-w-2xl font-medium">
+            <p className="text-slate-300 text-xs md:text-sm max-w-2xl font-medium">
               Practice real voice-based technical and behavioral interviews with an AI interviewer. Speak naturally — get instant follow-up questions and a final score.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-surface dark:bg-slate-900 border border-border-theme dark:border-slate-800 p-4 rounded-2xl shadow-xs">
-            <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-[#63703d]' : 'bg-amber-500'}`} />
+          <div className="flex items-center gap-3 bg-slate-900/50 backdrop-blur-md border border-cyan-800/40 p-4 rounded-2xl shadow-xs">
+            <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]'}`} />
             <div>
-              <div className="text-[10px] uppercase font-bold text-text-muted tracking-wider">AI Backend</div>
-              <div className="text-xs font-extrabold text-text-primary dark:text-white">{isConnected ? 'Connected' : 'Offline Fallback Mode'}</div>
+              <div className="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">AI Backend</div>
+              <div className="text-xs font-extrabold text-white">{isConnected ? 'Connected' : 'Offline Fallback Mode'}</div>
             </div>
           </div>
         </div>

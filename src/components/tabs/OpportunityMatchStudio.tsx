@@ -307,62 +307,57 @@ export default function OpportunityMatchStudio() {
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-16">
       
-      {/* Top Banner Header */}
-      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-slate-950 border border-blue-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-400 bg-blue-500/20 border border-blue-500/30 rounded-full flex items-center gap-1.5">
-                <Sparkles size={13} /> AI Recommendation Engine
+      {/* Top Banner Header - Brand Theme */}
+      <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col gap-6 relative z-10">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30 flex items-center gap-1.5 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> AI Recommendation Engine
               </span>
-              <button
-                onClick={() => setShowCompletenessModal(true)}
-                className="px-3 py-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center gap-1.5 hover:bg-emerald-500/30 transition cursor-pointer"
-              >
-                <ShieldCheck size={13} /> Profile Completeness: {completeness?.score || 85}%
+              <button onClick={() => setShowCompletenessModal(true)} className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 flex items-center gap-1.5 cursor-pointer">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Profile Completeness: {completeness?.score || 85}%
               </button>
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-              AI Opportunity Match & Personalization Studio
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
+              AI Opportunity Match <span className="text-primary-blue italic">& Personalization Studio</span>
             </h1>
-            <p className="text-slate-400 text-xs md:text-sm max-w-2xl leading-relaxed">
+            <p className="text-slate-300 text-xs md:text-sm max-w-2xl font-medium">
               Algorithmic matching engine pairing your complete profile, skills, and interest telemetry with verified global opportunities.
             </p>
           </div>
 
-          {/* Average Match Meter */}
-          <div className="flex items-center gap-4 bg-slate-900/90 border border-blue-700/60 p-4 rounded-2xl w-full lg:w-auto shadow-lg">
-            <div className="relative flex items-center justify-center w-16 h-16 rounded-full border-4 border-blue-400 bg-slate-950 font-black text-xl text-blue-400">
+          <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl w-full shadow-xs">
+            <div className="relative flex items-center justify-center w-14 h-14 rounded-full border-4 border-primary-blue bg-background font-serif font-bold text-base text-primary-blue">
               {avgScore}%
             </div>
             <div>
-              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">Average Alignment Score</div>
-              <div className="text-xs font-extrabold text-emerald-400">{pipeline.length} Active Pipeline Applications</div>
-              <div className="text-[11px] text-slate-400">{totalCount || matches.length} Top Matches Today</div>
+              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Average Alignment Score</div>
+              <div className="text-xs font-extrabold text-white">{pipeline.length} Active Pipeline Applications</div>
+              <div className="text-[11px] text-emerald-400 font-semibold">{totalCount || matches.length} Top Matches Today</div>
             </div>
           </div>
         </div>
-
-        {/* Global Notifications */}
-        {notification.message && (
-          <div className={`mt-6 p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
-            notification.type === 'error'
-              ? 'bg-red-500/20 border-red-500/40 text-red-300'
-              : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-          }`}>
-            <div className="flex items-center gap-2">
-              {notification.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
-              <span>{notification.message}</span>
-            </div>
-            <button onClick={() => setNotification({ type: '', message: '' })} className="text-slate-400 hover:text-white">
-              <X size={14} />
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Global Notifications */}
+      {notification.message && (
+        <div className={`mt-6 p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
+          notification.type === 'error'
+            ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+            : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+        }`}>
+          <div className="flex items-center gap-2">
+            {notification.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
+            <span>{notification.message}</span>
+          </div>
+          <button onClick={() => setNotification({ type: '', message: '' })} className="text-slate-400 hover:text-white">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-gray-200 dark:border-gray-800 scrollbar-none">

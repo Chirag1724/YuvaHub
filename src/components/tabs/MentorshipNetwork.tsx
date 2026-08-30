@@ -290,17 +290,47 @@ export default function MentorshipNetwork() {
   };
 
   return(
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-gray-900">
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-cyan-600/20 to-emerald-600/20"/>
-        <div className="relative px-6 py-8">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3"><Users className="w-8 h-8 text-purple-400"/>Mentorship Network</h1>
-          <p className="text-gray-400 mt-2">{MENTORS.length} mentors · {SESSIONS.length} sessions · {MATCHES.length} AI matches · Your learning journey</p>
-          <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2">
-            {[{id:'discover' as const,l:'Discover',i:<Search className="w-4 h-4"/>,c:filtered.length},{id:'sessions' as const,l:'Sessions',i:<Calendar className="w-4 h-4"/>,c:SESSIONS.length},{id:'matches' as const,l:'AI Matches',i:<Target className="w-4 h-4"/>,c:MATCHES.length},{id:'analytics' as const,l:'Analytics',i:<BarChart3 className="w-4 h-4"/>}].map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab===t.id?"bg-surface/10 text-white border border-white/20 shadow-lg":"text-gray-400 hover:text-white hover:bg-surface/5"}`}>{t.i}{t.l}{t.c!==undefined&&<span className="text-xs opacity-60">({t.c})</span>}</button>
-            ))}
+    <div className="min-h-screen  font-sans pb-16">
+      {/* Top Banner Header - Brand Theme */}
+      <div className="m-4 sm:m-6 bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col gap-6 relative z-10">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30 flex items-center gap-1.5 shadow-xs">
+                <Users className="w-3.5 h-3.5 text-indigo-400" /> Mentorship Hub
+              </span>
+              <span className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
+                1:1 Career Guidance
+              </span>
+            </div>
+
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
+              Mentorship <span className="text-primary-blue italic">Network</span>
+            </h1>
+            <p className="text-slate-300 text-xs md:text-sm max-w-2xl font-medium">
+              Connect with experienced mentors, book 1:1 sessions, get personalized career guidance, and track your mentorship journey.
+            </p>
           </div>
+
+          <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl w-full shadow-xs">
+            <div className="relative flex items-center justify-center w-14 h-14 rounded-full border-4 border-primary-blue bg-background font-serif font-bold text-base text-primary-blue">
+              {MENTORS.length}
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Active Mentors</div>
+              <div className="text-xs font-extrabold text-white">{SESSIONS.length} Sessions Completed</div>
+              <div className="text-[11px] text-emerald-400 font-semibold">{MATCHES.length} AI Matches Available</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="px-4 sm:px-6">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-white/10 pb-3">
+          {[{id:'discover' as const,l:'Discover',i:<Search className="w-4 h-4"/>,c:filtered.length},{id:'sessions' as const,l:'Sessions',i:<Calendar className="w-4 h-4"/>,c:SESSIONS.length},{id:'matches' as const,l:'AI Matches',i:<Target className="w-4 h-4"/>,c:MATCHES.length},{id:'analytics' as const,l:'Analytics',i:<BarChart3 className="w-4 h-4"/>}].map(t=>(
+            <button key={t.id} onClick={()=>setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab===t.id?"bg-primary-blue text-white shadow-lg":"text-gray-400 hover:text-white hover:bg-surface/5"}`}>{t.i}{t.l}{t.c!==undefined&&<span className="text-xs opacity-60">({t.c})</span>}</button>
+          ))}
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-6 py-8">

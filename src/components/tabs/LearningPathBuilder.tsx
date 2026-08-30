@@ -466,17 +466,29 @@ export default function LearningPathBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-            <Map className="text-[#2563EB]" size={32} />
-            Learning Path Builder
-          </h1>
-          <p className="text-gray-500 text-lg">
-            Build your personalized skill roadmap and track your learning journey
-          </p>
+        <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-slate-950 border border-cyan-800/40 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden text-white mb-8">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex flex-col gap-6 relative z-10">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/20 border border-cyan-500/30 flex items-center gap-1.5 shadow-xs">
+                  <Map className="w-3.5 h-3.5 text-indigo-400" /> Skill Roadmaps
+                </span>
+                <span className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
+                  Adaptive Learning
+                </span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
+                Learning Path <span className="text-primary-blue italic">Builder</span>
+              </h1>
+              <p className="text-slate-300 text-xs md:text-sm max-w-2xl font-medium">
+                Build your personalized skill roadmap and track your learning journey across technologies and frameworks.
+              </p>
+            </div>
+          </div>
         </div>
 
         {!path ? (
