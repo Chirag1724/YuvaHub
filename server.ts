@@ -2348,6 +2348,126 @@ Return JSON strictly in this format:
     res.send(indexHtml);
   });
 
+  // --- Opportunity Reports API Routes ---
+  app.post("/api/v1/opportunities/:id/report", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const opportunityId = req.params.id as string;
+      const reporterUid = (req as any).user?.uid || (req as any).user?.id || req.body.reporterUid;
+      
+      if (!reporterUid) {
+         return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const collection = db.collection("opportunity_reports");
+      const existingReport = await collection.findOne({ opportunityId, reporterUid });
+      if (existingReport) {
+        return res.status(409).json({ error: "You have already reported this opportunity" });
+      }
+
+      const { reason, evidence } = req.body;
+      const report = {
+        opportunityId,
+        reporterUid,
+        reason,
+        evidence,
+        status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const result = await collection.insertOne(report);
+      res.status(201).json({ id: result.insertedId, ...report });
+    } catch (err) {
+      console.error("Error submitting report:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.get("/api/v1/admin/reports/opportunities", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const page = parseInt((req.query.page as string) || "1", 10);
+      const limit = parseInt((req.query.limit as string) || "10", 10);
+      const skip = (page - 1) * limit;
+
+      const collection = db.collection("opportunity_reports");
+      let items, total;
+      
+      if (collection.find({}).skip) {
+        items = await collection.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray();
+        total = await collection.countDocuments({});
+      } else {
+        const allItems = await collection.find({}).toArray();
+        total = allItems.length;
+        items = allItems.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(skip, skip + limit);
+      }
+
+      res.json({
+        items,
+        total,
+        page,
+        next_page: skip + limit < total ? page + 1 : null
+      });
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.patch("/api/v1/admin/reports/opportunities/:reportId", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const reportId = req.params.reportId as string;
+      const { status } = req.body;
+
+      if (!["resolved", "dismissed"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+
+      const collection = db.collection("opportunity_reports");
+      let queryId;
+      try {
+        queryId = new ObjectId(reportId as string);
+      } catch(e) {
+        queryId = reportId;
+      }
+
+      const updateResult = await collection.findOneAndUpdate(
+        { _id: queryId },
+        { $set: { status, updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      );
+
+      const updatedReport = updateResult.value || await collection.findOne({ _id: queryId });
+      
+      if (!updatedReport) {
+        return res.status(404).json({ error: "Report not found" });
+      }
+
+      if (status === "resolved") {
+        const opportunityId = updatedReport.opportunityId;
+        const resolvedCount = await collection.countDocuments({ opportunityId, status: "resolved" });
+        
+        if (resolvedCount >= 3) {
+          const oppCollection = db.collection("opportunities");
+          let oppQueryId;
+          try { oppQueryId = new ObjectId(opportunityId as string); } catch(e) { oppQueryId = opportunityId; }
+          
+          await oppCollection.updateOne(
+            { _id: oppQueryId },
+            { $set: { verified: false, isHidden: true, isStale: true } }
+          );
+        }
+      }
+
+      res.json(updatedReport);
+    } catch (err) {
+      console.error("Error updating report:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
   // --- Scholarship Hub API Routes ---
   app.post("/api/scholarships", async (req, res) => {
     try {
