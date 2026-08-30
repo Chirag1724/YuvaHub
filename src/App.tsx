@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import {
   LayoutDashboard, Globe, PlusCircle, Users, User, Menu, X, Bookmark, Sparkles, MessageSquare, Settings, Sun, Moon, Mic, Trophy,
-  Brain, TrendingUp, FileText, Video, FolderGit2, GraduationCap, Coins, Code2, Building2, Award, Cpu, Terminal, ShieldCheck, ShieldAlert, Briefcase, Clock, BookOpen, Target, Activity, Calendar, HeartPulse, Rocket, Shield, Megaphone, Search, Ticket, Compass, Map, Swords
+  Brain, TrendingUp, FileText, Video, FolderGit2, GraduationCap, Coins, Code2, Building2, Award, Cpu, Terminal, ShieldCheck, ShieldAlert, Briefcase, Clock, BookOpen, Target, Activity, Calendar, HeartPulse, Rocket, Shield, Megaphone, Search, Ticket, Compass, Map, Swords, Newspaper
 } from 'lucide-react';
 import { signInWithGoogle, logout } from './lib/firebase';
 import { UserProfile } from './types';
@@ -104,6 +104,7 @@ const CareerPathSimulator = lazy(() => import('./components/tabs/CareerPathSimul
 const StudyGroupRooms = lazy(() => import('./components/tabs/StudyGroupRooms'));
 const ResourceVault = lazy(() => import('./components/tabs/ResourceVault'));
 const ComparisonStudio = lazy(() => import('./components/tabs/ComparisonStudio'));
+const TechTrends = lazy(() => import('./components/TechTrends')); // <-- Added our new component!
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-surface gap-6">
@@ -131,6 +132,11 @@ const getSeoPropsForTab = (tab: string) => {
       return {
         title: "YuvaHub | Find Student Hackathons, Scholarships & Mentorships",
         description: "Discovery platform for Indian students. Find hackathons, scholarships, and mentorship opportunities to boost your career. Real-time updates and AI matching."
+      };
+    case 'tech_trends':
+      return {
+        title: "Tech Trends | YuvaHub",
+        description: "Daily tech news and industry trends summarized by AI to keep students informed."
       };
     case 'teams':
       return { title: "Team Builder & Matcher | YuvaHub", description: "Find teammates and join teams for hackathons, projects, and opportunities." };
@@ -305,7 +311,7 @@ function App() {
       title: "Core Platform",
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-
+        { id: 'tech_trends', label: 'Tech Trends', icon: Newspaper, badge: 'NEW' }, // <-- New Tab configured here
         { id: 'opportunities', label: 'Opportunities', icon: Globe },
         { id: 'application_tracker', label: 'Application Tracker', icon: Briefcase },
         { id: 'watchlist_manager', label: 'Watchlists & Alerts', icon: Sparkles, badge: 'NEW' },
@@ -339,7 +345,6 @@ function App() {
       title: "Ecosystem & Community",
       items: [
         { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-        { id: 'achievement_center', label: 'Achievement Center', icon: Award, badge: 'NEW' },
         { id: 'achievement_center', label: 'Achievement Center', icon: Award, badge: 'NEW' },
         { id: 'study_groups', label: 'Study Groups', icon: Users, badge: 'NEW' },
         { id: 'mentorship', label: 'Mentorship', icon: GraduationCap },
@@ -388,6 +393,7 @@ function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <Dashboard />;
+      case 'tech_trends': return <TechTrends />; // <-- Component rendered here
 
       case 'opportunities': return <Opportunities />;
       case 'application_tracker': return <ApplicationTracker />;
@@ -536,7 +542,7 @@ function App() {
               onClick={() => { clearSelectedOpportunity(); setActiveTab('dashboard'); }} 
               className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline font-bold bg-transparent border-none cursor-pointer"
             >
-              â† Back to Home
+              ← Back to Home
             </button>
           </div>
           <Suspense fallback={<LoadingScreen />}>
