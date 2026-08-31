@@ -560,10 +560,7 @@ if (uri) {
     logger.info(`[Database] Connected to MongoDB: ${dbName}`);
     setupDNL(db);
     
-    // Create required compound indexes asynchronously
-    db.collection("opportunities").createIndex({ created_at: -1, source_quality_score: -1 })
-      .then(() => logger.info(`[Database] Created compound index on opportunities`))
-      .catch((err: any) => logger.error({ err: err }, `[Database] Failed to create index:`));
+    // Migrations handle index creation now
   }).catch(err => {
     logger.error({ err: err }, "[Database] Connection failed, falling back to Mock Data:");
     db = new MockDB();
