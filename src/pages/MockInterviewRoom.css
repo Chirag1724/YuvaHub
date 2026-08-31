@@ -1,0 +1,17 @@
+/* MockInterviewRoom styles are now handled via Tailwind CSS inline classes in MockInterviewRoom.tsx */
+/* This file is kept as a minimal placeholder for keyframe animations */
+
+@keyframes waveBar {
+  from { transform: scaleY(0.5); opacity: 0.7; }
+  to   { transform: scaleY(1.0); opacity: 1.0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease forwards;
+}
+

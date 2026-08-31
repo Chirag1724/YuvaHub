@@ -31,19 +31,108 @@ const robustParseJSON = (text: string): any => {
   }
 };
 
-async function generatedContentProxy(prompt: string, expectJson: boolean = false) {
-  try {
-    const res = await fetch("/api/v1/ai/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, expectJson })
-    });
-    const data = await res.json();
-    return data.text || "";
-  } catch (e) {
-    console.error("AI Proxy Error:", e);
-    return "";
+export interface AIRequestOptions {
+  maxRetries?: number;
+  onRetry?: (attempt: number, error: string) => void;
+}
+
+export interface AIRequestResult {
+  text: string;
+  success: boolean;
+  error?: string;
+  isRetryable?: boolean;
+  attemptsUsed?: number;
+}
+
+export async function generatedContentProxyWithRetry(
+  prompt: string,
+  expectJson: boolean = false,
+  options: AIRequestOptions = {}
+): Promise<AIRequestResult> {
+  const maxRetries = options.maxRetries ?? 2;
+  let attempt = 0;
+  let lastError = "";
+  let isRetryable = false;
+
+  while (attempt <= maxRetries) {
+    attempt++;
+    try {
+      const res = await fetch("/api/v1/ai/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, expectJson })
+      });
+
+      if (!res.ok) {
+        lastError = `AI Service temporary issue (${res.status} ${res.statusText})`;
+        isRetryable = true;
+        if (attempt <= maxRetries) {
+          if (options.onRetry) options.onRetry(attempt, lastError);
+          await new Promise((resolve) => setTimeout(resolve, 600 * attempt));
+          continue;
+        }
+        return {
+          text: expectJson ? "[]" : "AI assistant is preparing data. Using curated fallbacks.",
+          success: false,
+          error: lastError,
+          isRetryable: true,
+          attemptsUsed: attempt
+        };
+      }
+
+      const data = await res.json();
+      if (data.error) {
+        lastError = data.error;
+        isRetryable = true;
+        if (attempt <= maxRetries) {
+          if (options.onRetry) options.onRetry(attempt, lastError);
+          await new Promise((resolve) => setTimeout(resolve, 600 * attempt));
+          continue;
+        }
+        return {
+          text: "",
+          success: false,
+          error: lastError,
+          isRetryable: true,
+          attemptsUsed: attempt
+        };
+      }
+
+      return {
+        text: data.text || "",
+        success: true,
+        attemptsUsed: attempt
+      };
+    } catch (e: any) {
+      lastError = e?.message || "Network error communicating with AI endpoint";
+      isRetryable = true;
+      if (attempt <= maxRetries) {
+        if (options.onRetry) options.onRetry(attempt, lastError);
+        await new Promise((resolve) => setTimeout(resolve, 600 * attempt));
+        continue;
+      }
+      return {
+        text: "",
+        success: false,
+        error: lastError,
+        isRetryable: true,
+        attemptsUsed: attempt
+      };
+    }
   }
+
+  return {
+    text: "",
+    success: false,
+    error: lastError || "AI service temporarily unavailable",
+    isRetryable: true,
+    attemptsUsed: attempt
+  };
+}
+
+async function generatedContentProxy(prompt: string, expectJson: boolean = false) {
+  const result = await generatedContentProxyWithRetry(prompt, expectJson, { maxRetries: 2 });
+  return result.text;
 }
 
 export async function generateSmartFeed(profile: any, page: number = 1) {
@@ -87,6 +176,20 @@ export async function checkScholarshipEligibility(scholarship: any, profile: any
   const prompt = `Can this student apply for this scholarship?\nProfile: ${JSON.stringify(profile)}\nScholarship: ${JSON.stringify(scholarship)}\nReturn JSON ONLY: { eligible: boolean, reasons: string[] }`;
   const text = await generatedContentProxy(prompt, true);
   return robustParseJSON(text) || { eligible: false, reasons: ["Could not verify."] };
+}
+
+export async function extractResumeData(resumeText: string) {
+  const prompt = `Extract structured data from the following resume text. Return JSON ONLY with this schema:
+  {
+    "education": [{"degree": "...", "institution": "...", "dates": "...", "gpa": "..."}],
+    "workExperience": [{"company": "...", "role": "...", "dates": "...", "impact": "..."}],
+    "rawSkills": ["skill1", "skill2"]
+  }
+  
+  Resume Text:
+  ${resumeText}`;
+  const text = await generatedContentProxy(prompt, true);
+  return robustParseJSON(text) || { education: [], workExperience: [], rawSkills: [] };
 }
 
 export async function chatWithMentor(messages: {role: string, content: string}[], message: string) {
@@ -195,7 +298,7 @@ function mockCareerAdvice(message: string): string {
 
   // General Fallback
   return JSON.stringify({
-    text: "I am Yuva, your dedicated AI Career Mentor. I'm here to help you navigate your academic focus, map out high-signal technical skills, refine your resume, and discover pristine student opportunities.\n\nWhat specifically can I help you build or explore today?",
+    text: "I am Yuva, your dedicated AI Career Mentor. I'm here to help you navigate your academic focus, map out high-signal technical skills, refine your resume, and discover pristine student opportunities.\n\n*(Note: This response was provided by a local fallback system because our AI service is currently experiencing high traffic.)*\n\nWhat specifically can I help you build or explore today?",
     options: [
       "How do I get into GSoC?",
       "Review my LinkedIn summary",
@@ -205,3 +308,100 @@ function mockCareerAdvice(message: string): string {
   });
 }
 
+export async function analyzeSkillGap(
+  resumeText: string,
+  jobDescription: string
+) {
+  const prompt = `
+You are an AI Career Skill Gap Analyzer.
+
+Compare the student's resume against the target job description.
+
+Student Resume:
+${resumeText}
+
+Target Job Description:
+${jobDescription}
+
+Identify:
+1. Skills already present in the resume.
+2. Missing technical skills.
+3. Missing soft skills.
+4. A prioritized learning roadmap.
+5. Relevant courses/resources.
+6. A practical project for each major missing skill.
+7. An overall skill match percentage.
+
+Return JSON ONLY using exactly this structure:
+
+{
+  "matchPercentage": 0,
+  "existingSkills": [],
+  "missingSkills": [
+    {
+      "skill": "",
+      "category": "technical",
+      "priority": "high",
+      "reason": "",
+      "completed": false
+    }
+  ],
+  "roadmap": [
+    {
+      "skill": "",
+      "priority": "high",
+      "estimatedWeeks": 2,
+      "resources": [],
+      "project": "",
+      "completed": false
+    }
+  ]
+}
+
+Rules:
+- matchPercentage must be between 0 and 100.
+- category must be "technical" or "soft".
+- priority must be "high", "medium", or "low".
+- Do not invent skills already clearly present in the resume.
+- Prioritize skills that are explicitly required by the job.
+- Keep the roadmap practical for a student.
+`;
+
+  const text = await generatedContentProxy(prompt, true);
+
+  return robustParseJSON(text) || {
+    matchPercentage: 0,
+    existingSkills: [],
+    missingSkills: [],
+    roadmap: [],
+  };
+}
+
+export async function generateCareerMilestones(
+  goalTitle: string,
+  targetRole: string,
+  targetDate: string
+) {
+  const prompt = `
+You are an AI Career Mentor. A student wants to achieve the following career goal:
+Goal Title: "${goalTitle}"
+Target Role: "${targetRole}"
+Target Date: "${targetDate}"
+
+Break this goal down into 5 to 7 concrete, time-bound, and actionable milestones.
+For each milestone, provide a title, a short description, and an estimated dueDate (in YYYY-MM-DD format) that logically precedes the target date.
+
+Return JSON ONLY using exactly this structure:
+[
+  {
+    "title": "...",
+    "description": "...",
+    "dueDate": "YYYY-MM-DD",
+    "status": "not_started"
+  }
+]
+`;
+
+  const text = await generatedContentProxy(prompt, true);
+  return robustParseJSON(text) || [];
+}
