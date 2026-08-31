@@ -1140,6 +1140,46 @@ export async function deleteCareerGoal(goalId: string) {
   return await response.json();
 }
 
+export async function previewNewsletterClient(params: { email?: string; name?: string; skills?: string[]; field?: string } = {}) {
+  const response = await fetchWithRetry(`${API_BASE_URL}/newsletter/preview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to preview newsletter");
+  }
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function triggerNewsletterBatchClient(params: { batchSize?: number; dryRun?: boolean } = {}) {
+  const headers = await getAuthHeaders();
+  const response = await fetchWithRetry(`${API_BASE_URL}/newsletter/trigger`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(params),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to trigger newsletter batch");
+  }
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function unsubscribeNewsletterClient(email: string) {
+  const response = await fetchWithRetry(`${API_BASE_URL}/newsletter/unsubscribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to unsubscribe");
+  }
+  return await response.json();
+}
+
+
 // --- Student Ventures & Campus Startup Capital ---
 
 export async function fetchStudentVentures(filters?: { campusName?: string; sectorDomain?: string; fundingStage?: string; search?: string }) {
