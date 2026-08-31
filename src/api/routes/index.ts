@@ -44,6 +44,7 @@ import workspaceRoutes from "./workspaceRoutes.js";
 import feedbackRoutes from "./feedbackRoutes.js";
 import studyRoomRoutes from "./studyRoomRoutes.js";
 import observabilityRoutes from "./observabilityRoutes.js";
+import employerRoutes from "./employerRoutes.js";
 import newsletterRoutes from "./newsletterRoutes.js";
 import { errorHandler } from "../middlewares/errorHandler.js";
 import { apiVersionHeaders } from "../versioning/middleware.js";
@@ -98,6 +99,7 @@ const routes = [
   feedbackRoutes,
   studyRoomRoutes,
   observabilityRoutes,
+  employerRoutes,
   newsletterRoutes,
 ];
 

@@ -1,6 +1,6 @@
 import { logger } from "../lib/logger.js";
 import * as amqp from "amqplib";
-
+import { sendAdminAlert } from "../services/adminAlertService.js";
 const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://localhost";
 
 const MAIN_EXCHANGE = "domain_events";
@@ -150,8 +150,12 @@ class EventBus {
             "x-original-routing-key": routingKey,
           };
           this.channel!.nack(msg, false, false);
-        }
-      }
+          sendAdminAlert(
+            "EventBus",
+            { id: msg.properties.messageId || queueName, data: { domain: routingKey }, attemptsMade: retries },
+            error,
+          );
+        }      }
     });
 
     logger.info(`[EventBus] Subscribed to ${routingKey} via queue ${queueName} (DLX: ${DLX_EXCHANGE})`);

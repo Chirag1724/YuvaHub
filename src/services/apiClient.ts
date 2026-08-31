@@ -1139,6 +1139,46 @@ export async function createCareerGoal(goalTitle: string, targetRole: string, ta
   return await response.json();
 }
 
+export async function fetchEmployerPostings() {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetchWithRetry(`${API_BASE_URL}/employer/postings`, {
+      method: "GET",
+      headers,
+    });
+    if (!response.ok) {
+      return [];
+    }
+    const data = await response.json();
+    return data.data?.postings || data.postings || [];
+  } catch (error) {
+    console.error("Failed to fetch employer postings:", error);
+    return [];
+  }
+}
+
+export async function fetchEmployerAnalytics(params: { timeframe?: string; opportunityId?: string } = {}) {
+  try {
+    const headers = await getAuthHeaders();
+    const searchParams = new URLSearchParams();
+    if (params.timeframe) searchParams.append("timeframe", params.timeframe);
+    if (params.opportunityId) searchParams.append("opportunityId", params.opportunityId);
+
+    const response = await fetchWithRetry(`${API_BASE_URL}/employer/analytics?${searchParams.toString()}`, {
+      method: "GET",
+      headers,
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error("Failed to fetch employer analytics:", error);
+    return null;
+  }
+}
+
 export async function fetchCareerGoals() {
   const response = await fetchWithRetry(`${API_BASE_URL}/career-goals`, {
     method: 'GET',
