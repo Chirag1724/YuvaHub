@@ -650,7 +650,7 @@ export default function ProjectShowcaseVault() {
                         )}
                       </div>
 
-                      {/* Footer: Maintainer & Action Links */}
+                      {/* Footer: Maintainer, Stars & Action Links */}
                       <div className="pt-4 mt-4 border-t border-border-theme dark:border-border-theme flex items-center justify-between gap-3 text-xs">
                         <div className="flex items-center gap-2">
                           <img
@@ -661,6 +661,12 @@ export default function ProjectShowcaseVault() {
                           <span className="font-semibold text-text-primary dark:text-text-primary truncate max-w-[110px]">
                             {proj.maintainer?.name}
                           </span>
+                          {typeof proj.stars === 'number' && (
+                            <span className="flex items-center gap-1 text-amber-500 font-bold" title="GitHub Stars">
+                              <Star className="w-3 h-3" />
+                              {proj.stars.toLocaleString()}
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-2">

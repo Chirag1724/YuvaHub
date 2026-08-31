@@ -231,6 +231,12 @@ const getSeoPropsForTab = (tab: string) => {
       return { title: "Community Polls | YuvaHub", description: "Participate in student polls and surveys." };
     case 'code_review':
       return { title: "Peer Code Review Exchange | YuvaHub", description: "Submit your code for review by peers and earn karma by reviewing others." };
+    case 'project_showcase':
+      return {
+        title: "Project Vault | Open Source Showcase | YuvaHub",
+        description: "Explore real open-source student repositories, find good first issues, collaborate with peers, and showcase your capstone projects to global recruiters on YuvaHub."
+      };
+
     default:
       return {
         title: "YuvaHub | Find Student Hackathons, Scholarships & Mentorships",
