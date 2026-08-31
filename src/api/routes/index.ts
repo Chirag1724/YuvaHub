@@ -31,6 +31,7 @@ import reportRoutes from "./reportRoutes.js";
 import skillGapRoutes from "./skillGapRoutes.js";
 import careerGoalRoutes from "./careerGoalRoutes.js";
 import alumniMentorshipRoutes from "./alumniMentorshipRoutes.js";
+import alumniRoutes from "./alumniRoutes.js";
 import activityRoutes from "./activityRoutes.js";
 import announcementRoutes from "./announcementRoutes.js";
 import opportunityNoteRoutes from "./opportunityNoteRoutes.js";
@@ -39,9 +40,14 @@ import testimonialRoutes from "./testimonialRoutes.js";
 import eventRsvpRoutes from "./eventRsvpRoutes.js";
 import skillAssessmentRoutes from "./skillAssessmentRoutes.js";
 import voteRoutes from "./voteRoutes.js";
+ feat/hackathon-workspace-sync
 import workspaceRoutes from "./workspaceRoutes.js";
+
+import feedbackRoutes from "./feedbackRoutes.js";
+ main
 import studyRoomRoutes from "./studyRoomRoutes.js";
 import observabilityRoutes from "./observabilityRoutes.js";
+import newsletterRoutes from "./newsletterRoutes.js";
 import { errorHandler } from "../middlewares/errorHandler.js";
 import { apiVersionHeaders } from "../versioning/middleware.js";
 
@@ -82,6 +88,7 @@ const routes = [
   skillGapRoutes,
   careerGoalRoutes,
   alumniMentorshipRoutes,
+  alumniRoutes,
   activityRoutes,
   announcementRoutes,
   opportunityNoteRoutes,
@@ -90,9 +97,14 @@ const routes = [
   eventRsvpRoutes,
   skillAssessmentRoutes,
   voteRoutes,
+ feat/hackathon-workspace-sync
   workspaceRoutes,
+
+  feedbackRoutes,
+ main
   studyRoomRoutes,
   observabilityRoutes,
+  newsletterRoutes,
 ];
 
 // Mount all routes onto v1Router
