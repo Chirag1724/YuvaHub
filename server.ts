@@ -659,7 +659,7 @@ process.on("SIGBREAK", () => gracefulShutdown("SIGBREAK"));
 
 export let io: Server;
 
-async function startServer() {
+export async function createApp() {
   const app = express();
   app.use(requestLogger);
   const server = http.createServer(app);
@@ -3023,29 +3023,37 @@ ${JSON.stringify(userProfile, null, 2)}
     });
   }, 45000); // every 45s for demo
 
-  server.listen(PORT, "0.0.0.0", () => {
-    logger.info(`Server running on http://localhost:${PORT}`);
-
-    // Run startup health checks for all configured services
-    logStartupHealthReport({
-      redisClient: redisClient ?? null,
-      geminiApiKey: process.env.GEMINI_API_KEY,
-      firebaseInitialized: !!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64,
-    }).catch((err) => {
-      logger.error({ err: err }, "[Health] Startup health check failed:");
-    });
-    
-    // Auto-open browser in development mode
-    if (process.env.NODE_ENV !== "production") {
-      import("child_process").then(({ exec }) => {
-        const url = `http://localhost:${PORT}`;
-        const cmd = process.platform === 'win32' ? `start ${url}` 
-                  : process.platform === 'darwin' ? `open ${url}` 
-                  : `xdg-open ${url}`;
-        exec(cmd);
-      });
-    }
-  });
+  return { app, server, io, redisClient };
 }
 
-startServer();
+if (process.env.NODE_ENV !== "test") {
+  createApp().then(({ server }) => {
+    const PORT = process.env.PORT || 5173;
+    server.listen(PORT, () => {
+      logger.info(`Server running on http://localhost:${PORT}`);
+
+      // Run startup health checks for all configured services
+      logStartupHealthReport({
+        redisClient: redisClient ?? null,
+        geminiApiKey: process.env.GEMINI_API_KEY,
+        firebaseInitialized: !!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64,
+      }).catch((err) => {
+        logger.error({ err: err }, "[Health] Startup health check failed:");
+      });
+      
+      // Auto-open browser in development mode
+      if (process.env.NODE_ENV !== "production") {
+        import("child_process").then(({ exec }) => {
+          const url = `http://localhost:${PORT}`;
+          const cmd = process.platform === 'win32' ? `start ${url}` 
+                    : process.platform === 'darwin' ? `open ${url}` 
+                    : `xdg-open ${url}`;
+          exec(cmd);
+        });
+      }
+    });
+  }).catch((err) => {
+    logger.error({ err }, "Failed to start server");
+    process.exit(1);
+  });
+}
