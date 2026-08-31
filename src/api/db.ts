@@ -7,6 +7,7 @@ import { DevpostAdapter } from "../services/dnl/adapters/DevpostAdapter.js";
 import { InternshalaAdapter } from "../services/dnl/adapters/InternshalaAdapter.js";
 import { initializeSearchSync } from "../services/searchSync.js";
 import { config } from "../config/env.js";
+import { MigrationRunner } from "../migrations/runner.js";
 
 dotenv.config();
 
@@ -392,64 +393,9 @@ export async function initializeDatabase(): Promise<void> {
       setupDNL(dbCommand);
       initializeSearchSync(dbQuery).catch(err => console.error('[SearchSync] Non-fatal init error:', err));
 
-      dbCommand.collection("opportunities").createIndex({ created_at: -1, source_quality_score: -1 })
-        .then(() => console.log(`[Database] Created compound index on opportunities`))
-        .catch((err: any) => console.error(`[Database] Failed to create index:`, err));
-
-      dbCommand.collection("opportunities").createIndex(
-        { dedupe_hash: 1 },
-        { unique: true, partialFilterExpression: { dedupe_hash: { $exists: true } } }
-      )
-        .then(() => console.log(`[Database] Created unique index on opportunities.dedupe_hash`))
-        .catch((err: any) => console.error(`[Database] Failed to create unique index on opportunities.dedupe_hash:`, err));
-
-      dbQuery.collection("users").createIndex({ uid: 1 }, { unique: true, sparse: true })
-        .then(() => console.log(`[Database] Created unique index on users.uid`))
-        .catch((err: any) => console.error(`[Database] Failed to create index on users.uid:`, err));
-      dbCommand.collection("users").createIndex({ firebaseUid: 1 }, { unique: true, sparse: true })
-        .then(() => console.log(`[Database] Created unique sparse index on users.firebaseUid`))
-        .catch((err: any) => console.error(`[Database] Failed to create unique index:`, err));
-      dbCommand.collection("users").createIndex({ alumni_status: 1, is_open_to_mentoring: 1, graduation_year: -1 })
-        .then(() => console.log(`[Database] Created alumni directory index on users`))
-        .catch((err: any) => console.error(`[Database] Failed to create alumni directory index:`, err));
-      dbCommand.collection("mentorship_requests").createIndex({ sender_id: 1, recipient_id: 1, created_at: -1 })
-        .then(() => console.log(`[Database] Created mentorship_requests index`))
-        .catch((err: any) => console.error(`[Database] Failed to create mentorship_requests index:`, err));
-
-      dbCommand.collection("opportunity_notes").createIndex({ userId: 1, opportunityId: 1 }, { unique: true })
-        .then(() => console.log(`[Database] Created compound unique index on opportunity_notes`))
-        .catch((err: any) => console.error(`[Database] Failed to create index on opportunity_notes:`, err));
-
-      // Deadline reminders must be claimed by a unique, process-independent key.
-      // The partial filter preserves compatibility with legacy notifications
-      // that were created before dedupeKey existed.
-      dbCommand.collection("notifications").createIndex(
-        { dedupeKey: 1 },
-        {
-          name: "deadline_reminder_dedupe_key_unique",
-          unique: true,
-          partialFilterExpression: { dedupeKey: { $exists: true } },
-        },
-      )
-        .then(() => console.log(`[Database] Created unique index on notifications.dedupeKey`))
-        .catch((err: any) => console.error(`[Database] Failed to create unique index on notifications.dedupeKey:`, err));
-
-      // Paginated list endpoints — sort-field indexes (created_at / uploaded_at)
-      const paginatedIndexes: [string, string][] = [
-        ["teams", "created_at"],
-        ["posts", "created_at"],
-        ["bounties", "created_at"],
-        ["notifications", "created_at"],
-        ["mentorship_sessions", "created_at"],
-        ["bookmark_folders", "created_at"],
-        ["resumes", "uploaded_at"],
-        ["scraper_logs", "created_at"],
-      ];
-      paginatedIndexes.forEach(([collection, field]) => {
-        dbQuery.collection(collection).createIndex({ [field]: -1 })
-          .then(() => console.log(`[Database] Created index on ${collection}.${field}`))
-          .catch((err: any) => console.error(`[Database] Failed to create index on ${collection}.${field}:`, err));
-      });
+      console.log(`[Database] Running pending migrations...`);
+      const runner = new MigrationRunner(dbCommand);
+      runner.runMigrations().catch(err => console.error(`[Migrations] Non-fatal background migration error:`, err));
     } catch (err) {
       console.error("[Database] Connection failed, falling back to Mock Data:", err);
       dbCommand = new MockDB();

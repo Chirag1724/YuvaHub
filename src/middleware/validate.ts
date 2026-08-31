@@ -33,7 +33,7 @@ export const validateRequest = (schema: ValidationSchema) => {
         return res.status(400).json({
           success: false,
           error: 'Invalid request parameters or payload.',
-          details: error.errors.map((e) => ({
+          details: error.issues.map((e) => ({
             message: e.message,
           })),
         });
