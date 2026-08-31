@@ -40,11 +40,8 @@ import testimonialRoutes from "./testimonialRoutes.js";
 import eventRsvpRoutes from "./eventRsvpRoutes.js";
 import skillAssessmentRoutes from "./skillAssessmentRoutes.js";
 import voteRoutes from "./voteRoutes.js";
- feat/hackathon-workspace-sync
 import workspaceRoutes from "./workspaceRoutes.js";
-
 import feedbackRoutes from "./feedbackRoutes.js";
- main
 import studyRoomRoutes from "./studyRoomRoutes.js";
 import observabilityRoutes from "./observabilityRoutes.js";
 import employerRoutes from "./employerRoutes.js";
@@ -98,11 +95,8 @@ const routes = [
   eventRsvpRoutes,
   skillAssessmentRoutes,
   voteRoutes,
- feat/hackathon-workspace-sync
   workspaceRoutes,
-
   feedbackRoutes,
- main
   studyRoomRoutes,
   observabilityRoutes,
   employerRoutes,
