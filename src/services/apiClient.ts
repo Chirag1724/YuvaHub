@@ -467,6 +467,30 @@ export async function generateApplyAssistBackend(opportunity: any, profile: any)
   }
 }
 
+export async function generateContextualCoverLetter(params: {
+  opportunityTitle: string;
+  organization?: string;
+  jobDescription?: string;
+  candidateProfile?: any;
+  customMotivation?: string;
+  tone?: string;
+}) {
+  const response = await fetchWithRetry(`${API_BASE_URL}/ai/cover-letter`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to generate cover letter");
+  }
+
+  const data = await response.json();
+  return data.data?.coverLetter || data.coverLetter || "";
+}
+
+
 export async function refineQueryBackend(query: string, profile: any) {
   try {
     const result = await geminiService.refineSearchQuery(query, profile);
@@ -1202,6 +1226,46 @@ export async function deleteCareerGoal(goalId: string) {
   }
   return await response.json();
 }
+
+export async function previewNewsletterClient(params: { email?: string; name?: string; skills?: string[]; field?: string } = {}) {
+  const response = await fetchWithRetry(`${API_BASE_URL}/newsletter/preview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to preview newsletter");
+  }
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function triggerNewsletterBatchClient(params: { batchSize?: number; dryRun?: boolean } = {}) {
+  const headers = await getAuthHeaders();
+  const response = await fetchWithRetry(`${API_BASE_URL}/newsletter/trigger`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(params),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to trigger newsletter batch");
+  }
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function unsubscribeNewsletterClient(email: string) {
+  const response = await fetchWithRetry(`${API_BASE_URL}/newsletter/unsubscribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to unsubscribe");
+  }
+  return await response.json();
+}
+
 
 // --- Student Ventures & Campus Startup Capital ---
 

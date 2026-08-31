@@ -97,6 +97,7 @@ const CampusStudentVentureStudioPage = lazy(() => import('./pages/CampusStudentV
 const Insights = lazy(() => import('./pages/Insights'));
 const AdminAnalyticsDashboard = lazy(() => import('./pages/AdminAnalyticsDashboard'));
 const EmployerAnalyticsDashboard = lazy(() => import('./pages/EmployerAnalyticsDashboard'));
+const WeeklyNewsletterStudio = lazy(() => import('./pages/WeeklyNewsletterStudio'));
 const ScraperHealthDashboard = lazy(() => import('./pages/ScraperHealthDashboard').then(m => ({ default: m.ScraperHealthDashboard })));
 
 const StudentMentalWellnessDeskPage = lazy(() => import('./pages/StudentMentalWellnessDeskPage'));
@@ -370,6 +371,7 @@ function App() {
         { id: 'tech_ecosystem', label: 'Tech Ecosystem Studio', icon: Cpu },
         { id: 'developer_api', label: 'Developer API Portal', icon: Terminal },
         { id: 'employer_analytics', label: 'Employer Analytics', icon: BarChart3, badge: 'PRO' },
+        { id: 'weekly_newsletter', label: 'Weekly Newsletter', icon: Mail, badge: 'AI' },
       ]
     },
     {
@@ -462,6 +464,7 @@ function App() {
       case 'admin_scrapers': return <ScraperHealthDashboard />;
       case 'admin_analytics': return <AdminAnalyticsDashboard />;
       case 'employer_analytics': return <EmployerAnalyticsDashboard />;
+      case 'weekly_newsletter': return <WeeklyNewsletterStudio />;
       case 'security': return <Security />;
       case 'privacy': return <Privacy />;
       case 'terms': return <Terms />;
