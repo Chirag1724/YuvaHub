@@ -2,6 +2,7 @@ import React, { KeyboardEvent, MouseEvent, useState, useRef, useCallback } from 
 import { Bookmark, Shield, ExternalLink, X, CheckCircle, MapPin, Clock, ArrowRight, Sparkles, Building2, Coins, Calendar, Flag, Scale, Briefcase } from "lucide-react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { OpportunityReportModal } from "./ui/OpportunityReportModal";
+import CoverLetterModal from "./ui/CoverLetterModal";
 import { useCompare } from "../context/CompareContext";
 import { saveOpportunityToTracker } from "../services/apiClient";
 
@@ -254,6 +255,15 @@ export function OpportunityCard({
                             </button>
                             <button
                                 type="button"
+                                onClick={(e) => { e.stopPropagation(); setShowCoverLetterModal(true); }}
+                                aria-label="Generate AI Cover Letter"
+                                title="Generate tailored AI cover letter"
+                                className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary dark:hover:bg-slate-800 transition-colors"
+                            >
+                                <FileText size={18} />
+                            </button>
+                            <button
+                                type="button"
                                 onClick={(e) => { e.stopPropagation(); setShowReportModal(true); }}
                                 aria-label="Report Opportunity"
                                 title="Report this opportunity"
@@ -400,6 +410,21 @@ export function OpportunityCard({
                 onClose={() => setShowReportModal(false)}
                 opportunityId={opp.id}
                 opportunityTitle={title}
+            />
+
+            <CoverLetterModal
+                isOpen={showCoverLetterModal}
+                onClose={() => setShowCoverLetterModal(false)}
+                opportunity={{
+                    id: opp.id,
+                    title: title,
+                    org: orgName,
+                    organization: orgName,
+                    description: (opp as any).description,
+                    location: locationLabel,
+                    type: (opp as any).type || (opp as any).category
+                }}
+                profile={appContext?.profile}
             />
         </>
     );
