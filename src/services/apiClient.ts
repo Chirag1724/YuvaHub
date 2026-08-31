@@ -830,19 +830,25 @@ export async function fetchOpportunityById(id: string) {
   }
 }
 
-export async function getApplications() {
-  const response = await fetchWithRetry(
-    `${API_BASE_URL}/applications`,
-    {
-      method: "GET",
-    }
-  );
+export async function saveOpportunityToTracker(opportunity: any, status: string = "saved", notes?: string) {
+  const oppId = opportunity._id || opportunity.id || opportunity.opportunityId;
+  const payload = {
+    opportunityId: oppId,
+    opportunity: {
+      title: opportunity.title,
+      organization: opportunity.organization || opportunity.org || "",
+      platform: opportunity.platform || "YuvaHub",
+      applyUrl: opportunity.applyUrl || opportunity.apply_link || "",
+      type: opportunity.type || "",
+      location: opportunity.location || "",
+      deadline: opportunity.deadline || "",
+    },
+    status,
+    notes,
+    deadline: opportunity.deadline ? new Date(opportunity.deadline) : undefined,
+  };
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch applications");
-  }
-
-  return response.json();
+  return createApplicationTrackerEntry(payload);
 }
 
 export async function createApplicationTrackerEntry(data: any) {

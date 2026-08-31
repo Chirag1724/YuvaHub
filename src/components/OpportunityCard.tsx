@@ -1,8 +1,9 @@
 import React, { KeyboardEvent, MouseEvent, useState, useRef, useCallback } from "react";
-import { Bookmark, Shield, ExternalLink, X, CheckCircle, MapPin, Clock, ArrowRight, Sparkles, Building2, Coins, Calendar, Flag, Scale } from "lucide-react";
+import { Bookmark, Shield, ExternalLink, X, CheckCircle, MapPin, Clock, ArrowRight, Sparkles, Building2, Coins, Calendar, Flag, Scale, Briefcase } from "lucide-react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { OpportunityReportModal } from "./ui/OpportunityReportModal";
 import { useCompare } from "../context/CompareContext";
+import { saveOpportunityToTracker } from "../services/apiClient";
 
 export interface Opportunity {
     id: string;
@@ -58,6 +59,8 @@ export function OpportunityCard({
     useFocusTrap(auditModalRef, showAuditModal, closeAuditModal);
 
     const [showReportModal, setShowReportModal] = useState(false);
+    const [isSavedToTracker, setIsSavedToTracker] = useState(false);
+    const [isSavingToTracker, setIsSavingToTracker] = useState(false);
     
     // Attempt to use CompareContext if it exists in the tree
     let compareCtx: any = null;
@@ -115,6 +118,20 @@ export function OpportunityCard({
     const handleAddToCalendar = (e: MouseEvent) => {
         e.stopPropagation();
         window.location.href = `/api/v1/opportunities/${opp.id}/calendar`;
+    };
+
+    const handleSaveToTracker = async (e: MouseEvent) => {
+        e.stopPropagation();
+        if (isSavingToTracker || isSavedToTracker) return;
+        try {
+            setIsSavingToTracker(true);
+            await saveOpportunityToTracker(opp, "saved");
+            setIsSavedToTracker(true);
+        } catch (err) {
+            console.error("Failed to save to application tracker:", err);
+        } finally {
+            setIsSavingToTracker(false);
+        }
     };
 
     const handleCompareClick = (e: MouseEvent) => {
@@ -190,6 +207,23 @@ export function OpportunityCard({
                                 <Calendar
                                     size={18}
                                     className="text-text-muted dark:text-slate-500"
+                                />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSaveToTracker}
+                                disabled={isSavingToTracker}
+                                aria-label={isSavedToTracker ? "Saved to Application Tracker" : "Save to Application Tracker"}
+                                title={isSavedToTracker ? "Saved to Tracker" : "Save to Tracker"}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                    isSavedToTracker 
+                                        ? "text-emerald-500 bg-emerald-500/10" 
+                                        : "text-text-muted hover:text-primary-blue hover:bg-surface-secondary dark:hover:bg-slate-800"
+                                }`}
+                            >
+                                <Briefcase
+                                    size={18}
+                                    className={isSavedToTracker ? "text-emerald-500" : "text-text-muted dark:text-slate-500"}
                                 />
                             </button>
                             {compareCtx && (
