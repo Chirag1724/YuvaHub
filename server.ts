@@ -1,3 +1,4 @@
+import { logger } from "./src/lib/logger.js";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -7,18 +8,30 @@ import cors from "cors";
 import { fileURLToPath } from "url";
 import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
+const wrapUserInput = (input: string | undefined | null) => {
+  return input ? `"""${input}"""` : "";
+};
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { z } from "zod";
 import { ScholarshipSchema, AIEvaluationResponseSchema } from "./src/models/scholarshipSchema.js";
-import {
-  resumeRateLimiter,
-  chatRateLimiter,
-  createToxicityMiddleware,
-  stripForwardedHeader,
-} from "./src/middleware/index.js";
+import { resumeRateLimiter, chatRateLimiter } from "./src/api/middlewares/rateLimiter.js";
+import { redisClient } from "./src/api/redis.js";
+import { isToxic, createToxicityMiddleware } from "./src/services/toxicity.js";
+import { stripForwardedHeader } from "./src/api/middlewares/proxyHeaders.js";
 import { v2 as cloudinary } from "cloudinary";
+import { authMiddleware } from "./src/api/middlewares/auth.js";
+import { requestExport, getExportHistory } from "./src/api/controllers/exportController.js";
+import { logStartupHealthReport } from "./src/api/services/healthService.js";
+import { AICacheMetrics } from "./src/api/services/aiCacheMetrics.js";
+import { securityPipeline } from "./src/api/middlewares/security/index.js";
+import { shutdownGuard } from "./src/api/middlewares/security/shutdownGuard.js";
 
 dotenv.config();
+
+import { requestLogger } from "./src/lib/requestLogger.js";
+import { registry } from "./src/lib/metrics/registry.js";
+
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -31,7 +44,7 @@ let _genAI: GoogleGenAI | null = null;
 function getGenAI() {
   if (!_genAI) {
     if (!process.env.GEMINI_API_KEY) {
-       console.warn("GEMINI_API_KEY not set. AI features will fallback.");
+       logger.warn("GEMINI_API_KEY not set. AI features will fallback.");
        return null;
     }
     _genAI = new GoogleGenAI({
@@ -351,7 +364,7 @@ async function getRankedOpportunities(database: any, profile: any, page: number,
       next_page
     };
   } catch (scoreErr) {
-    console.error("Scoring failure:", scoreErr);
+    logger.error({ err: scoreErr }, "Scoring failure:");
     return { items: [], next_page: null };
   }
 }
@@ -370,6 +383,16 @@ import { initializeDNLDatabase } from "./src/services/dnl/metrics.js";
 import { DNLDispatcher } from "./src/services/dnl/scheduler.js";
 import { DevpostAdapter } from "./src/services/dnl/adapters/DevpostAdapter.js";
 import { InternshalaAdapter } from "./src/services/dnl/adapters/InternshalaAdapter.js";
+
+import { validateRequest } from "./src/api/middlewares/validateRequest.js";
+import { authSyncSchema } from "./src/schemas/authSchema.js";
+import { interactionTrackSchema } from "./src/schemas/interactionSchema.js";
+import { aiGenerateSchema, aiResumeReviewSchema, aiCoverLetterSchema } from "./src/schemas/aiSchema.js";
+import { searchQuerySchema, opportunityQuerySchema, escapeRegex } from "./src/schemas/searchSchema.js";
+import { storageSignatureSchema, storageSaveSchema } from "./src/schemas/storageSchema.js";
+import { analyticsTrackSchema } from "./src/schemas/analyticsSchema.js";
+import { reportOpportunitySchema } from "./src/schemas/reportSchema.js";
+import { createPostSchema, commentPostSchema, upvotePostSchema } from "./src/schemas/postSchema.js";
 
 let db: any = null;
 
@@ -442,9 +465,9 @@ function setupDNL(database: any) {
     dispatcher.registerAdapter(new DevpostAdapter());
     dispatcher.registerAdapter(new InternshalaAdapter());
     dispatcher.start(3600000); // 1 hour
-    console.log("[DNL] Scheduler initialized and started.");
+    logger.info("[DNL] Scheduler initialized and started.");
   }).catch(err => {
-    console.error("[DNL] Setup failed:", err);
+    logger.error({ err: err }, "[DNL] Setup failed:");
   });
 }
 
@@ -452,20 +475,17 @@ if (uri) {
   const client = new MongoClient(uri);
   client.connect().then(() => {
     db = client.db(dbName);
-    console.log(`[Database] Connected to MongoDB: ${dbName}`);
+    logger.info(`[Database] Connected to MongoDB: ${dbName}`);
     setupDNL(db);
     
-    // Create required compound indexes asynchronously
-    db.collection("opportunities").createIndex({ created_at: -1, source_quality_score: -1 })
-      .then(() => console.log(`[Database] Created compound index on opportunities`))
-      .catch((err: any) => console.error(`[Database] Failed to create index:`, err));
+    // Migrations handle index creation now
   }).catch(err => {
-    console.error("[Database] Connection failed, falling back to Mock Data:", err);
+    logger.error({ err: err }, "[Database] Connection failed, falling back to Mock Data:");
     db = new MockDB();
     setupDNL(db);
   });
 } else {
-  console.log("[Database] No MONGODB_URI provided. Running in Offline Mock mode.");
+  logger.info("[Database] No MONGODB_URI provided. Running in Offline Mock mode.");
   db = new MockDB();
   setupDNL(db);
 }
@@ -491,7 +511,7 @@ class AnalyticsBuffer {
 
   private startInterval() {
     this.flushInterval = setInterval(() => {
-      this.flush().catch(err => console.error("[AnalyticsBuffer] Auto-flush error:", err));
+      this.flush().catch(err => logger.error({ err: err }, "[AnalyticsBuffer] Auto-flush error:"));
     }, this.intervalMs);
   }
 
@@ -512,13 +532,13 @@ class AnalyticsBuffer {
           bulk.insert(doc);
         }
         await bulk.execute();
-        console.log(`[AnalyticsBuffer] Flushed ${batch.length} events to MongoDB.`);
+        logger.info(`[AnalyticsBuffer] Flushed ${batch.length} events to MongoDB.`);
       } else {
         this.buffer.unshift(...batch);
-        console.warn(`[AnalyticsBuffer] DB not ready. Re-queued ${batch.length} events.`);
+        logger.warn(`[AnalyticsBuffer] DB not ready. Re-queued ${batch.length} events.`);
       }
     } catch (err) {
-      console.error("[AnalyticsBuffer] Error flushing batch:", err);
+      logger.error({ err: err }, "[AnalyticsBuffer] Error flushing batch:");
       this.buffer.unshift(...batch);
     } finally {
       this.isFlushing = false;
@@ -539,13 +559,13 @@ let isShuttingDown = false;
 const gracefulShutdown = async (signal: string) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
-  console.log(`[System] Received ${signal}. Starting graceful shutdown...`);
+  logger.info(`[System] Received ${signal}. Starting graceful shutdown...`);
   try {
     analyticsBuffer.stop();
     await analyticsBuffer.flush();
-    console.log("[System] Analytics buffer flushed successfully.");
+    logger.info("[System] Analytics buffer flushed successfully.");
   } catch (err) {
-    console.error("[System] Error during graceful shutdown analytics flush:", err);
+    logger.error({ err: err }, "[System] Error during graceful shutdown analytics flush:");
   } finally {
     process.exit(0);
   }
@@ -555,14 +575,17 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGBREAK", () => gracefulShutdown("SIGBREAK"));
 
+export let io: Server;
+
 async function startServer() {
   const app = express();
+  app.use(requestLogger);
   const server = http.createServer(app);
   
   const frontendUrl = process.env.FRONTEND_URL;
   const corsOptions = frontendUrl ? { origin: frontendUrl } : { origin: "*" };
   
-  const io = new Server(server, { cors: corsOptions });
+  io = new Server(server, { cors: corsOptions });
   const PORT = 5173;
 
   // Trust reverse proxy (Cloud Run, nginx / Cloudflare reverse proxies)
@@ -571,15 +594,24 @@ async function startServer() {
   // Suppress express-rate-limit warnings / errors for forwarded headers when behind proxy
   app.use(stripForwardedHeader);
 
-  app.use(cors(corsOptions));
-  app.use(express.json({ limit: '10mb' }));
+  app.use(securityPipeline());
 
-  app.post("/api/analytics/track", (req, res) => {
+  app.get("/api/v1/metrics", async (req, res) => {
+    try {
+      res.set("Content-Type", registry.contentType);
+      res.end(await registry.metrics());
+    } catch (err) {
+      res.status(500).end(err);
+    }
+  });
+
+
+  app.post("/api/analytics/track", validateRequest(z.object({ body: analyticsTrackSchema })), (req, res) => {
     analyticsBuffer.push(req.body);
     res.status(202).json({ status: "Accepted" });
   });
 
-  app.post("/api/analytics/shutdown", async (req, res) => {
+  app.post("/api/analytics/shutdown", shutdownGuard, async (req, res) => {
     res.status(200).json({ status: "Shutting down" });
     await gracefulShutdown("API_TRIGGER");
   });
@@ -699,8 +731,12 @@ async function startServer() {
     });
   });
 
+  // --- Export Routes ---
+  app.post("/api/v1/export/request", authMiddleware, requestExport);
+  app.get("/api/v1/export/history", authMiddleware, getExportHistory);
+
   // --- Real API Routes ---
-  app.get("/api/v1/opportunities", async (req, res) => {
+  app.get("/api/v1/opportunities", validateRequest(z.object({ query: opportunityQuerySchema })), async (req, res) => {
     try {
       let page = parseInt((req.query.page as string) || "1", 10);
       if (req.query.cursor) {
@@ -730,12 +766,12 @@ async function startServer() {
         items: result.items
       });
     } catch(err) {
-      console.error("/api/v1/opportunities error:", err);
+      logger.error({ err: err }, "/api/v1/opportunities error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
 
-  app.get("/api/v1/opportunities/trending", async (req, res) => {
+  app.get("/api/v1/opportunities/trending", validateRequest(z.object({ query: opportunityQuerySchema })), async (req, res) => {
     try {
       if (!db) {
         return res.json({ num_results: 0, next_page: null, next_cursor: null, items: [] });
@@ -755,7 +791,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/v1/opportunities/latest", async (req, res) => {
+  app.get("/api/v1/opportunities/latest", validateRequest(z.object({ query: opportunityQuerySchema })), async (req, res) => {
     try {
       if (!db) {
         return res.json({ num_results: 0, items: [] });
@@ -786,12 +822,12 @@ async function startServer() {
         items
       });
     } catch(err) {
-      console.error("/api/v1/opportunities/latest error:", err);
+      logger.error({ err: err }, "/api/v1/opportunities/latest error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
 
-  app.post("/api/v1/auth/sync", async (req, res) => {
+  app.post("/api/v1/auth/sync", validateRequest(z.object({ body: authSyncSchema })), async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -808,7 +844,7 @@ async function startServer() {
           const config = JSON.parse(fs.readFileSync(firebaseConfigPath, "utf-8"));
           firebaseApiKey = config.apiKey || "";
         } catch (e) {
-          console.error("[Auth] Error parsing firebase-applet-config.json:", e);
+          logger.error({ err: e }, "[Auth] Error parsing firebase-applet-config.json:");
         }
       }
 
@@ -828,7 +864,7 @@ async function startServer() {
 
         if (!verifyRes.ok) {
           const errData = await verifyRes.json().catch(() => ({}));
-          console.error("[Auth] Firebase token verification failed:", errData);
+          logger.error({ err: errData }, "[Auth] Firebase token verification failed:");
           return res.status(401).json({ error: "Unauthorized: Invalid token" });
         }
 
@@ -935,7 +971,7 @@ async function startServer() {
       });
 
     } catch (err: any) {
-      console.error("[Auth] Error syncing user:", err);
+      logger.error({ err: err }, "[Auth] Error syncing user:");
       res.status(500).json({ error: "Internal Server Error during auth sync" });
     }
   });
@@ -956,7 +992,7 @@ async function startServer() {
         const config = JSON.parse(fs.readFileSync(firebaseConfigPath, "utf-8"));
         firebaseApiKey = config.apiKey || "";
       } catch (e) {
-        console.error("[Auth] Error parsing firebase-applet-config.json:", e);
+        logger.error({ err: e }, "[Auth] Error parsing firebase-applet-config.json:");
       }
     }
 
@@ -1075,7 +1111,7 @@ async function startServer() {
       });
 
     } catch (err: any) {
-      console.error("[Storage] Error generating signature:", err);
+      logger.error({ err: err }, "[Storage] Error generating signature:");
       res.status(err.message?.startsWith("Unauthorized") ? 401 : 500).json({ error: err.message || "Internal Server Error" });
     }
   };
@@ -1132,7 +1168,7 @@ async function startServer() {
       });
 
     } catch (err: any) {
-      console.error("[Storage] Error saving upload metadata:", err);
+      logger.error({ err: err }, "[Storage] Error saving upload metadata:");
       res.status(err.message?.startsWith("Unauthorized") ? 401 : 500).json({ error: err.message || "Internal Server Error" });
     }
   };
@@ -1142,7 +1178,7 @@ async function startServer() {
   app.post("/api/storage/save", handleSaveUpload);
   app.post("/api/v1/storage/save", handleSaveUpload);
 
-  app.post("/api/v1/interactions/track", async (req, res) => {
+  app.post("/api/v1/interactions/track", validateRequest(z.object({ body: interactionTrackSchema })), async (req, res) => {
     try {
       if (db && req.body) {
         await db.collection("interactions").insertOne({
@@ -1159,17 +1195,61 @@ async function startServer() {
   // In-memory cache for AI generation prompts and resume reviews
   const aiCache = new Map<string, { data: any; timestamp: number }>();
   const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+  const cacheMetrics = new AICacheMetrics();
 
   function getCachedResponse(key: string): any | null {
     const entry = aiCache.get(key);
     if (entry && (Date.now() - entry.timestamp < CACHE_TTL_MS)) {
+      cacheMetrics.recordHit();
       return entry.data;
     }
+    if (entry) {
+      // Entry expired — count as eviction and clean up
+      cacheMetrics.recordEviction();
+      aiCache.delete(key);
+    }
+    cacheMetrics.recordMiss();
     return null;
   }
 
   function setCachedResponse(key: string, data: any) {
     aiCache.set(key, { data, timestamp: Date.now() });
+  }
+
+  /**
+   * Build a cache key scoped to the authenticated user.
+   * Format: userId:promptHash
+   * Anonymous users get a synthetic ID derived from their IP to prevent
+   * cross-user cache leakage while still allowing per-visitor caching.
+   */
+  function buildUserScopedCacheKey(userId: string, prompt: string): string {
+    // Simple djb2 hash for deterministic, fast key generation
+    let hash = 5381;
+    for (let i = 0; i < prompt.length; i++) {
+      hash = ((hash << 5) + hash + prompt.charCodeAt(i)) | 0;
+    }
+    return `${userId}:${hash.toString(36)}`;
+  }
+
+  /**
+   * Extract user ID from Authorization header or fall back to a synthetic
+   * anonymous identifier derived from the client IP.
+   */
+  function resolveUserId(req: any): string {
+    const authHeader = req.headers?.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.substring(7);
+        const parts = token.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
+          return payload.user_id || payload.sub || `anon:${req.ip || "unknown"}`;
+        }
+      } catch {
+        // Fall through to anonymous
+      }
+    }
+    return `anon:${req.ip || "unknown"}`;
   }
 
   function getAIFallback(prompt: string, expectJson: boolean): string {
@@ -1274,13 +1354,15 @@ Sincerely,
     return "I am here to help you navigate academic choices, resume reviews, track development milestones, and match with elite engineering fellowships!";
   }
 
-  app.post("/api/v1/ai/generate", chatRateLimiter, async (req, res) => {
+  app.post("/api/v1/ai/generate", chatRateLimiter, validateRequest(z.object({ body: aiGenerateSchema })), async (req, res) => {
     try {
       const { prompt, expectJson } = req.body;
       if (!prompt) return res.status(400).json({ error: "No prompt" });
 
-      // Check cache first
-      const cached = getCachedResponse(prompt);
+      // Check cache first (scoped per user to prevent cross-user leakage)
+      const userId = resolveUserId(req);
+      const cacheKey = buildUserScopedCacheKey(userId, prompt);
+      const cached = getCachedResponse(cacheKey);
       if (cached) {
         return res.json({ text: cached });
       }
@@ -1303,7 +1385,7 @@ Sincerely,
         const isTimeout = err?.message?.toLowerCase().includes('timeout') || err?.message?.toLowerCase().includes('abort');
         const is429 = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('Quota exceeded') || err?.message?.includes('RESOURCE_EXHAUSTED');
         if (is503 || isTimeout || is429) {
-          console.log(`[AI Routing] Switchover triggered due to temporary limit.`);
+          logger.info(`[AI Routing] Switchover triggered due to temporary limit.`);
           try {
             const response = await ai.models.generateContent({
               model: "gemini-3.1-flash-lite",
@@ -1311,7 +1393,7 @@ Sincerely,
             });
             responseText = response.text || "";
           } catch (liteErr: any) {
-            console.log(`[AI Routing] Alternate model restriction. Invoking static fallback strategy.`);
+            logger.info(`[AI Routing] Alternate model restriction. Invoking static fallback strategy.`);
             responseText = getAIFallback(prompt, !!expectJson);
           }
         } else {
@@ -1325,7 +1407,7 @@ Sincerely,
         responseText = getAIFallback(prompt, !!expectJson);
       }
 
-      setCachedResponse(prompt, responseText);
+      setCachedResponse(cacheKey, responseText);
       res.json({ text: responseText });
     } catch (err) {
       // General safety fallback, don't fail the request
@@ -1335,12 +1417,13 @@ Sincerely,
     }
   });
 
-  app.post("/api/v1/ai/resume_review", resumeRateLimiter, async (req, res) => {
+  app.post("/api/v1/ai/resume_review", resumeRateLimiter, validateRequest(z.object({ body: aiResumeReviewSchema })), async (req, res) => {
     try {
       const { resume } = req.body;
       if (!resume) return res.status(400).json({ error: "No resume provided" });
 
-      const cacheKey = `resume_review:${resume.substring(0, 300)}`;
+      const userId = resolveUserId(req);
+      const cacheKey = buildUserScopedCacheKey(userId, `resume_review:${resume.substring(0, 300)}`);
       const cached = getCachedResponse(cacheKey);
       if (cached) {
         return res.json(cached);
@@ -1381,7 +1464,7 @@ Return JSON strictly in this format:
         const isTimeout = err?.message?.toLowerCase().includes('timeout') || err?.message?.toLowerCase().includes('abort');
         const is429 = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('Quota exceeded') || err?.message?.includes('RESOURCE_EXHAUSTED');
         if (is503 || isTimeout || is429) {
-          console.log(`[AI Routing] Review switchover active.`);
+          logger.info(`[AI Routing] Review switchover active.`);
           try {
             const response = await ai.models.generateContent({
               model: "gemini-3.1-flash-lite",
@@ -1390,7 +1473,7 @@ Return JSON strictly in this format:
             });
             responseText = response.text || "";
           } catch (liteErr) {
-            console.log(`[AI Routing] Review fallback activated.`);
+            logger.info(`[AI Routing] Review fallback activated.`);
           }
         }
       }
@@ -1423,7 +1506,7 @@ Return JSON strictly in this format:
     }
   });
 
-  app.post("/api/ai/analyze-resume", resumeRateLimiter, async (req, res) => {
+  app.post("/api/ai/analyze-resume", resumeRateLimiter, validateRequest(z.object({ body: aiResumeReviewSchema })), async (req, res) => {
     try {
       const { resumeBase64, fileName, jobDescription, resumeText } = req.body;
       if (!resumeBase64 && !resumeText) {
@@ -1433,9 +1516,10 @@ Return JSON strictly in this format:
         return res.status(400).json({ error: "No job description provided" });
       }
 
-      // Check cache using a combination of the inputs
+      // Check cache using a combination of the inputs (scoped per user)
+      const userId = resolveUserId(req);
       const cacheInput = resumeBase64 ? resumeBase64.substring(0, 200) : (resumeText || "").substring(0, 200);
-      const cacheKey = `resume_analysis:${cacheInput}:${jobDescription.substring(0, 100)}`;
+      const cacheKey = buildUserScopedCacheKey(userId, `resume_analysis:${cacheInput}:${jobDescription.substring(0, 100)}`);
       const cached = getCachedResponse(cacheKey);
       if (cached) {
         return res.json(cached);
@@ -1451,7 +1535,7 @@ Return JSON strictly in this format:
 
       const ai = getGenAI();
       if (!ai) {
-        console.warn("Gemini AI client not available, returning fallback.");
+        logger.warn("Gemini AI client not available, returning fallback.");
         return res.json(defaultFallback);
       }
 
@@ -1495,7 +1579,7 @@ Return JSON strictly in this format:
         });
         responseText = response.text || "";
       } catch (err: any) {
-        console.error("Gemini API call failed:", err);
+        logger.error({ err: err }, "Gemini API call failed:");
         // Fallback to older model if rate limited or failed
         try {
           const response = await ai.models.generateContent({
@@ -1505,7 +1589,7 @@ Return JSON strictly in this format:
           });
           responseText = response.text || "";
         } catch (liteErr) {
-          console.error("Gemini Alternate model failed:", liteErr);
+          logger.error({ err: liteErr }, "Gemini Alternate model failed:");
         }
       }
 
@@ -1527,12 +1611,117 @@ Return JSON strictly in this format:
       setCachedResponse(cacheKey, parsed);
       res.json(parsed);
     } catch (err) {
-      console.error("/api/ai/analyze-resume error:", err);
+      logger.error({ err: err }, "/api/ai/analyze-resume error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
 
-  const searchHandler = async (req: express.Request, res: express.Response) => {
+  app.post("/api/v1/ai/cover-letter", chatRateLimiter, validateRequest(z.object({ body: aiCoverLetterSchema })), async (req, res) => {
+    try {
+      const { opportunityTitle, organization, jobDescription, candidateProfile, customMotivation, tone } = req.body;
+
+      if (!opportunityTitle) {
+        return res.status(400).json({ error: "Opportunity title is required" });
+      }
+
+      const titleStr = opportunityTitle || "Target Role";
+      const orgStr = organization || "Hiring Team";
+      const descStr = jobDescription || "";
+      const candidateName = candidateProfile?.name || "Student";
+      const candidateSkills = Array.isArray(candidateProfile?.skills) ? candidateProfile.skills.join(", ") : (candidateProfile?.skills || "General Engineering, Problem Solving");
+      const candidateExperience = candidateProfile?.experience || candidateProfile?.summary || "Project and software development background";
+      const candidateEducation = candidateProfile?.education || "Undergraduate Degree in Engineering / Technology";
+      const motivation = customMotivation || "I am enthusiastic about this mission and excited to apply my skills to drive impactful results.";
+      const selectedTone = tone || "Professional & Enthusiastic";
+
+      const userId = resolveUserId(req);
+      const cacheKey = buildUserScopedCacheKey(userId, `cover_letter:${titleStr}:${orgStr}:${candidateName}:${motivation.slice(0, 50)}`);
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        return res.json({ success: true, coverLetter: cached });
+      }
+
+      const defaultFallback = `Dear Hiring Team at ${orgStr},
+
+I am writing to express my strong enthusiasm for the ${titleStr} position. With my background in ${candidateSkills} and practical experience building high-performance projects, I am eager to contribute to your team's success.
+
+${motivation}
+
+Throughout my academic journey (${candidateEducation}) and hands-on experience in ${candidateExperience}, I have developed deep technical foundations in ${candidateSkills}. My experience equips me to quickly ramp up, understand complex system requirements, and deliver clean, test-driven results.
+
+I admire ${orgStr}'s work in the domain and would welcome the opportunity to discuss how my skill set and dedication align with your goals for the ${titleStr} role.
+
+Thank you for your time and consideration.
+
+Sincerely,
+${candidateName}`;
+
+      const ai = getGenAI();
+      function wrapUserInput(text: string) { return text ? `\n<user_input>\n${text}\n</user_input>\n` : 'Not provided'; }
+      if (!ai) {
+        return res.json({ success: true, coverLetter: defaultFallback });
+      }
+
+      const prompt = `You are an elite career coach and executive recruiter. Write a compelling, highly contextual, and customized cover letter for an applicant.
+
+Opportunity Details:
+Role: ${wrapUserInput(titleStr)}
+Company/Organization: ${wrapUserInput(orgStr)}
+Job Description / Requirements:
+${wrapUserInput(descStr || "Not provided")}
+
+Candidate Profile:
+Name: ${wrapUserInput(candidateName)}
+Skills: ${wrapUserInput(candidateSkills)}
+Experience / Background: ${wrapUserInput(candidateExperience)}
+Education: ${wrapUserInput(candidateEducation)}
+
+Candidate's Custom Motivation / "Why I want this role":
+${wrapUserInput(motivation)}
+
+Tone: ${selectedTone}
+
+Guidelines:
+1. Explicitly connect the candidate's specific skills and projects to the key responsibilities and requirements of the role/organization.
+2. Weave in the candidate's custom motivation seamlessly into the letter.
+3. Use a clear, persuasive opening, 2 well-structured body paragraphs mapping skills to role requirements, and a confident call-to-action closing.
+4. Format in clean, readable paragraphs with standard business letter greeting and sign-off.
+5. Return ONLY the text of the complete cover letter. Do not include markdown meta-commentary, notes, or explanations.`;
+
+      let responseText = "";
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: prompt
+        });
+        responseText = response.text || "";
+      } catch (err: any) {
+        logger.warn({ err: err?.message }, "Primary AI model generation failed for cover letter:");
+        try {
+          const response = await ai.models.generateContent({
+            model: "gemini-3.1-flash-lite",
+            contents: prompt
+          });
+          responseText = response.text || "";
+        } catch (liteErr) {
+          responseText = defaultFallback;
+        }
+      }
+
+      if (!responseText || responseText.trim().length < 50) {
+        responseText = defaultFallback;
+      }
+
+      setCachedResponse(cacheKey, responseText.trim());
+      return res.json({ success: true, coverLetter: responseText.trim() });
+    } catch (err) {
+      logger.error({ err: err }, "/api/v1/ai/cover-letter error:");
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+
+  app.get("/api/v1/search", validateRequest(z.object({ query: searchQuerySchema })), async (req, res) => {
     try {
       const q = (req.query.q as string) || "";
       const typesStr = req.query.types as string;
@@ -1544,16 +1733,29 @@ Return JSON strictly in this format:
       const endDateStr = req.query.endDate as string;
       
       if (!db) return res.json({ results: [], meta: { total_found: 0 } });
+      const filter: any = {};
       const andConditions: any[] = [];
 
-      // 1. Opportunity Type Filter (multiple types supported)
+      // 1. Text Query Filter
+      if (q) {
+        andConditions.push({
+          $or: [
+            { title: { $regex: q, $options: "i" } },
+            { category: { $regex: q, $options: "i" } },
+            { description: { $regex: q, $options: "i" } },
+            { tags: { $regex: q, $options: "i" } }
+          ]
+        });
+      }
+
+      // 2. Opportunity Type Filter (multiple types supported)
       if (typesStr) {
         const types = typesStr.split(",").map(t => t.trim());
         const typeRegexes = types.map(t => new RegExp(`^${t.replace(/s$/, "")}$`, "i"));
         andConditions.push({ type: { $in: typeRegexes } });
       }
 
-      // 2. Location Type Filter (Remote, Onsite, Hybrid)
+      // 3. Location Type Filter (Remote, Onsite, Hybrid)
       if (locationTypesStr) {
         const locationTypes = locationTypesStr.split(",").map(l => l.trim().toLowerCase());
         const locFilters: any[] = [];
@@ -1576,7 +1778,7 @@ Return JSON strictly in this format:
         }
       }
 
-      // 3. Stipend / Salary Filter
+      // 4. Stipend / Salary Filter
       if (stipend) {
         if (stipend.toLowerCase() === 'paid') {
           andConditions.push({
@@ -1599,7 +1801,7 @@ Return JSON strictly in this format:
         }
       }
 
-      // 4. Min Salary / Stipend Filter
+      // 5. Min Salary / Stipend Filter
       if (minSalaryVal !== undefined && !isNaN(minSalaryVal) && minSalaryVal > 0) {
         andConditions.push({
           $or: [
@@ -1609,7 +1811,7 @@ Return JSON strictly in this format:
         });
       }
 
-      // 5. Deadline Filter
+      // 6. Deadline Filter
       if (deadlineType && deadlineType !== 'All') {
         const now = new Date();
         if (deadlineType === 'Soon') {
@@ -1638,72 +1840,12 @@ Return JSON strictly in this format:
         }
       }
 
-      let items: any[] = [];
-      if (q) {
-        const pipeline: any[] = [
-          {
-            $search: {
-              index: "default",
-              compound: {
-                should: [
-                  {
-                    text: {
-                      query: q,
-                      path: ["title", "tags"],
-                      fuzzy: { maxEdits: 2 }
-                    }
-                  },
-                  {
-                    text: {
-                      query: q,
-                      path: ["company", "description"]
-                    }
-                  }
-                ]
-              },
-              highlight: {
-                path: ["title", "tags", "company", "description"]
-              }
-            }
-          }
-        ];
-
-        if (andConditions.length > 0) {
-          pipeline.push({ $match: { $and: andConditions } });
-        }
-
-        pipeline.push({
-          $project: {
-            title: 1,
-            description: 1,
-            company: 1,
-            tags: 1,
-            type: 1,
-            location: 1,
-            stipend: 1,
-            price: 1,
-            stipendAmount: 1,
-            salary: 1,
-            deadline: 1,
-            deadlineDate: 1,
-            apply_link: 1,
-            source_quality_score: 1,
-            created_at: 1,
-            highlights: { $meta: "searchHighlights" },
-            score: { $meta: "searchScore" }
-          }
-        });
-
-        pipeline.push({ $limit: 50 });
-        items = await db.collection("opportunities").aggregate(pipeline).toArray();
-      } else {
-        const filter: any = {};
-        if (andConditions.length > 0) {
-          filter.$and = andConditions;
-        }
-        items = await db.collection("opportunities").find(filter).limit(50).toArray();
+      if (andConditions.length > 0) {
+        filter.$and = andConditions;
       }
 
+      const cursor = db.collection("opportunities").find(filter).limit(50);
+      const items = await cursor.toArray();
       let mapped = items.map((doc: any) => {
         const d = { ...doc, id: doc._id.toString() };
         delete d._id;
@@ -1715,13 +1857,10 @@ Return JSON strictly in this format:
         meta: { query: q, total_found: mapped.length }
       });
     } catch(err) {
-      console.error("Search endpoint error:", err);
+      logger.error({ err: err }, "/api/v1/search error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
-  };
-
-  app.get("/api/v1/search", searchHandler);
-  app.get("/api/opportunities/search", searchHandler);
+  });
 
   app.get("/api/v1/opportunity/:id", async (req, res) => {
     try {
@@ -1758,7 +1897,7 @@ Return JSON strictly in this format:
       delete mapped._id;
       res.json(mapped);
     } catch (err) {
-      console.error("/api/v1/opportunity/:id error:", err);
+      logger.error({ err: err }, "/api/v1/opportunity/:id error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
@@ -1802,36 +1941,36 @@ Return JSON strictly in this format:
   // --- Native Node.js Background Scheduler Daemon Service ---
   try {
     const { spawn } = await import("child_process");
-    console.log("[System] Initializing centralized Node.js Background Scheduler...");
+    logger.info("[System] Initializing centralized Node.js Background Scheduler...");
     
     // Periodically run the Native scraping pipeline every 12 hours (43200000ms)
     setInterval(() => {
-      console.log("[System] Triggering scheduled Node.js pipeline run...");
+      logger.info("[System] Triggering scheduled Node.js pipeline run...");
       const schedulerProc = spawn("npx", ["tsx", "scrape-cli.ts"], {
         cwd: process.cwd(),
         env: { ...process.env }
       });
       
       schedulerProc.stdout.on("data", (data) => {
-        console.log(`[Node Scheduler Log]: ${data.toString().trim()}`);
+        logger.info(`[Node Scheduler Log]: ${data.toString().trim()}`);
       });
       
       schedulerProc.stderr.on("data", (data) => {
-        console.error(`[Node Scheduler Error]: ${data.toString().trim()}`);
+        logger.error(`[Node Scheduler Error]: ${data.toString().trim()}`);
       });
 
       schedulerProc.on("error", (err) => {
-        console.error("[System] Node Background Scheduler failed to spawn or run:", err);
+        logger.error({ err: err }, "[System] Node Background Scheduler failed to spawn or run:");
       });
 
       schedulerProc.on("close", (code) => {
-        console.log(`[System] Scheduled Native Pipeline exited with code ${code}.`);
+        logger.info(`[System] Scheduled Native Pipeline exited with code ${code}.`);
       });
     }, 43200000); // 12 hours
     
-    console.log("[System] Scheduled pipeline initialized to run natively every 12 hours.");
+    logger.info("[System] Scheduled pipeline initialized to run natively every 12 hours.");
   } catch (err) {
-    console.error("[System] Failed to initialize Node Background Scheduler:", err);
+    logger.error({ err: err }, "[System] Failed to initialize Node Background Scheduler:");
   }
 
   // --- Admin Routes ---
@@ -1856,6 +1995,12 @@ Return JSON strictly in this format:
       fallbackRate: 2.1,
       apiLatency: 120
     });
+  });
+
+  // --- AI Cache Metrics ---
+  app.get("/api/v1/admin/cache-metrics", (_req, res) => {
+    const metrics = cacheMetrics.snapshot(aiCache);
+    res.json(metrics);
   });
 
   app.get("/api/v1/admin/scrapers", async (req, res) => {
@@ -1938,7 +2083,7 @@ Return JSON strictly in this format:
       
       res.json(adminScrapers);
     } catch (err) {
-      console.error("Admin scrapers fetch error:", err);
+      logger.error({ err: err }, "Admin scrapers fetch error:");
       res.status(500).json([]);
     }
   });
@@ -1985,14 +2130,14 @@ Return JSON strictly in this format:
         cwd: process.cwd(),
         env: { ...process.env }
       });
-      child.stdout.on("data", (data) => console.log(`[Manual Node Trigger Stdout]: ${data}`));
-      child.stderr.on("data", (data) => console.error(`[Manual Node Trigger Stderr]: ${data}`));
+      child.stdout.on("data", (data) => logger.info(`[Manual Node Trigger Stdout]: ${data}`));
+      child.stderr.on("data", (data) => logger.error(`[Manual Node Trigger Stderr]: ${data}`));
       child.on("error", (err) => {
-        console.error("[Manual Node Trigger] Child process error (failed to spawn or crashed):", err);
+        logger.error({ err: err }, "[Manual Node Trigger] Child process error (failed to spawn or crashed):");
       });
       res.json({ message: "Node.js Central Ingestion pipeline triggered asynchronously." });
     } catch (err: any) {
-      console.error("Manual Node trigger failed:", err);
+      logger.error({ err: err }, "Manual Node trigger failed:");
       res.status(500).json({ error: "Failed to run Node.js central pipeline." });
     }
   });
@@ -2063,7 +2208,7 @@ Return JSON strictly in this format:
           }
         });
       } catch (err) {
-        console.error("[Sitemap] Error fetching dynamic opportunity links:", err);
+        logger.error({ err: err }, "[Sitemap] Error fetching dynamic opportunity links:");
       }
     }
     
@@ -2134,7 +2279,7 @@ Return JSON strictly in this format:
         }
         item = await db.collection("opportunities").findOne(query);
       } catch (err) {
-        console.error("[SEO Interceptor] MongoDB fetch failed:", err);
+        logger.error({ err: err }, "[SEO Interceptor] MongoDB fetch failed:");
       }
     }
 
@@ -2148,7 +2293,7 @@ Return JSON strictly in this format:
       const fs = await import("fs");
       indexHtml = fs.readFileSync(indexPath, "utf-8");
     } catch (err) {
-      console.error("[SEO Interceptor] Failed to read index.html template:", err);
+      logger.error({ err: err }, "[SEO Interceptor] Failed to read index.html template:");
       return res.status(500).send("System template error");
     }
 
@@ -2249,6 +2394,126 @@ Return JSON strictly in this format:
     }
 
     res.send(indexHtml);
+  });
+
+  // --- Opportunity Reports API Routes ---
+  app.post("/api/v1/opportunities/:id/report", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const opportunityId = req.params.id as string;
+      const reporterUid = (req as any).user?.uid || (req as any).user?.id || req.body.reporterUid;
+      
+      if (!reporterUid) {
+         return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const collection = db.collection("opportunity_reports");
+      const existingReport = await collection.findOne({ opportunityId, reporterUid });
+      if (existingReport) {
+        return res.status(409).json({ error: "You have already reported this opportunity" });
+      }
+
+      const { reason, evidence } = req.body;
+      const report = {
+        opportunityId,
+        reporterUid,
+        reason,
+        evidence,
+        status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const result = await collection.insertOne(report);
+      res.status(201).json({ id: result.insertedId, ...report });
+    } catch (err) {
+      logger.error({ err: err }, "Error submitting report:");
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.get("/api/v1/admin/reports/opportunities", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const page = parseInt((req.query.page as string) || "1", 10);
+      const limit = parseInt((req.query.limit as string) || "10", 10);
+      const skip = (page - 1) * limit;
+
+      const collection = db.collection("opportunity_reports");
+      let items, total;
+      
+      if (collection.find({}).skip) {
+        items = await collection.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray();
+        total = await collection.countDocuments({});
+      } else {
+        const allItems = await collection.find({}).toArray();
+        total = allItems.length;
+        items = allItems.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(skip, skip + limit);
+      }
+
+      res.json({
+        items,
+        total,
+        page,
+        next_page: skip + limit < total ? page + 1 : null
+      });
+    } catch (err) {
+      logger.error({ err: err }, "Error fetching reports:");
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.patch("/api/v1/admin/reports/opportunities/:reportId", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const reportId = req.params.reportId as string;
+      const { status } = req.body;
+
+      if (!["resolved", "dismissed"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+
+      const collection = db.collection("opportunity_reports");
+      let queryId;
+      try {
+        queryId = new ObjectId(reportId as string);
+      } catch(e) {
+        queryId = reportId;
+      }
+
+      const updateResult = await collection.findOneAndUpdate(
+        { _id: queryId },
+        { $set: { status, updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      );
+
+      const updatedReport = updateResult.value || await collection.findOne({ _id: queryId });
+      
+      if (!updatedReport) {
+        return res.status(404).json({ error: "Report not found" });
+      }
+
+      if (status === "resolved") {
+        const opportunityId = updatedReport.opportunityId;
+        const resolvedCount = await collection.countDocuments({ opportunityId, status: "resolved" });
+        
+        if (resolvedCount >= 3) {
+          const oppCollection = db.collection("opportunities");
+          let oppQueryId;
+          try { oppQueryId = new ObjectId(opportunityId as string); } catch(e) { oppQueryId = opportunityId; }
+          
+          await oppCollection.updateOne(
+            { _id: oppQueryId },
+            { $set: { verified: false, isHidden: true, isStale: true } }
+          );
+        }
+      }
+
+      res.json(updatedReport);
+    } catch (err) {
+      logger.error({ err: err }, "Error updating report:");
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   });
 
   // --- Scholarship Hub API Routes ---
@@ -2427,7 +2692,7 @@ ${JSON.stringify(userProfile, null, 2)}
 
       res.json(validatedOutput);
     } catch (err: any) {
-      console.error("AI Validation Error:", err);
+      logger.error({ err: err }, "AI Validation Error:");
       if (err instanceof z.ZodError) {
          return res.status(502).json({ error: "AI generated invalid schema", details: err.issues });
       }
@@ -2461,7 +2726,7 @@ ${JSON.stringify(userProfile, null, 2)}
       const result = await db.collection("posts").insertOne(post);
       res.status(201).json({ ...post, _id: result.insertedId });
     } catch (err) {
-      console.error("Create Post Error:", err);
+      logger.error({ err: err }, "Create Post Error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
@@ -2485,7 +2750,7 @@ ${JSON.stringify(userProfile, null, 2)}
       }
       res.json(post);
     } catch (err) {
-      console.error("Fetch Post Error:", err);
+      logger.error({ err: err }, "Fetch Post Error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
@@ -2536,7 +2801,7 @@ ${JSON.stringify(userProfile, null, 2)}
       await db.collection("comments").insertOne(comment);
       res.status(201).json(comment);
     } catch (err) {
-      console.error("Create Comment Error:", err);
+      logger.error({ err: err }, "Create Comment Error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
@@ -2552,15 +2817,17 @@ ${JSON.stringify(userProfile, null, 2)}
       }
       if (!db) return res.status(503).json({ error: "Database not available" });
 
-      let queryId;
+      const rawCommentId = req.params.commentId;
+      const commentIdStr = Array.isArray(rawCommentId) ? rawCommentId[0] : rawCommentId;
+      let queryId: any;
       try {
-        queryId = new ObjectId(commentId);
+        queryId = new ObjectId(commentIdStr);
       } catch (e) {
-        queryId = commentId;
+        queryId = commentIdStr;
       }
 
       const result = await db.collection("comments").findOneAndUpdate(
-        { _id: queryId, postId },
+        { _id: queryId, postId } as any,
         { $set: { content, updatedAt: new Date() } },
         { returnDocument: "after" }
       );
@@ -2571,7 +2838,7 @@ ${JSON.stringify(userProfile, null, 2)}
       }
       res.json(updatedComment);
     } catch (err) {
-      console.error("Edit Comment Error:", err);
+      logger.error({ err: err }, "Edit Comment Error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
@@ -2589,7 +2856,7 @@ ${JSON.stringify(userProfile, null, 2)}
 
       res.json(comments);
     } catch (err) {
-      console.error("Fetch Comments Error:", err);
+      logger.error({ err: err }, "Fetch Comments Error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
@@ -2627,12 +2894,10 @@ ${JSON.stringify(userProfile, null, 2)}
 
       res.json({ success: true, message: "Post upvoted successfully" });
     } catch (err) {
-      console.error("Upvote Post Error:", err);
+      logger.error({ err: err }, "Upvote Post Error:");
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
-
-  // --- Vite / Static Files ---
 
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -2650,11 +2915,11 @@ ${JSON.stringify(userProfile, null, 2)}
 
   // --- Socket.io Real-Time Pipeline ---
   io.on("connection", (socket) => {
-    console.log(`[Socket] Client connected: ${socket.id}`);
+    logger.info(`[Socket] Client connected: ${socket.id}`);
     socket.emit("connected", { status: "ready" });
     
     socket.on("disconnect", () => {
-      console.log(`[Socket] Client disconnected: ${socket.id}`);
+      logger.info(`[Socket] Client disconnected: ${socket.id}`);
     });
   });
 
@@ -2674,7 +2939,16 @@ ${JSON.stringify(userProfile, null, 2)}
   }, 45000); // every 45s for demo
 
   server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    logger.info(`Server running on http://localhost:${PORT}`);
+
+    // Run startup health checks for all configured services
+    logStartupHealthReport({
+      redisClient: redisClient ?? null,
+      geminiApiKey: process.env.GEMINI_API_KEY,
+      firebaseInitialized: !!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64,
+    }).catch((err) => {
+      logger.error({ err: err }, "[Health] Startup health check failed:");
+    });
     
     // Auto-open browser in development mode
     if (process.env.NODE_ENV !== "production") {

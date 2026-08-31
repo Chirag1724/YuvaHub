@@ -1,0 +1,9 @@
+allowBuilds:
+  '@firebase/util': true
+  '@google/genai': true
+  '@scarf/scarf': true
+  '@sentry/cli': true
+  core-js: true
+  esbuild: true
+  msgpackr-extract: true
+  protobufjs: true
