@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import {
   LayoutDashboard, Globe, PlusCircle, Users, User, Menu, X, Bookmark, Sparkles, MessageSquare, Settings, Sun, Moon, Mic, Trophy,
-  Brain, TrendingUp, FileText, Video, FolderGit2, GraduationCap, Coins, Code2, Building2, Award, Cpu, Terminal, ShieldCheck, ShieldAlert, Briefcase, Clock, BookOpen, Target, Activity, Calendar, HeartPulse, Rocket, Shield, Megaphone, Search, Ticket, Compass, Map, Swords, Newspaper
+  Brain, TrendingUp, FileText, Video, FolderGit2, GraduationCap, Coins, Code2, Building2, Award, Cpu, Terminal, ShieldCheck, ShieldAlert, Briefcase, Clock, BookOpen, Target, Activity, Calendar, HeartPulse, Rocket, Shield, Megaphone, Search, Ticket, Compass, Map, Swords, Newspaper, Layout, Mail
 } from 'lucide-react';
 import { signInWithGoogle, logout } from './lib/firebase';
 import { UserProfile } from './types';
@@ -58,7 +58,8 @@ const InterviewPrepStudio = lazy(() => import('./components/tabs/InterviewPrepSt
 const PortfolioShowcase = lazy(() => import('./components/tabs/PortfolioShowcase'));
 const MentorshipNetwork = lazy(() => import('./components/tabs/MentorshipNetwork'));
 const AchievementCenter = lazy(() => import('./components/tabs/AchievementCenter'));
-const ScholarshipScreener = lazy(() => import('./components/tabs/ScholarshipScreener')); // <-- Added Scholarship Screener component
+const ScholarshipScreener = lazy(() => import('./components/tabs/ScholarshipScreener'));
+const MockInterviewStudio = lazy(() => import('./components/tabs/MockInterviewStudio'));
 
 const ResearchGrantTelemetryLab = lazy(() => import('./pages/Enterprise/ResearchGrantTelemetryLab').then(m => ({ default: m.ResearchGrantTelemetryLab })));
 const OpenSourceBountyStudio = lazy(() => import('./components/tabs/OpenSourceBountyStudio'));
@@ -97,6 +98,7 @@ const CampusAlumniEndowmentStudioPage = lazy(() => import('./pages/CampusAlumniE
 const CampusStudentVentureStudioPage = lazy(() => import('./pages/CampusStudentVentureStudioPage'));
 const Insights = lazy(() => import('./pages/Insights'));
 const AdminAnalyticsDashboard = lazy(() => import('./pages/AdminAnalyticsDashboard'));
+const WeeklyNewsletterStudio = lazy(() => import('./pages/WeeklyNewsletterStudio'));
 const ScraperHealthDashboard = lazy(() => import('./pages/ScraperHealthDashboard').then(m => ({ default: m.ScraperHealthDashboard })));
 
 const StudentMentalWellnessDeskPage = lazy(() => import('./pages/StudentMentalWellnessDeskPage'));
@@ -106,6 +108,7 @@ const StudyGroupRooms = lazy(() => import('./components/tabs/StudyGroupRooms'));
 const ResourceVault = lazy(() => import('./components/tabs/ResourceVault'));
 const ComparisonStudio = lazy(() => import('./components/tabs/ComparisonStudio'));
 const TechTrends = lazy(() => import('./components/TechTrends'));
+const PortfolioSettings = lazy(() => import('./components/PortfolioSettings'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-surface gap-6">
@@ -139,10 +142,20 @@ const getSeoPropsForTab = (tab: string) => {
         title: "Tech Trends | YuvaHub",
         description: "Daily tech news and industry trends summarized by AI to keep students informed."
       };
+    case 'portfolio_settings':
+      return {
+        title: "Portfolio Generator | YuvaHub",
+        description: "Customize and generate your personal public portfolio website from your YuvaHub profile."
+      };
     case 'scholarship_screener':
       return {
         title: "Scholarship Match Studio | YuvaHub",
         description: "Pre-screen your eligibility for student scholarships and grants instantly using AI-powered matching."
+      };
+    case 'mock_interview_simulator':
+      return {
+        title: "AI Mock Interview Simulator | YuvaHub",
+        description: "Practice technical and behavioral interviews with an interactive AI recruiter simulator and receive detailed evaluation reports."
       };
     case 'teams':
       return { title: "Team Builder & Matcher | YuvaHub", description: "Find teammates and join teams for hackathons, projects, and opportunities." };
@@ -344,7 +357,8 @@ function App() {
         { id: 'career_sim', label: 'Career Simulator', icon: Compass, badge: 'NEW' },
         { id: 'project_showcase', label: 'Project Vault', icon: FolderGit2 },
         { id: 'portfolio', label: 'Portfolio Showcase', icon: FolderGit2, badge: 'NEW' },
-        { id: 'scholarship_screener', label: 'Scholarship Screener', icon: Award, badge: 'NEW' }, // <-- Added Scholarship Screener link here
+        { id: 'scholarship_screener', label: 'Scholarship Screener', icon: Award, badge: 'NEW' },
+        { id: 'mock_interview_simulator', label: 'AI Mock Interview', icon: Video, badge: 'NEW' },
         { id: 'mock_interview', label: 'Mock Interview Room', icon: Mic },
       ]
     },
@@ -380,12 +394,14 @@ function App() {
         { id: 'research_patents', label: 'Research IP & Patents', icon: Cpu, badge: 'NEW' },
         { id: 'tech_ecosystem', label: 'Tech Ecosystem Studio', icon: Cpu },
         { id: 'developer_api', label: 'Developer API Portal', icon: Terminal },
+        { id: 'weekly_newsletter', label: 'Weekly Newsletter', icon: Mail, badge: 'AI' },
       ]
     },
     {
       title: "Account & System",
       items: [
         { id: 'profile', label: 'My Profile', icon: User },
+        { id: 'portfolio_settings', label: 'Portfolio Generator', icon: Layout, badge: 'NEW' },
         { id: 'insights', label: 'My Insights', icon: Activity },
         { id: 'my_rsvps', label: 'My RSVPs', icon: Ticket, badge: 'NEW' },
         { id: 'activity_feed', label: 'Activity Feed', icon: Activity, badge: 'NEW' },
@@ -401,7 +417,9 @@ function App() {
     switch (activeTab) {
       case 'dashboard': return <Dashboard />;
       case 'tech_trends': return <TechTrends />;
-      case 'scholarship_screener': return <ScholarshipScreener />; // <-- Renders Scholarship Screener component here
+      case 'portfolio_settings': return <PortfolioSettings />;
+      case 'scholarship_screener': return <ScholarshipScreener />;
+      case 'mock_interview_simulator': return <MockInterviewStudio />;
 
       case 'opportunities': return <Opportunities />;
       case 'application_tracker': return <ApplicationTracker />;
@@ -473,6 +491,7 @@ function App() {
       case 'admin': return <AdminDashboard />;
       case 'admin_scrapers': return <ScraperHealthDashboard />;
       case 'admin_analytics': return <AdminAnalyticsDashboard />;
+      case 'weekly_newsletter': return <WeeklyNewsletterStudio />;
       case 'security': return <Security />;
       case 'privacy': return <Privacy />;
       case 'terms': return <Terms />;
@@ -668,7 +687,7 @@ function App() {
                     }`}
                   >
                     <div className="flex items-center gap-2.5 truncate">
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary-blue dark:text-blue-400' : 'text-text-muted dark:text-gray-500'}`} aria-hidden="true" />
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary-blue' : 'text-text-muted'}`} aria-hidden="true" />
                       <span className="truncate">{tab.label}</span>
                     </div>
                     {tab.badge && (

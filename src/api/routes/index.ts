@@ -5,7 +5,7 @@ import bookmarkRoutes from "./bookmarkRoutes.js";
 import karmaRoutes from "./karmaRoutes.js";
 import bountyRoutes from "./bountyRoutes.js";
 import storageRoutes from "./storageRoutes.js";
-import resumeBuilderRoutes from "./resumeBuilderRoutes.js";
+import resumeRoutes from "./resumeRoutes.js";
 import opportunityRoutes from "./opportunityRoutes.js";
 import aiRoutes from "./aiRoutes.js";
 import searchRoutes from "./searchRoutes.js";
@@ -31,6 +31,7 @@ import reportRoutes from "./reportRoutes.js";
 import skillGapRoutes from "./skillGapRoutes.js";
 import careerGoalRoutes from "./careerGoalRoutes.js";
 import alumniMentorshipRoutes from "./alumniMentorshipRoutes.js";
+import alumniRoutes from "./alumniRoutes.js";
 import activityRoutes from "./activityRoutes.js";
 import announcementRoutes from "./announcementRoutes.js";
 import opportunityNoteRoutes from "./opportunityNoteRoutes.js";
@@ -39,8 +40,10 @@ import testimonialRoutes from "./testimonialRoutes.js";
 import eventRsvpRoutes from "./eventRsvpRoutes.js";
 import skillAssessmentRoutes from "./skillAssessmentRoutes.js";
 import voteRoutes from "./voteRoutes.js";
+import feedbackRoutes from "./feedbackRoutes.js";
 import studyRoomRoutes from "./studyRoomRoutes.js";
 import observabilityRoutes from "./observabilityRoutes.js";
+import newsletterRoutes from "./newsletterRoutes.js";
 import { errorHandler } from "../middlewares/errorHandler.js";
 import { apiVersionHeaders } from "../versioning/middleware.js";
 
@@ -55,7 +58,7 @@ const routes = [
   karmaRoutes,
   bountyRoutes,
   storageRoutes,
-  resumeBuilderRoutes,
+  resumeRoutes,
   opportunityRoutes,
   aiRoutes,
   searchRoutes,
@@ -81,6 +84,7 @@ const routes = [
   skillGapRoutes,
   careerGoalRoutes,
   alumniMentorshipRoutes,
+  alumniRoutes,
   activityRoutes,
   announcementRoutes,
   opportunityNoteRoutes,
@@ -89,8 +93,10 @@ const routes = [
   eventRsvpRoutes,
   skillAssessmentRoutes,
   voteRoutes,
+  feedbackRoutes,
   studyRoomRoutes,
   observabilityRoutes,
+  newsletterRoutes,
 ];
 
 // Mount all routes onto v1Router
