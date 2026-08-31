@@ -5,6 +5,7 @@ import { OpportunityReportModal } from "./ui/OpportunityReportModal";
 import CoverLetterModal from "./ui/CoverLetterModal";
 import { useCompare } from "../context/CompareContext";
 import { saveOpportunityToTracker } from "../services/apiClient";
+import { useAppContext } from "../context/AppContext";
 
 export interface Opportunity {
     id: string;
@@ -63,6 +64,11 @@ export function OpportunityCard({
     const [showCoverLetterModal, setShowCoverLetterModal] = useState(false);
     const [isSavedToTracker, setIsSavedToTracker] = useState(false);
     const [isSavingToTracker, setIsSavingToTracker] = useState(false);
+
+    let appContext: any = null;
+    try {
+        appContext = useAppContext();
+    } catch (e) {}
     
     // Attempt to use CompareContext if it exists in the tree
     let compareCtx: any = null;

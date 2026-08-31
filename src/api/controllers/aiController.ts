@@ -515,15 +515,14 @@ export const generateFlashcards = async (req: Request, res: Response) => {
     );
 
     let responseText = response.text || "[]";
-    let flashcards = [];
+    let flashcards;
     try {
       flashcards = JSON.parse(responseText);
     } catch (e) {
       console.error("Failed to parse flashcards JSON", e);
       return sendError(res, "Failed to parse AI response", 500);
     }
-
-    return sendSuccess(res, { flashcards });
+      return sendSuccess(res, { flashcards: flashcards });
   } catch (err) {
     console.error("/api/ai/flashcards error:", err);
     return sendError(res, "Internal Server Error", 500);

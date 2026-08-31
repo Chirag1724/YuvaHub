@@ -48,7 +48,7 @@ export async function runSavedSearchMatcher() {
     }
 
     // Group matches by user
-    const userMatches = new Map<string, { preferences: string, matches: any[] }>();
+    const userMatches = new Map<string, { preferences: "email" | "none" | "both" | "in_app", matches: any[] }>();
     const searchIdsToUpdate = [];
 
     for (const search of activeSearches) {

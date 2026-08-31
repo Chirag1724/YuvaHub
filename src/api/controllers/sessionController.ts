@@ -26,7 +26,7 @@ export const getEventAgenda = async (req: Request, res: Response) => {
             data: sessions,
         });
     } catch (error) {
-        logger.error(error, 'Error fetching event agenda:');
+        logger.error({ error }, 'Error fetching event agenda:');
         res.status(500).json({
             success: false,
             error: 'Internal server error while fetching agenda.',
@@ -70,7 +70,7 @@ export const proposeSession = async (req: Request, res: Response) => {
             data: newSession,
         });
     } catch (error) {
-        logger.error(error, 'Error proposing session via REST:');
+        logger.error({ error }, 'Error proposing session via REST:');
         res.status(500).json({
             success: false,
             error: 'Internal server error while proposing session.',
@@ -117,7 +117,7 @@ export const updateSessionStatus = async (req: Request, res: Response) => {
             data: updatedSession,
         });
     } catch (error) {
-        logger.error(error, 'Error updating session status:');
+        logger.error({ error }, 'Error updating session status:');
         res.status(500).json({
             success: false,
             error: 'Internal server error while updating session.',

@@ -39,7 +39,7 @@ export const recordSponsorEngagement = async (sponsorId: string, actionType: key
 
         logger.info(`Recorded ${actionType} for sponsor ${sponsorId}. New score: ${newScore}`);
     } catch (error) {
-        logger.error(error, `Failed to record engagement for sponsor ${sponsorId}:`);
+        logger.error({ error }, `Failed to record engagement for sponsor ${sponsorId}:`);
     }
 };
 
@@ -47,7 +47,7 @@ export const recordSponsorEngagement = async (sponsorId: string, actionType: key
  * Evaluates if a sponsor qualifies for a tier upgrade based on their engagement score.
  */
 const checkAndUpgradeTier = async (sponsorId: string, currentScore: number) => {
-    let newTier: any['currentTier'] | null = null;
+    let newTier: any = null;
 
     if (currentScore >= 5000) newTier = 'diamond';
     else if (currentScore >= 2500) newTier = 'platinum';
@@ -94,6 +94,6 @@ export const syncSponsorMetricsToDB = async () => {
         }
         logger.info('Successfully synced sponsor metrics to MongoDB.');
     } catch (error) {
-        logger.error(error, 'Error syncing sponsor metrics to DB:');
+        logger.error({ error }, 'Error syncing sponsor metrics to DB:');
     }
 };

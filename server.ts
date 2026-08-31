@@ -23,6 +23,8 @@ import { authMiddleware } from "./src/api/middlewares/auth.js";
 import { requestExport, getExportHistory } from "./src/api/controllers/exportController.js";
 import { logStartupHealthReport } from "./src/api/services/healthService.js";
 import { AICacheMetrics } from "./src/api/services/aiCacheMetrics.js";
+import { securityPipeline } from "./src/api/middlewares/security/index.js";
+import { shutdownGuard } from "./src/api/middlewares/security/shutdownGuard.js";
 
 dotenv.config();
 
@@ -674,15 +676,14 @@ async function startServer() {
     next();
   });
 
-  app.use(cors(corsOptions));
-  app.use(express.json({ limit: '10mb' }));
+  app.use(securityPipeline());
 
   app.post("/api/analytics/track", validateRequest(z.object({ body: analyticsTrackSchema })), (req, res) => {
     analyticsBuffer.push(req.body);
     res.status(202).json({ status: "Accepted" });
   });
 
-  app.post("/api/analytics/shutdown", async (req, res) => {
+  app.post("/api/analytics/shutdown", shutdownGuard, async (req, res) => {
     res.status(200).json({ status: "Shutting down" });
     await gracefulShutdown("API_TRIGGER");
   });
@@ -1728,6 +1729,7 @@ Sincerely,
 ${candidateName}`;
 
       const ai = getGenAI();
+      function wrapUserInput(text: string) { return text ? `\n<user_input>\n${text}\n</user_input>\n` : 'Not provided'; }
       if (!ai) {
         return res.json({ success: true, coverLetter: defaultFallback });
       }
