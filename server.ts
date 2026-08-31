@@ -1673,6 +1673,110 @@ Return JSON strictly in this format:
     }
   });
 
+  app.post("/api/v1/ai/cover-letter", chatRateLimiter, async (req, res) => {
+    try {
+      const { opportunityTitle, organization, jobDescription, candidateProfile, customMotivation, tone } = req.body;
+
+      if (!opportunityTitle) {
+        return res.status(400).json({ error: "Opportunity title is required" });
+      }
+
+      const titleStr = opportunityTitle || "Target Role";
+      const orgStr = organization || "Hiring Team";
+      const descStr = jobDescription || "";
+      const candidateName = candidateProfile?.name || "Student";
+      const candidateSkills = Array.isArray(candidateProfile?.skills) ? candidateProfile.skills.join(", ") : (candidateProfile?.skills || "General Engineering, Problem Solving");
+      const candidateExperience = candidateProfile?.experience || candidateProfile?.summary || "Project and software development background";
+      const candidateEducation = candidateProfile?.education || "Undergraduate Degree in Engineering / Technology";
+      const motivation = customMotivation || "I am enthusiastic about this mission and excited to apply my skills to drive impactful results.";
+      const selectedTone = tone || "Professional & Enthusiastic";
+
+      const userId = resolveUserId(req);
+      const cacheKey = buildUserScopedCacheKey(userId, `cover_letter:${titleStr}:${orgStr}:${candidateName}:${motivation.slice(0, 50)}`);
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        return res.json({ success: true, coverLetter: cached });
+      }
+
+      const defaultFallback = `Dear Hiring Team at ${orgStr},
+
+I am writing to express my strong enthusiasm for the ${titleStr} position. With my background in ${candidateSkills} and practical experience building high-performance projects, I am eager to contribute to your team's success.
+
+${motivation}
+
+Throughout my academic journey (${candidateEducation}) and hands-on experience in ${candidateExperience}, I have developed deep technical foundations in ${candidateSkills}. My experience equips me to quickly ramp up, understand complex system requirements, and deliver clean, test-driven results.
+
+I admire ${orgStr}'s work in the domain and would welcome the opportunity to discuss how my skill set and dedication align with your goals for the ${titleStr} role.
+
+Thank you for your time and consideration.
+
+Sincerely,
+${candidateName}`;
+
+      const ai = getGenAI();
+      if (!ai) {
+        return res.json({ success: true, coverLetter: defaultFallback });
+      }
+
+      const prompt = `You are an elite career coach and executive recruiter. Write a compelling, highly contextual, and customized cover letter for an applicant.
+
+Opportunity Details:
+Role: ${wrapUserInput(titleStr)}
+Company/Organization: ${wrapUserInput(orgStr)}
+Job Description / Requirements:
+${wrapUserInput(descStr || "Not provided")}
+
+Candidate Profile:
+Name: ${wrapUserInput(candidateName)}
+Skills: ${wrapUserInput(candidateSkills)}
+Experience / Background: ${wrapUserInput(candidateExperience)}
+Education: ${wrapUserInput(candidateEducation)}
+
+Candidate's Custom Motivation / "Why I want this role":
+${wrapUserInput(motivation)}
+
+Tone: ${selectedTone}
+
+Guidelines:
+1. Explicitly connect the candidate's specific skills and projects to the key responsibilities and requirements of the role/organization.
+2. Weave in the candidate's custom motivation seamlessly into the letter.
+3. Use a clear, persuasive opening, 2 well-structured body paragraphs mapping skills to role requirements, and a confident call-to-action closing.
+4. Format in clean, readable paragraphs with standard business letter greeting and sign-off.
+5. Return ONLY the text of the complete cover letter. Do not include markdown meta-commentary, notes, or explanations.`;
+
+      let responseText = "";
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: prompt
+        });
+        responseText = response.text || "";
+      } catch (err: any) {
+        console.warn("Primary AI model generation failed for cover letter:", err?.message);
+        try {
+          const response = await ai.models.generateContent({
+            model: "gemini-3.1-flash-lite",
+            contents: prompt
+          });
+          responseText = response.text || "";
+        } catch (liteErr) {
+          responseText = defaultFallback;
+        }
+      }
+
+      if (!responseText || responseText.trim().length < 50) {
+        responseText = defaultFallback;
+      }
+
+      setCachedResponse(cacheKey, responseText.trim());
+      return res.json({ success: true, coverLetter: responseText.trim() });
+    } catch (err) {
+      console.error("/api/v1/ai/cover-letter error:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+
   app.get("/api/v1/search", async (req, res) => {
     try {
       const q = (req.query.q as string) || "";
@@ -2346,6 +2450,126 @@ Return JSON strictly in this format:
     }
 
     res.send(indexHtml);
+  });
+
+  // --- Opportunity Reports API Routes ---
+  app.post("/api/v1/opportunities/:id/report", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const opportunityId = req.params.id as string;
+      const reporterUid = (req as any).user?.uid || (req as any).user?.id || req.body.reporterUid;
+      
+      if (!reporterUid) {
+         return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const collection = db.collection("opportunity_reports");
+      const existingReport = await collection.findOne({ opportunityId, reporterUid });
+      if (existingReport) {
+        return res.status(409).json({ error: "You have already reported this opportunity" });
+      }
+
+      const { reason, evidence } = req.body;
+      const report = {
+        opportunityId,
+        reporterUid,
+        reason,
+        evidence,
+        status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const result = await collection.insertOne(report);
+      res.status(201).json({ id: result.insertedId, ...report });
+    } catch (err) {
+      console.error("Error submitting report:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.get("/api/v1/admin/reports/opportunities", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const page = parseInt((req.query.page as string) || "1", 10);
+      const limit = parseInt((req.query.limit as string) || "10", 10);
+      const skip = (page - 1) * limit;
+
+      const collection = db.collection("opportunity_reports");
+      let items, total;
+      
+      if (collection.find({}).skip) {
+        items = await collection.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray();
+        total = await collection.countDocuments({});
+      } else {
+        const allItems = await collection.find({}).toArray();
+        total = allItems.length;
+        items = allItems.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(skip, skip + limit);
+      }
+
+      res.json({
+        items,
+        total,
+        page,
+        next_page: skip + limit < total ? page + 1 : null
+      });
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  app.patch("/api/v1/admin/reports/opportunities/:reportId", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const reportId = req.params.reportId as string;
+      const { status } = req.body;
+
+      if (!["resolved", "dismissed"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+
+      const collection = db.collection("opportunity_reports");
+      let queryId;
+      try {
+        queryId = new ObjectId(reportId as string);
+      } catch(e) {
+        queryId = reportId;
+      }
+
+      const updateResult = await collection.findOneAndUpdate(
+        { _id: queryId },
+        { $set: { status, updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      );
+
+      const updatedReport = updateResult.value || await collection.findOne({ _id: queryId });
+      
+      if (!updatedReport) {
+        return res.status(404).json({ error: "Report not found" });
+      }
+
+      if (status === "resolved") {
+        const opportunityId = updatedReport.opportunityId;
+        const resolvedCount = await collection.countDocuments({ opportunityId, status: "resolved" });
+        
+        if (resolvedCount >= 3) {
+          const oppCollection = db.collection("opportunities");
+          let oppQueryId;
+          try { oppQueryId = new ObjectId(opportunityId as string); } catch(e) { oppQueryId = opportunityId; }
+          
+          await oppCollection.updateOne(
+            { _id: oppQueryId },
+            { $set: { verified: false, isHidden: true, isStale: true } }
+          );
+        }
+      }
+
+      res.json(updatedReport);
+    } catch (err) {
+      console.error("Error updating report:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   });
 
   // --- Scholarship Hub API Routes ---
