@@ -383,6 +383,7 @@ Before reporting a setup or documentation problem:
 
 For details on advanced configuration, deploy strategies, and architectural designs, refer to the following:
 * **Product Requirements:** [PRD.md](./docs/PRD.md)
+* **Backend Architecture:** [BACKEND_ARCHITECTURE.md](./docs/BACKEND_ARCHITECTURE.md)
 * **Frontend Vercel Deployment:** [DEPLOYMENT.md](./docs/DEPLOYMENT.md)
 * **Backend Render Deployment & Cron Scraper:** [RENDER_DEPLOYMENT_GUIDE.md](./docs/RENDER_DEPLOYMENT_GUIDE.md)
 * **Domain Name Settings:** [DOMAIN_SETUP.md](./docs/DOMAIN_SETUP.md)

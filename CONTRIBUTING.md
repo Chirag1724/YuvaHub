@@ -327,6 +327,25 @@ git merge upstream/main
 
 Please place new files in the appropriate directory to keep the project organized.
 
+## Middleware Conventions
+
+All reusable Express middleware lives under **`src/api/middlewares/`** — do not
+define reusable middleware inline in `server.ts`.
+
+- Each middleware/factory gets its own file named in `camelCase` (e.g.
+  `rateLimiter.ts`, `proxyHeaders.ts`, `auth.ts`, `validateRequest.ts`).
+- Re-export every public middleware from `src/api/middlewares/index.ts` and
+  import it from that barrel (or the specific file), e.g.:
+
+  ```ts
+  import { resumeRateLimiter, chatRateLimiter } from "./src/api/middlewares/rateLimiter.js";
+  import { stripForwardedHeader } from "./src/api/middlewares/proxyHeaders.js";
+  ```
+- Keep pure business logic in `src/services/` and keep the thin Express adapter
+  (the `(req, res, next)` wrapper) in `src/api/middlewares/`. For example,
+  `services/toxicity.ts` holds the reusable `isToxic()` classifier while its
+  `createToxicityMiddleware()` factory adapts it to Express.
+
 ---
 
 # Creating a Feature Branch
