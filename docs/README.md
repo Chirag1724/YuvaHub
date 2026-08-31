@@ -15,3 +15,6 @@ Comprehensive migration guide to host the Express backend Web Service and the ba
 
 ### 4. [Custom Domain & Firebase Setup Guide (DOMAIN_SETUP.md)](./DOMAIN_SETUP.md)
 Instructions on mapping custom domains, configuring Firebase Authorized Domains to enable authentication correctly, and publishing DNS Service records (DNS-AID).
+
+### 5. [Backend Architecture (BACKEND_ARCHITECTURE.md)](./BACKEND_ARCHITECTURE.md)
+Explains how the backend is structured and how its components interact: project structure, request lifecycle, authentication flow, real-time layer, queue architecture, the scraper pipeline (DNL), the database layer, and the AI integration — with architecture diagrams and an API reference for new contributors.
