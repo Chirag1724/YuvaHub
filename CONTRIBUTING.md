@@ -73,25 +73,50 @@ git merge upstream/main
 
 # Repository Structure
 
-A typical project structure may look like:
+The project is a full-stack app: a React (Vite) frontend and an Express backend
+(`server.ts`) that share a single dev process. A simplified layout:
 
 ```
 .
-├── public/
+├── public/                     # Static assets
+├── server.ts                   # Express backend: routes, Socket.io, bootstrapping
 ├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── pages/
-│   ├── hooks/
-│   ├── utils/
-│   ├── styles/
-│   └── App.jsx
+│   ├── components/             # React components
+│   ├── context/                # React context providers
+│   ├── middleware/             # ✅ All Express middleware (single, consistent home)
+│   │   ├── index.ts            # Barrel: import middleware from here
+│   │   ├── rateLimiters.ts     # Redis-backed rate limiters (fail-open)
+│   │   ├── proxyHeaders.ts     # stripForwardedHeader
+│   │   └── toxicity.ts         # createToxicityMiddleware (Express adapter)
+│   ├── services/               # Business logic (e.g. toxicity.isToxic, gemini, dnl scrapers)
+│   ├── models/                 # Zod schemas / data models
+│   ├── queues/                 # BullMQ queues
+│   ├── workers/                # BullMQ workers
+│   └── lib/                    # Client-side helpers (firebase, utils)
 ├── package.json
 ├── README.md
-└── vite.config.js
+└── vite.config.ts
 ```
 
 Please place new files in the appropriate directory to keep the project organized.
+
+## Middleware Conventions
+
+All Express middleware lives in **`src/middleware/`** — do not define reusable
+middleware inline in `server.ts` or mix it into `src/services/`.
+
+- Each middleware/factory gets its own file named in `camelCase` (e.g.
+  `rateLimiters.ts`, `proxyHeaders.ts`, `toxicity.ts`).
+- Re-export every public middleware from `src/middleware/index.ts` and import it
+  from that barrel:
+
+  ```ts
+  import { resumeRateLimiter, createToxicityMiddleware, stripForwardedHeader } from "./src/middleware/index.js";
+  ```
+- Keep pure business logic in `src/services/` and keep the thin Express adapter
+  (the `(req, res, next)` wrapper) in `src/middleware/`. For example,
+  `services/toxicity.ts` holds `isToxic()` while `middleware/toxicity.ts` holds
+  `createToxicityMiddleware()`.
 
 ---
 

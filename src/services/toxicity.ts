@@ -1,4 +1,3 @@
-import { Request, Response, NextFunction } from 'express';
 import { GoogleGenAI } from '@google/genai';
 
 // Simple local keyword-based check for quick offline toxicity classification
@@ -44,28 +43,4 @@ export async function isToxic(text: string, genAI?: GoogleGenAI | null): Promise
   }
 
   return false;
-}
-
-/**
- * Express middleware for checking toxicity.
- * Scans req.body.content or req.body.text.
- */
-export function createToxicityMiddleware(getGenAI: () => GoogleGenAI | null) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const content = req.body.content || req.body.text;
-    if (!content) {
-      return next();
-    }
-
-    const genAI = getGenAI();
-    const toxic = await isToxic(content, genAI);
-
-    if (toxic) {
-      return res.status(400).json({
-        error: "Your content has been flagged as toxic and cannot be saved."
-      });
-    }
-
-    next();
-  };
 }
