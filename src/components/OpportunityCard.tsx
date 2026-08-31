@@ -431,7 +431,7 @@ export function OpportunityCard({
                     location: locationLabel,
                     type: (opp as any).type || (opp as any).category
                 }}
-                profile={appContext?.profile}
+                profile={undefined}
             />
         </>
     );

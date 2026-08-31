@@ -5,7 +5,10 @@ import { defineConfig, loadEnv } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { visualizer } from "rollup-plugin-visualizer";
+// @ts-ignore
+import { VitePWA } from "vite-plugin-pwa";
 
+// @ts-ignore
 export default defineConfig(async ({ mode }) => {
   // Only load variables that are intentionally used by the frontend build
   // or by build-time Sentry tooling. Server-only secrets such as
@@ -19,7 +22,7 @@ export default defineConfig(async ({ mode }) => {
     const pwaMod = await import("vite-plugin-pwa");
     const VitePWA = pwaMod.VitePWA || (pwaMod as any).default;
     if (typeof VitePWA === "function") {
-      pwaPlugin = VitePWA({
+      pwaPlugin = (VitePWA as any)({
         registerType: "autoUpdate",
         injectRegister: "auto",
         includeAssets: ["favicon.svg", "robots.txt"],
