@@ -12,12 +12,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function generateIcebreakersAndEmail(student: any, mentor: any) {
+async function generateIcebreakersAndEmail(student, mentor) {
   try {
     const studentIndustry = student.targetIndustry || student.industry || 'Technology';
     const mentorJobTitle = mentor.jobTitle || 'Software Engineer';
     const mentorCompany = mentor.company || 'Tech Corp';
 
+    // Generate contextual icebreaker topics via Gemini
     const prompt = `Generate exactly 3 short, conversational, and highly specific professional icebreaker questions or talking points for a 15-minute coffee chat between a Student studying ${studentIndustry} and a Senior Mentor working as a ${mentorJobTitle} at ${mentorCompany}. Output plain text bullet points only without introductory chatter.`;
 
     let icebreakers;
@@ -28,7 +29,7 @@ export async function generateIcebreakersAndEmail(student: any, mentor: any) {
       });
 
       icebreakers = aiResponse.text ? aiResponse.text.trim() : '';
-    } catch (aiErr: any) {
+    } catch (aiErr) {
       console.warn('Fallback mock icebreaker generation used:', aiErr.message);
       icebreakers = `- What key milestones helped transition your career into ${mentorJobTitle} at ${mentorCompany}?\n- What emerging skills should students focusing on ${studentIndustry} prioritize today?\n- What is one project or challenge at ${mentorCompany} you found particularly rewarding?`;
     }
@@ -70,16 +71,5 @@ export async function generateIcebreakersAndEmail(student: any, mentor: any) {
   }
 }
 
-export const emailService = {
-  generateIcebreakersAndEmail,
-  sendConnectionRequestEmail: async (data: any) => {
-    console.log('[EMAIL] Connection request email sent:', data);
-    return true;
-  },
-  sendTransactionalNotification: async (data: any) => {
-    console.log('[EMAIL] Transactional notification sent:', data);
-    return true;
-  }
-};
-
-export default emailService;
+export default { generateIcebreakersAndEmail };
+export { generateIcebreakersAndEmail };
