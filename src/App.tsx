@@ -352,7 +352,7 @@ function App() {
         { id: 'project_showcase', label: 'Project Vault', icon: FolderGit2 },
         { id: 'portfolio', label: 'Portfolio Showcase', icon: FolderGit2, badge: 'NEW' },
         { id: 'scholarship_screener', label: 'Scholarship Screener', icon: Award, badge: 'NEW' },
-        { id: 'mock_interview_simulator', label: 'AI Mock Interview', icon: Video, badge: 'NEW' }, // <-- Added Mock Interview Studio link here
+        { id: 'mock_interview_simulator', label: 'AI Mock Interview', icon: Video, badge: 'NEW' },
         { id: 'mock_interview', label: 'Mock Interview Room', icon: Mic },
       ]
     },
@@ -411,7 +411,7 @@ function App() {
       case 'dashboard': return <Dashboard />;
       case 'tech_trends': return <TechTrends />;
       case 'scholarship_screener': return <ScholarshipScreener />;
-      case 'mock_interview_simulator': return <MockInterviewStudio />; // <-- Renders Mock Interview Studio component here
+      case 'mock_interview_simulator': return <MockInterviewStudio />;
 
       case 'opportunities': return <Opportunities />;
       case 'application_tracker': return <ApplicationTracker />;
