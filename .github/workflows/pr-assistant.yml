@@ -1,0 +1,59 @@
+name: "PR Assistant"
+on:
+  pull_request_target:
+    types: [opened, edited]
+
+jobs:
+  pr-checks:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Validate PR Title, Body and Notify
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const title = context.payload.pull_request.title || "";
+            const body = context.payload.pull_request.body || "";
+            const author = context.payload.pull_request.user.login;
+            let errors = [];
+            
+            // 1. Check Title
+            const validPrefixes = [
+              "feat:", "fix:", "docs:", "style:", "refactor:", "perf:", "test:", "build:", "ci:", "chore:", "revert:",
+              "[Feature]:", "[Fix]:", "[Chore]:", "[Bug]:", "[Update]:", "[Docs]:", "[Style]:", "[Refactor]:", "[Perf]:", "[Test]:",
+              "Feature:", "Fix:", "Bug:", "Update:", "Docs:", "Chore:", "Style:", "Refactor:", "Perf:", "Test:"
+            ];
+            
+            // Also support optional scopes like feat(ui):
+            const hasConventionalScope = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\([a-zA-Z0-9_-]+\):/i.test(title);
+            const hasValidPrefix = validPrefixes.some(prefix => title.toLowerCase().startsWith(prefix.toLowerCase()));
+            
+            if (!hasValidPrefix && !hasConventionalScope) {
+              errors.push("🏷️ - Your PR title doesn't follow the formatting rules! Please update it to start with an allowed prefix (e.g. `feat:`, `fix:`, `[Feature]:`, `[Bug]:`).");
+            }
+            
+            // 2. Check Body
+            const hasSummary = /## 📝 Summary/i.test(body) || /(description|summary)/i.test(body);
+            const hasChanges = /## ✨ Changes Made/i.test(body) || /changes made/i.test(body);
+            const hasTesting = /## 🧪 Testing/i.test(body) || /(testing|checklist)/i.test(body);
+            const hasIssueLink = /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#\d+/i.test(body) || /issue\s*:\s*#\d+/i.test(body);
+            
+            if (!hasSummary) errors.push("📝 - Missing a 'Summary' section.");
+            if (!hasChanges) errors.push("✨ - Missing a 'Changes Made' section.");
+            if (!hasTesting) errors.push("🧪 - Missing a 'Testing' or 'Checklist' section.");
+            if (!hasIssueLink) errors.push("🔗 - Missing an issue linking keyword to close the related issue (e.g., 'Closes #123', 'Fixes #45', or 'issue : #123').");
+            
+            if (errors.length > 0) {
+              const errorMessage = `👋 Hi @${author}, please review your PR to resolve the following:\n\n` + errors.join('\n');
+              
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: errorMessage
+              });
+            } else {
+              console.log("✅ PR title and description look good!");
+            }

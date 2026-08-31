@@ -1,0 +1,27 @@
+#!/bin/sh
+echo "🔍 [Pre-Commit Quality Gate] Running production checks before commit..."
+
+# 1. Type Check & Syntax Verification
+echo "👉 Checking TypeScript Types & Syntax (tsc --noEmit)..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ [Pre-Commit Error] TypeScript typecheck failed! Fix all syntax/type errors before committing."
+  exit 1
+fi
+
+# 1.5 Auto-sync pnpm-lock.yaml if package.json is staged
+if git diff --cached --name-only | grep -q "^package.json$"; then
+  echo "👉 package.json changed. Automatically updating pnpm-lock.yaml..."
+  npx pnpm install --lockfile-only --ignore-scripts
+  git add pnpm-lock.yaml
+fi
+
+# 2. Verify Client Secret Boundaries
+echo "👉 Scanning for exposed client secrets..."
+node scripts/verify-client-secrets.mjs
+if [ $? -ne 0 ]; then
+  echo "❌ [Pre-Commit Error] Secret scan failed! Remove any exposed API keys before committing."
+  exit 1
+fi
+
+echo "✅ [Pre-Commit Gate Passed] Code quality checks verified."
