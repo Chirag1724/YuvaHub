@@ -1,26 +1,40 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { LayoutDashboard, Globe, PlusCircle, Users, User, Menu, X, Activity, Bookmark, Sparkles, MessageSquare, Settings, Sun, Moon } from 'lucide-react';
 import { signInWithGoogle, logout } from './lib/firebase';
 import { UserProfile } from './types';
 import { useAppContext } from './context/AppContext';
 import { scrollContentToTop } from './lib/smoothScroll';
-// Tab/View Components
-import Dashboard from './components/Tabs/Dashboard';
-import Opportunities from './components/Tabs/Opportunities';
-import SubmitOpportunity from './components/Tabs/SubmitOpportunity';
-import Mentorship from './components/Tabs/Mentorship';
-import Profile from './components/Tabs/Profile';
-import Community from './components/Tabs/Community';
-import Bookmarks from './components/Tabs/Bookmarks';
-import SettingsTab from './components/Tabs/Settings';
-import AdminDashboard from './components/Admin/AdminDashboard';
+// Eagerly loaded: needed on the initial render path before the main app shell.
 import NotificationDropdown from './components/ui/NotificationDropdown';
-import OpportunityDetail from './components/Tabs/OpportunityDetail';
-import AIAssistant from './components/Tabs/AIAssistant';
 import OnboardingFlow from './components/OnboardingFlow';
 import SplashAuth from './components/SplashAuth';
-import Security from './components/Tabs/Security';
-import Legal from './components/Tabs/Legal';
+// Route/View components are lazy-loaded so each is fetched on demand,
+// keeping them out of the initial JavaScript bundle (route-based code splitting).
+const Dashboard = lazy(() => import('./components/Tabs/Dashboard'));
+const Opportunities = lazy(() => import('./components/Tabs/Opportunities'));
+const SubmitOpportunity = lazy(() => import('./components/Tabs/SubmitOpportunity'));
+const Mentorship = lazy(() => import('./components/Tabs/Mentorship'));
+const Profile = lazy(() => import('./components/Tabs/Profile'));
+const Community = lazy(() => import('./components/Tabs/Community'));
+const Bookmarks = lazy(() => import('./components/Tabs/Bookmarks'));
+const SettingsTab = lazy(() => import('./components/Tabs/Settings'));
+const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
+const OpportunityDetail = lazy(() => import('./components/Tabs/OpportunityDetail'));
+const AIAssistant = lazy(() => import('./components/Tabs/AIAssistant'));
+const Security = lazy(() => import('./components/Tabs/Security'));
+const Legal = lazy(() => import('./components/Tabs/Legal'));
+
+// Lightweight fallback shown while a lazily-loaded route chunk is fetched.
+const RouteLoader = () => (
+  <div className="flex items-center justify-center py-20" role="status" aria-live="polite" aria-busy="true">
+    <div className="flex gap-2">
+      <div className="w-2.5 h-2.5 rounded-full bg-[#2563EB] animate-bounce" style={{ animationDelay: '0ms' }}></div>
+      <div className="w-2.5 h-2.5 rounded-full bg-[#2563EB] animate-bounce" style={{ animationDelay: '150ms' }}></div>
+      <div className="w-2.5 h-2.5 rounded-full bg-[#2563EB] animate-bounce" style={{ animationDelay: '300ms' }}></div>
+    </div>
+    <span className="sr-only">Loading…</span>
+  </div>
+);
 
 function App() {
   const {
@@ -144,7 +158,11 @@ function App() {
               ← Back to Home / Login
             </button>
           </div>
-          {activeTab === 'legal' ? <Legal /> : <Security />}
+          {activeTab === 'legal' ? (
+            <Suspense fallback={<RouteLoader />}><Legal /></Suspense>
+          ) : (
+            <Suspense fallback={<RouteLoader />}><Security /></Suspense>
+          )}
         </div>
       </div>
     );
@@ -307,11 +325,13 @@ function App() {
         </div>
 
         <div className="flex-1 p-4 lg:p-8 overflow-y-auto no-scrollbar pb-24" id="app-content">
-          {selectedOppId ? (
-            <OpportunityDetail />
-          ) : (
-            renderContent()
-          )}
+          <Suspense fallback={<RouteLoader />}>
+            {selectedOppId ? (
+              <OpportunityDetail />
+            ) : (
+              renderContent()
+            )}
+          </Suspense>
         </div>
         
         {/* Live Feed Strip Footer */}

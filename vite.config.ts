@@ -2,12 +2,16 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
-import { viteSingleFile } from "vite-plugin-singlefile";
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    plugins: [react(), tailwindcss(), viteSingleFile()],
+    // Note: the vite-plugin-singlefile plugin was removed so that route-based
+    // code splitting (React.lazy in src/App.tsx) emits per-route chunks that
+    // load on demand, reducing the initial bundle. The production Express
+    // server already serves dist/ as static files with an SPA fallback, so
+    // multi-file output is served correctly.
+    plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.VITE_EMAILJS_SERVICE_ID': JSON.stringify(env.VITE_EMAILJS_SERVICE_ID),
