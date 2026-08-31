@@ -58,6 +58,8 @@ const InterviewPrepStudio = lazy(() => import('./components/tabs/InterviewPrepSt
 const PortfolioShowcase = lazy(() => import('./components/tabs/PortfolioShowcase'));
 const MentorshipNetwork = lazy(() => import('./components/tabs/MentorshipNetwork'));
 const AchievementCenter = lazy(() => import('./components/tabs/AchievementCenter'));
+const ScholarshipScreener = lazy(() => import('./components/tabs/ScholarshipScreener'));
+const MockInterviewStudio = lazy(() => import('./components/tabs/MockInterviewStudio'));
 
 const ResearchGrantTelemetryLab = lazy(() => import('./pages/Enterprise/ResearchGrantTelemetryLab').then(m => ({ default: m.ResearchGrantTelemetryLab })));
 const OpenSourceBountyStudio = lazy(() => import('./components/tabs/OpenSourceBountyStudio'));
@@ -96,6 +98,7 @@ const CampusAlumniEndowmentStudioPage = lazy(() => import('./pages/CampusAlumniE
 const CampusStudentVentureStudioPage = lazy(() => import('./pages/CampusStudentVentureStudioPage'));
 const Insights = lazy(() => import('./pages/Insights'));
 const AdminAnalyticsDashboard = lazy(() => import('./pages/AdminAnalyticsDashboard'));
+const WeeklyNewsletterStudio = lazy(() => import('./pages/WeeklyNewsletterStudio'));
 const ScraperHealthDashboard = lazy(() => import('./pages/ScraperHealthDashboard').then(m => ({ default: m.ScraperHealthDashboard })));
 
 const StudentMentalWellnessDeskPage = lazy(() => import('./pages/StudentMentalWellnessDeskPage'));
@@ -105,7 +108,7 @@ const StudyGroupRooms = lazy(() => import('./components/tabs/StudyGroupRooms'));
 const ResourceVault = lazy(() => import('./components/tabs/ResourceVault'));
 const ComparisonStudio = lazy(() => import('./components/tabs/ComparisonStudio'));
 const TechTrends = lazy(() => import('./components/TechTrends'));
-const PortfolioSettings = lazy(() => import('./components/PortfolioSettings')); // <-- Added PortfolioSettings component!
+const PortfolioSettings = lazy(() => import('./components/PortfolioSettings'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-surface gap-6">
@@ -143,6 +146,16 @@ const getSeoPropsForTab = (tab: string) => {
       return {
         title: "Portfolio Generator | YuvaHub",
         description: "Customize and generate your personal public portfolio website from your YuvaHub profile."
+      };
+    case 'scholarship_screener':
+      return {
+        title: "Scholarship Match Studio | YuvaHub",
+        description: "Pre-screen your eligibility for student scholarships and grants instantly using AI-powered matching."
+      };
+    case 'mock_interview_simulator':
+      return {
+        title: "AI Mock Interview Simulator | YuvaHub",
+        description: "Practice technical and behavioral interviews with an interactive AI recruiter simulator and receive detailed evaluation reports."
       };
     case 'teams':
       return { title: "Team Builder & Matcher | YuvaHub", description: "Find teammates and join teams for hackathons, projects, and opportunities." };
@@ -344,6 +357,8 @@ function App() {
         { id: 'career_sim', label: 'Career Simulator', icon: Compass, badge: 'NEW' },
         { id: 'project_showcase', label: 'Project Vault', icon: FolderGit2 },
         { id: 'portfolio', label: 'Portfolio Showcase', icon: FolderGit2, badge: 'NEW' },
+        { id: 'scholarship_screener', label: 'Scholarship Screener', icon: Award, badge: 'NEW' },
+        { id: 'mock_interview_simulator', label: 'AI Mock Interview', icon: Video, badge: 'NEW' },
         { id: 'mock_interview', label: 'Mock Interview Room', icon: Mic },
       ]
     },
@@ -379,13 +394,14 @@ function App() {
         { id: 'research_patents', label: 'Research IP & Patents', icon: Cpu, badge: 'NEW' },
         { id: 'tech_ecosystem', label: 'Tech Ecosystem Studio', icon: Cpu },
         { id: 'developer_api', label: 'Developer API Portal', icon: Terminal },
+        { id: 'weekly_newsletter', label: 'Weekly Newsletter', icon: Mail, badge: 'AI' },
       ]
     },
     {
       title: "Account & System",
       items: [
         { id: 'profile', label: 'My Profile', icon: User },
-        { id: 'portfolio_settings', label: 'Portfolio Generator', icon: Layout, badge: 'NEW' }, // <-- Added link here
+        { id: 'portfolio_settings', label: 'Portfolio Generator', icon: Layout, badge: 'NEW' },
         { id: 'insights', label: 'My Insights', icon: Activity },
         { id: 'my_rsvps', label: 'My RSVPs', icon: Ticket, badge: 'NEW' },
         { id: 'activity_feed', label: 'Activity Feed', icon: Activity, badge: 'NEW' },
@@ -401,7 +417,9 @@ function App() {
     switch (activeTab) {
       case 'dashboard': return <Dashboard />;
       case 'tech_trends': return <TechTrends />;
-      case 'portfolio_settings': return <PortfolioSettings />; // <-- Renders component here
+      case 'portfolio_settings': return <PortfolioSettings />;
+      case 'scholarship_screener': return <ScholarshipScreener />;
+      case 'mock_interview_simulator': return <MockInterviewStudio />;
 
       case 'opportunities': return <Opportunities />;
       case 'application_tracker': return <ApplicationTracker />;
@@ -433,14 +451,14 @@ function App() {
       case 'grant_studio': return <GrantFellowshipStudio />;
       case 'alumni_endowments': return <CampusAlumniEndowmentStudioPage />;
       case 'student_venture': return <CampusStudentVentureStudioPage />;
-      case 'mental_wellness': return <div className="p-8 text-center text-gray-500">Mental Wellness Module Coming Soon</div>; // <StudentMentalWellnessDeskPage />;
+      case 'mental_wellness': return <div className="p-8 text-center text-gray-500">Mental Wellness Module Coming Soon</div>;
       case 'campus_alumni': return <CampusAlumniHub />;
       case 'resume_ats': return <ResumeAtsStudio />;
       case 'skill_gap': return <SkillGapStudio />;
       case 'coding_arena': return <CodingChallengeArena />;
       case 'learning_path': return <LearningPathBuilder />;
       case 'interview_prep': return <InterviewPrepStudio />;
-      case 'career_sim': return <div className="p-8 text-center text-gray-500">Career Simulator Coming Soon</div>; // <CareerPathSimulator />;
+      case 'career_sim': return <div className="p-8 text-center text-gray-500">Career Simulator Coming Soon</div>;
       case 'opensource_bounties': return <OpenSourceBountyStudio />;
       case 'opportunity_match': return <OpportunityMatchStudio />;
       case 'tech_ecosystem': return <TechEcosystemStudio />;
@@ -448,7 +466,7 @@ function App() {
       case 'mentorship_advisory': return <MentorshipAdvisoryStudio />;
       case 'mentor_network': return <MentorshipNetwork />;
       case 'research_grants': return <ResearchGrantPortal />;
-      case 'research_patents': return <div className="p-8 text-center text-gray-500">Research & IP Module Coming Soon</div>; // <CampusResearchIpLicensingStudioPage />;
+      case 'research_patents': return <div className="p-8 text-center text-gray-500">Research & IP Module Coming Soon</div>;
       case 'project_showcase': return <ProjectShowcaseVault />;
       case 'portfolio': return <PortfolioShowcase />;
       case 'achievement_center': return <AchievementCenter />;
@@ -456,11 +474,11 @@ function App() {
       case 'submit': return <SubmitOpportunity />;
       case 'mentorship': return <MentorshipAdvisoryStudio />;
       case 'focus_room': return <FocusRoom />;
-      case 'study_groups': return <div className="p-8 text-center text-gray-500">Study Groups Coming Soon</div>; // <StudyGroupRooms />;
+      case 'study_groups': return <div className="p-8 text-center text-gray-500">Study Groups Coming Soon</div>;
       case 'bounty_board': return <BountyBoard />;
       case 'interview_experiences': return <ExperiencesHub />;
       case 'community': return <Community />;
-      case 'resource_vault': return <div className="p-8 text-center text-gray-500">Resource Vault Coming Soon</div>; // <ResourceVault />;
+      case 'resource_vault': return <div className="p-8 text-center text-gray-500">Resource Vault Coming Soon</div>;
       case 'poll_studio': return <PollStudio />;
       case 'student_ventures': return <CampusStudentVentureStudioPage />;
       case 'profile': return <Profile />;
@@ -473,6 +491,7 @@ function App() {
       case 'admin': return <AdminDashboard />;
       case 'admin_scrapers': return <ScraperHealthDashboard />;
       case 'admin_analytics': return <AdminAnalyticsDashboard />;
+      case 'weekly_newsletter': return <WeeklyNewsletterStudio />;
       case 'security': return <Security />;
       case 'privacy': return <Privacy />;
       case 'terms': return <Terms />;
