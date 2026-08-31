@@ -42,6 +42,7 @@ import skillAssessmentRoutes from "./skillAssessmentRoutes.js";
 import voteRoutes from "./voteRoutes.js";
 import studyRoomRoutes from "./studyRoomRoutes.js";
 import observabilityRoutes from "./observabilityRoutes.js";
+import newsletterRoutes from "./newsletterRoutes.js";
 import { errorHandler } from "../middlewares/errorHandler.js";
 import { apiVersionHeaders } from "../versioning/middleware.js";
 
@@ -93,6 +94,7 @@ const routes = [
   voteRoutes,
   studyRoomRoutes,
   observabilityRoutes,
+  newsletterRoutes,
 ];
 
 // Mount all routes onto v1Router
