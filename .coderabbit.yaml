@@ -1,0 +1,9 @@
+# Permanently disable CodeRabbit AI Code Reviews across all PRs and commits
+version: "2"
+reviews:
+  auto_review:
+    enabled: false
+    drafts: false
+    base_branches: []
+chat:
+  auto_reply: false

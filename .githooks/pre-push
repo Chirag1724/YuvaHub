@@ -1,0 +1,12 @@
+#!/bin/sh
+echo "🚀 [Pre-Push Quality Gate] Verifying Production Build before push..."
+
+# 1. Production Build Verification
+echo "👉 Building Production Assets & Bundling Server..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "❌ [Pre-Push Error] Production build failed! Fix build errors before pushing."
+  exit 1
+fi
+
+echo "✅ [Pre-Push Gate Passed] Build verified successfully."
