@@ -1,5 +1,5 @@
 import React, { KeyboardEvent, MouseEvent, useState, useRef, useCallback } from "react";
-import { Bookmark, Shield, ExternalLink, X, CheckCircle, MapPin, Clock, ArrowRight, Sparkles, Building2, Coins, Calendar, Flag, Scale, Briefcase } from "lucide-react";
+import { Bookmark, Shield, ExternalLink, X, CheckCircle, MapPin, Clock, ArrowRight, Sparkles, Building2, Coins, Calendar, Flag, Scale, Briefcase, FileText } from "lucide-react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { OpportunityReportModal } from "./ui/OpportunityReportModal";
 import CoverLetterModal from "./ui/CoverLetterModal";
@@ -60,6 +60,7 @@ export function OpportunityCard({
     useFocusTrap(auditModalRef, showAuditModal, closeAuditModal);
 
     const [showReportModal, setShowReportModal] = useState(false);
+    const [showCoverLetterModal, setShowCoverLetterModal] = useState(false);
     const [isSavedToTracker, setIsSavedToTracker] = useState(false);
     const [isSavingToTracker, setIsSavingToTracker] = useState(false);
     
@@ -424,7 +425,7 @@ export function OpportunityCard({
                     location: locationLabel,
                     type: (opp as any).type || (opp as any).category
                 }}
-                profile={appContext?.profile}
+                profile={undefined}
             />
         </>
     );

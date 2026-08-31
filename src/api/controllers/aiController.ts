@@ -515,6 +515,7 @@ export const generateFlashcards = async (req: Request, res: Response) => {
     );
 
     let responseText = response.text || "[]";
+    let flashcards = [];
     try {
       flashcards = JSON.parse(responseText);
     } catch (e) {
