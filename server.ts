@@ -15,10 +15,10 @@ const wrapUserInput = (input: string | undefined | null) => {
 import { GoogleGenAI, Type } from "@google/genai";
 import { z } from "zod";
 import { ScholarshipSchema, AIEvaluationResponseSchema } from "./src/models/scholarshipSchema.js";
+import { resumeRateLimiter, chatRateLimiter } from "./src/api/middlewares/rateLimiter.js";
+import { redisClient } from "./src/api/redis.js";
 import { isToxic, createToxicityMiddleware } from "./src/services/toxicity.js";
-import rateLimit from "express-rate-limit";
-import { RedisStore } from "rate-limit-redis";
-import Redis from "ioredis";
+import { stripForwardedHeader } from "./src/api/middlewares/proxyHeaders.js";
 import { v2 as cloudinary } from "cloudinary";
 import { authMiddleware } from "./src/api/middlewares/auth.js";
 import { requestExport, getExportHistory } from "./src/api/controllers/exportController.js";
@@ -38,88 +38,6 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true
-});
-
-let redisClient: Redis;
-try {
-  redisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-    retryStrategy: (times) => {
-      return Math.min(times * 50, 2000);
-    }
-  });
-
-  let redisErrorLogged = false;
-  redisClient.on('error', (err) => {
-    if (!redisErrorLogged) {
-      logger.warn('[Redis] Connection failed or Redis is not running. Bypassing rate limiting (fail-open mode).');
-      redisErrorLogged = true;
-    }
-  });
-  redisClient.on('connect', () => {
-    logger.info('[Redis] Connected successfully');
-    redisErrorLogged = false;
-  });
-} catch (e: any) {
-  logger.error({ err: e.message }, '[Redis] Init error:');
-}
-
-const createFailOpenStore = (prefix: string) => {
-  const store = new RedisStore({
-    sendCommand: (...args: string[]) => {
-      const [command, ...commandArgs] = args;
-      return redisClient.call(command, ...commandArgs) as Promise<any>;
-    },
-    prefix: prefix,
-  });
-
-  return {
-    ...store,
-    increment: async (key: string) => {
-      if (!redisClient || redisClient.status !== 'ready') {
-        logger.error(`[RateLimit] Redis disconnected. Failing open for key: ${key}`);
-        return { totalHits: 1, resetTime: new Date(Date.now() + 60000) };
-      }
-      try {
-        return await store.increment(key);
-      } catch (err: any) {
-        logger.error(`[RateLimit] Redis error. Failing open for key: ${key}`);
-        return { totalHits: 1, resetTime: new Date(Date.now() + 60000) };
-      }
-    },
-    decrement: async (key: string) => {
-      if (!redisClient || redisClient.status !== 'ready') return;
-      try { return await store.decrement(key); } catch(e) {}
-    },
-    resetKey: async (key: string) => {
-      if (!redisClient || redisClient.status !== 'ready') return;
-      try { return await store.resetKey(key); } catch(e) {}
-    },
-  };
-};
-
-const resumeRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: true,
-  validate: false,
-  store: createFailOpenStore('rate-limit:ai-resume:'),
-  message: { error: "Too many resume review requests. Please try again later." }
-});
-
-const chatRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: true,
-  validate: false,
-  store: createFailOpenStore('rate-limit:ai-chat:'),
-  keyGenerator: (req) => {
-    return req.body?.userId || req.ip || "unknown";
-  },
-  message: { error: "Too many AI generation requests. Please try again after a minute." }
 });
 
 let _genAI: GoogleGenAI | null = null;
@@ -674,10 +592,7 @@ export async function createApp() {
   app.set('trust proxy', true);
 
   // Suppress express-rate-limit warnings / errors for forwarded headers when behind proxy
-  app.use((req, res, next) => {
-    delete req.headers['forwarded'];
-    next();
-  });
+  app.use(stripForwardedHeader);
 
   app.use(securityPipeline());
 
