@@ -47,6 +47,7 @@ import feedbackRoutes from "./feedbackRoutes.js";
  main
 import studyRoomRoutes from "./studyRoomRoutes.js";
 import observabilityRoutes from "./observabilityRoutes.js";
+import employerRoutes from "./employerRoutes.js";
 import newsletterRoutes from "./newsletterRoutes.js";
 import { errorHandler } from "../middlewares/errorHandler.js";
 import { apiVersionHeaders } from "../versioning/middleware.js";
@@ -104,6 +105,7 @@ const routes = [
  main
   studyRoomRoutes,
   observabilityRoutes,
+  employerRoutes,
   newsletterRoutes,
 ];
 
