@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { crypto } from 'crypto';
+import { randomUUID } from 'crypto';
 import { ReferralLinkSchema, TrackConversionSchema } from '../../shared/schemas/referral';
 
 const router = Router();
@@ -12,16 +12,16 @@ router.post('/api/referrals/generate', async (req, res) => {
     const referrerId = req.user?.id;
     const code = Math.random().toString(36).substring(2, 8);
 
-    const newReferral = {
-      id: crypto.randomUUID(),
-      code,
-      opportunityId,
-      referrerId,
-      platform: platform || 'copy_link',
-      clicks: 0,
-      conversions: 0,
-      createdAt: new Date(),
-    };
+   const newReferral = {
+  id: randomUUID(),
+  code,
+  opportunityId,
+  referrerId,
+  platform: platform || 'copy_link',
+  clicks: 0,
+  conversions: 0,
+  createdAt: new Date(),
+};
 
     referralDb.set(code, newReferral);
     const referralUrl = `${req.protocol}://${req.get('host')}/r/${code}`;
