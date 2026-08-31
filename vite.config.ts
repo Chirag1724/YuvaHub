@@ -17,7 +17,7 @@ export default defineConfig(async ({ mode }) => {
   try {
     // @ts-ignore
     const pwaMod = await import("vite-plugin-pwa");
-    const VitePWA = pwaMod.VitePWA || pwaMod.default;
+    const VitePWA = pwaMod.VitePWA || (pwaMod as any).default;
     if (typeof VitePWA === "function") {
       pwaPlugin = VitePWA({
         registerType: "autoUpdate",
