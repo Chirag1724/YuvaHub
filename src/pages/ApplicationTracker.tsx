@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, Building2, Calendar, CheckCircle, Clock, ExternalLink, MessageSquare, AlertCircle, XCircle, Award, Bookmark, Trash2, Edit3, X, Save, Plus } from 'lucide-react';
+import { Briefcase, Building2, Calendar, CheckCircle, Clock, ExternalLink, MessageSquare, AlertCircle, XCircle, Award, Bookmark, Trash2, Edit3, X, Save, Plus, FileText } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { fetchApplications, updateApplicationTracker, deleteApplicationTracker } from '../services/apiClient';
+import ApplicationNoteEditor from '../components/ApplicationNoteEditor';
 
 interface Application {
   _id: string;
@@ -81,6 +82,7 @@ export const ApplicationTracker: React.FC = () => {
   const [activeModalApp, setActiveModalApp] = useState<Application | null>(null);
   const [modalNotes, setModalNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [workspaceApp, setWorkspaceApp] = useState<Application | null>(null);
 
   useEffect(() => {
     loadApplications();
@@ -257,8 +259,15 @@ export const ApplicationTracker: React.FC = () => {
                                           {app.opportunity?.title || 'Untitled Opportunity'}
                                         </h3>
                                         <div className="flex items-center gap-1 shrink-0">
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); setWorkspaceApp(app); }}
+                                            className="p-1 text-text-secondary hover:text-emerald-400 transition-colors"
+                                            title="Open prep workspace"
+                                          >
+                                            <FileText className="w-3.5 h-3.5" />
+                                          </button>
                                           {app.opportunity?.applyUrl && (
-                                            <a 
+                                            <a
                                               href={app.opportunity.applyUrl}
                                               target="_blank"
                                               rel="noopener noreferrer"
@@ -403,6 +412,15 @@ export const ApplicationTracker: React.FC = () => {
         </AnimatePresence>
 
       </div>
+
+      {workspaceApp && (
+        <ApplicationNoteEditor
+          applicationId={workspaceApp._id || (workspaceApp as any).id}
+          applicationTitle={workspaceApp.opportunity?.title}
+          currentUserId={auth.currentUser?.uid}
+          onClose={() => setWorkspaceApp(null)}
+        />
+      )}
     </div>
   );
 };
