@@ -24,6 +24,7 @@ import { authMiddleware } from "./src/api/middlewares/auth.js";
 import { requestExport, getExportHistory } from "./src/api/controllers/exportController.js";
 import { logStartupHealthReport } from "./src/api/services/healthService.js";
 import { AICacheMetrics } from "./src/api/services/aiCacheMetrics.js";
+import { applicationNoteInputSchema } from "./src/models/applicationNoteSchema.js";
 import { securityPipeline } from "./src/api/middlewares/security/index.js";
 import { shutdownGuard } from "./src/api/middlewares/security/shutdownGuard.js";
 
@@ -577,6 +578,25 @@ process.on("SIGBREAK", () => gracefulShutdown("SIGBREAK"));
 
 export let io: Server;
 
+// Parse a Mongo id route param, falling back to the raw string for mock DBs
+// or ids that are not valid ObjectIds.
+function parseNoteId(raw: string | string[]): any {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  try {
+    return new ObjectId(value);
+  } catch {
+    return value;
+  }
+}
+
+// A user may read/write a note's body if they own it or it was shared with them.
+// Sharing management and deletion are restricted to the owner separately.
+function canAccessNote(note: any, uid: string): boolean {
+  if (!note || !uid) return false;
+  if (note.ownerId === uid) return true;
+  return Array.isArray(note.sharedWith) && note.sharedWith.includes(uid);
+}
+
 export async function createApp() {
   const app = express();
   app.use(requestLogger);
@@ -734,6 +754,159 @@ export async function createApp() {
   // --- Export Routes ---
   app.post("/api/v1/export/request", authMiddleware, requestExport);
   app.get("/api/v1/export/history", authMiddleware, getExportHistory);
+
+  // --- Application Note Workspace -------------------------------------------
+  // Structured, block-based notes attached to a tracked application. Blocks can
+  // be text, checklists, links or reminders. Notes can be shared with other
+  // registered users, and edits broadcast in real time via the Socket.IO
+  // "note:*" events registered further down in this file.
+
+  // Fetch the workspace note for a tracked application (owner or shared users).
+  app.get("/api/v1/application-notes/:applicationId", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const uid = req.user?.uid || req.user?.firebaseUid;
+      if (!uid) return res.status(401).json({ error: "Unauthorized" });
+
+      const { applicationId } = req.params;
+      const note = await db.collection("application_notes").findOne({ applicationId });
+
+      if (!note) return res.json({ note: null });
+      if (!canAccessNote(note, uid)) {
+        return res.status(403).json({ error: "You do not have access to this note" });
+      }
+
+      note.id = note._id?.toString?.() || note.id;
+      res.json({ note });
+    } catch (err) {
+      console.error("[ApplicationNotes] GET error:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  // Create the note on first save, or update its body (title + blocks) after.
+  app.post("/api/v1/application-notes", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const uid = req.user?.uid || req.user?.firebaseUid;
+      if (!uid) return res.status(401).json({ error: "Unauthorized" });
+
+      const parsed = applicationNoteInputSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          error: parsed.error.issues.map((i: any) => i.message).join(", "),
+        });
+      }
+      const { applicationId, title, blocks } = parsed.data;
+      const now = new Date();
+
+      const existing = await db.collection("application_notes").findOne({ applicationId });
+
+      if (existing) {
+        if (!canAccessNote(existing, uid)) {
+          return res.status(403).json({ error: "You do not have access to this note" });
+        }
+        const update: any = { updatedAt: now };
+        if (title !== undefined) update.title = title;
+        if (blocks !== undefined) update.blocks = blocks;
+
+        await db.collection("application_notes").updateOne({ _id: existing._id }, { $set: update });
+        const note = await db.collection("application_notes").findOne({ _id: existing._id });
+        note.id = note._id?.toString?.() || note.id;
+        return res.json({ note });
+      }
+
+      const doc: any = {
+        ownerId: uid,
+        applicationId,
+        title: title || "Application Workspace",
+        blocks: blocks || [],
+        sharedWith: [],
+        createdAt: now,
+        updatedAt: now,
+      };
+      const result = await db.collection("application_notes").insertOne(doc);
+      res.status(201).json({
+        note: { ...doc, id: result.insertedId?.toString?.() || result.insertedId },
+      });
+    } catch (err) {
+      console.error("[ApplicationNotes] POST error:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  // Owner only: add a collaborator by email or user id, or remove one.
+  app.patch("/api/v1/application-notes/:id/share", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const uid = req.user?.uid || req.user?.firebaseUid;
+      if (!uid) return res.status(401).json({ error: "Unauthorized" });
+
+      const noteId = parseNoteId(req.params.id);
+      const note = await db.collection("application_notes").findOne({ _id: noteId });
+      if (!note) return res.status(404).json({ error: "Note not found" });
+      if (note.ownerId !== uid) {
+        return res.status(403).json({ error: "Only the note owner can manage sharing" });
+      }
+
+      const { addEmail, addUserId, removeUserId } = req.body || {};
+      let sharedWith: string[] = Array.isArray(note.sharedWith) ? [...note.sharedWith] : [];
+
+      if (addUserId && addUserId !== note.ownerId && !sharedWith.includes(addUserId)) {
+        sharedWith.push(addUserId);
+      }
+
+      if (addEmail) {
+        const target = await db.collection("users").findOne({
+          email: String(addEmail).toLowerCase().trim(),
+        });
+        const targetUid = target?.uid || target?.firebaseUid;
+        if (!targetUid) {
+          return res.status(404).json({ error: "No registered user with that email" });
+        }
+        if (targetUid !== note.ownerId && !sharedWith.includes(targetUid)) {
+          sharedWith.push(targetUid);
+        }
+      }
+
+      if (removeUserId) {
+        sharedWith = sharedWith.filter((u) => u !== removeUserId);
+      }
+
+      await db.collection("application_notes").updateOne(
+        { _id: note._id },
+        { $set: { sharedWith, updatedAt: new Date() } }
+      );
+      const updated = await db.collection("application_notes").findOne({ _id: note._id });
+      updated.id = updated._id?.toString?.() || updated.id;
+      res.json({ note: updated });
+    } catch (err) {
+      console.error("[ApplicationNotes] SHARE error:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
+  // Owner only: delete the note.
+  app.delete("/api/v1/application-notes/:id", authMiddleware, async (req, res) => {
+    try {
+      if (!db) return res.status(503).json({ error: "Database not available" });
+      const uid = req.user?.uid || req.user?.firebaseUid;
+      if (!uid) return res.status(401).json({ error: "Unauthorized" });
+
+      const noteId = parseNoteId(req.params.id);
+      const note = await db.collection("application_notes").findOne({ _id: noteId });
+      if (!note) return res.status(404).json({ error: "Note not found" });
+      if (note.ownerId !== uid) {
+        return res.status(403).json({ error: "Only the note owner can delete this note" });
+      }
+
+      await db.collection("application_notes").deleteOne({ _id: note._id });
+      res.json({ status: "success" });
+    } catch (err) {
+      console.error("[ApplicationNotes] DELETE error:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
   // --- Real API Routes ---
   app.get("/api/v1/opportunities", validateRequest(z.object({ query: opportunityQuerySchema })), async (req, res) => {
@@ -2917,7 +3090,31 @@ ${JSON.stringify(userProfile, null, 2)}
   io.on("connection", (socket) => {
     logger.info(`[Socket] Client connected: ${socket.id}`);
     socket.emit("connected", { status: "ready" });
-    
+
+    // --- Application Note real-time co-editing ---
+    // Each open note is a room keyed by its id. A client that opens a note
+    // joins the room; when it edits, it emits "note:update" and we relay the
+    // latest title/blocks to every *other* client in the room. Persistence is
+    // handled by the editing client via POST /api/v1/application-notes
+    // (last write wins), mirroring the existing collaborative snippet editor.
+    socket.on("note:join", (data: { noteId?: string }) => {
+      if (data?.noteId) socket.join(`note_${data.noteId}`);
+    });
+
+    socket.on("note:leave", (data: { noteId?: string }) => {
+      if (data?.noteId) socket.leave(`note_${data.noteId}`);
+    });
+
+    socket.on("note:update", (payload: {
+      noteId?: string;
+      title?: string;
+      blocks?: any[];
+      userId?: string;
+    }) => {
+      if (!payload?.noteId) return;
+      socket.to(`note_${payload.noteId}`).emit("note:updated", payload);
+    });
+
     socket.on("disconnect", () => {
       logger.info(`[Socket] Client disconnected: ${socket.id}`);
     });
