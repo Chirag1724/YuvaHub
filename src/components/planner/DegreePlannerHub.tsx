@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import { SemesterBoard } from './SemesterBoard';
 import { PrerequisiteAlert } from './PrerequisiteAlert';
-import { AcademicRoadmap, Course } from '../../../shared/schemas/academicRoadmap';
+import { AcademicRoadmap, Course } from '../../shared/schemas/academicRoadmap';
 
 const INITIAL_ROADMAP: AcademicRoadmap = {
   id: 'roadmap-1',
@@ -107,7 +107,16 @@ export const DegreePlannerHub: React.FC = () => {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {roadmap.semesters.map((semester) => (
-            <SemesterBoard key={semester.id} semester={semester} />
+            <SemesterBoard
+              key={semester.id}
+              semester={{
+                id: semester.id,
+                term: semester.name,
+                year: semester.year,
+                courseIds: semester.courses.map((c) => c.id),
+              }}
+              courses={semester.courses}
+            />
           ))}
         </div>
       </DragDropContext>

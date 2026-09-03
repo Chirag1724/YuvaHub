@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AcademicRoadmap, Course } from '../../shared/schemas/academicRoadmap';
+import { AcademicRoadmap, Course } from '../shared/schemas/academicRoadmap';
 
 interface PrerequisiteViolation {
   courseId: string;
