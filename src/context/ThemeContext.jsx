@@ -3,41 +3,19 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') || 'system';
-    }
-    return 'system';
-  });
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
     const root = window.document.documentElement;
-    
-    const applyTheme = (currentTheme) => {
-      root.classList.remove('light', 'dark');
-      
-      if (currentTheme === 'system') {
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        root.classList.add(systemTheme);
-      } else {
-        root.classList.add(currentTheme);
-      }
-    };
-
-    applyTheme(theme);
-    localStorage.setItem('theme', theme);
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleSystemChange = () => {
-      if (theme === 'system') applyTheme('system');
-    };
-    
-    mediaQuery.addEventListener('change', handleSystemChange);
-    return () => mediaQuery.removeEventListener('change', handleSystemChange);
-  }, [theme]);
+    root.classList.remove('dark');
+    root.classList.add('light');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', 'light');
+    }
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme: 'light', setTheme: () => {} }}>
       {children}
     </ThemeContext.Provider>
   );

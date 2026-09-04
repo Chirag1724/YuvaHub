@@ -149,10 +149,10 @@ export default function Opportunities() {
     (filters.deadlineType !== 'All' ? 1 : 0);
 
   const renderFilterControls = () => (
-    <div className="space-y-6 text-xs text-text-primary dark:text-slate-200">
+    <div className="space-y-6 text-xs text-text-primary">
       {/* Opportunity Type */}
       <div>
-        <h3 className="font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider mb-2.5">Category</h3>
+        <h3 className="font-bold text-text-secondary uppercase tracking-wider mb-2.5">Category</h3>
         <div className="space-y-2">
           {Object.keys(filters.types).map(k => (
             <label key={k} className="flex items-center gap-2.5 cursor-pointer group">
@@ -162,7 +162,7 @@ export default function Opportunities() {
                 onChange={(e) => setFilters(f => ({ ...f, types: { ...f.types, [k]: e.target.checked } }))}
                 className="w-4 h-4 rounded border-border-theme text-primary-blue focus:ring-[#b56b37]"
               />
-              <span className="font-medium text-text-primary dark:text-slate-300 group-hover:text-primary-blue transition-colors">{k}</span>
+              <span className="font-medium text-text-primary group-hover:text-primary-blue transition-colors">{k}</span>
             </label>
           ))}
         </div>
@@ -170,7 +170,7 @@ export default function Opportunities() {
 
       {/* Location Type */}
       <div>
-        <h3 className="font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider mb-2.5">Workplace</h3>
+        <h3 className="font-bold text-text-secondary uppercase tracking-wider mb-2.5">Workplace</h3>
         <div className="space-y-2">
           {Object.keys(filters.locationTypes).map(k => (
             <label key={k} className="flex items-center gap-2.5 cursor-pointer group">
@@ -180,7 +180,7 @@ export default function Opportunities() {
                 onChange={(e) => setFilters(f => ({ ...f, locationTypes: { ...f.locationTypes, [k]: e.target.checked } }))}
                 className="w-4 h-4 rounded border-border-theme text-primary-blue focus:ring-[#b56b37]"
               />
-              <span className="font-medium text-text-primary dark:text-slate-300 group-hover:text-primary-blue transition-colors">{k}</span>
+              <span className="font-medium text-text-primary group-hover:text-primary-blue transition-colors">{k}</span>
             </label>
           ))}
         </div>
@@ -188,7 +188,7 @@ export default function Opportunities() {
 
       {/* Trust & Application Fee */}
       <div>
-        <h3 className="font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider mb-2.5">Trust & Requirements</h3>
+        <h3 className="font-bold text-text-secondary uppercase tracking-wider mb-2.5">Trust & Requirements</h3>
         <div className="space-y-2">
           <label className="flex items-center gap-2.5 cursor-pointer group">
             <input
@@ -214,14 +214,14 @@ export default function Opportunities() {
 
       {/* Stipend */}
       <div>
-        <h3 className="font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider mb-2.5">Stipend</h3>
+        <h3 className="font-bold text-text-secondary uppercase tracking-wider mb-2.5">Stipend</h3>
         <div className="space-y-2.5">
-          <div className="grid grid-cols-3 gap-1 p-1 bg-surface-secondary dark:bg-slate-800 rounded-lg border border-border-theme dark:border-slate-700">
+          <div className="grid grid-cols-3 gap-1 p-1 bg-surface-secondary rounded-lg border border-border-theme">
             {['All', 'Paid', 'Unpaid'].map(opt => (
               <button
                 key={opt}
                 onClick={() => setFilters(f => ({ ...f, stipend: opt }))}
-                className={`py-1 text-xs font-semibold rounded transition-all ${filters.stipend === opt ? 'bg-surface dark:bg-slate-700 text-text-primary dark:text-white shadow-xs' : 'text-text-secondary dark:text-slate-400'}`}
+                className={`py-1 text-xs font-semibold rounded transition-all ${filters.stipend === opt ? 'bg-surface text-primary-blue shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'}`}
               >
                 {opt}
               </button>
@@ -241,7 +241,7 @@ export default function Opportunities() {
                 step="2000"
                 value={filters.minSalary}
                 onChange={(e) => setFilters(f => ({ ...f, minSalary: parseInt(e.target.value, 10) }))}
-                className="w-full h-1 bg-[#e8ded1] dark:bg-slate-700 rounded appearance-none cursor-pointer accent-[#b56b37]"
+                className="w-full h-1 bg-[#e8ded1] rounded appearance-none cursor-pointer accent-[#b56b37]"
               />
             </div>
           )}
@@ -250,7 +250,7 @@ export default function Opportunities() {
 
       {/* Deadline */}
       <div>
-        <h3 className="font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider mb-2.5">Deadline</h3>
+        <h3 className="font-bold text-text-secondary uppercase tracking-wider mb-2.5">Deadline</h3>
         <div className="space-y-2">
           {[
             { label: 'Anytime', val: 'All' },
@@ -266,7 +266,7 @@ export default function Opportunities() {
                 onChange={() => setFilters(f => ({ ...f, deadlineType: opt.val }))}
                 className="w-4 h-4 border-border-theme text-primary-blue focus:ring-[#b56b37]"
               />
-              <span className="font-medium text-text-primary dark:text-slate-300 group-hover:text-primary-blue transition-colors">{opt.label}</span>
+              <span className="font-medium text-text-primary group-hover:text-primary-blue transition-colors">{opt.label}</span>
             </label>
           ))}
 
@@ -276,13 +276,13 @@ export default function Opportunities() {
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value }))}
-                className="w-full text-xs p-2 bg-surface dark:bg-slate-800 border border-border-theme dark:border-slate-700 rounded-lg text-text-primary dark:text-slate-200"
+                className="w-full text-xs p-2 bg-surface border border-border-theme rounded-lg text-text-primary outline-none focus:border-primary-blue"
               />
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => setFilters(f => ({ ...f, endDate: e.target.value }))}
-                className="w-full text-xs p-2 bg-surface dark:bg-slate-800 border border-border-theme dark:border-slate-700 rounded-lg text-text-primary dark:text-slate-200"
+                className="w-full text-xs p-2 bg-surface border border-border-theme rounded-lg text-text-primary outline-none focus:border-primary-blue"
               />
             </div>
           )}
@@ -295,12 +295,12 @@ export default function Opportunities() {
     <div className="w-full max-w-[1400px] mx-auto font-sans pb-16 px-2 sm:px-4 space-y-6">
 
       {/* Clean Professional Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-border-theme dark:border-slate-800 pb-6 pt-2">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-border-theme pb-6 pt-2">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-text-primary dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-text-primary tracking-tight">
             Opportunities
           </h1>
-          <p className="text-xs sm:text-sm text-text-secondary dark:text-slate-400 font-medium">
+          <p className="text-xs sm:text-sm text-text-secondary font-medium">
             Discover verified hackathons, internships, scholarships, and jobs tailored for students.
           </p>
         </div>
@@ -311,19 +311,19 @@ export default function Opportunities() {
           <button
             onClick={() => fetchData(searchQuery)}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface dark:bg-slate-900 border border-border-theme dark:border-slate-800 text-xs font-semibold text-text-secondary dark:text-slate-300 hover:bg-surface-secondary dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface border border-border-theme text-xs font-semibold text-text-secondary hover:bg-surface-secondary transition-colors disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-primary-blue' : ''}`} />
             <span>Refresh</span>
           </button>
 
           {/* Sort Dropdown */}
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface dark:bg-slate-900 border border-border-theme dark:border-slate-800 text-xs font-semibold text-text-primary dark:text-slate-200">
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface border border-border-theme text-xs font-semibold text-text-primary">
             <ArrowUpDown className="w-3.5 h-3.5 text-primary-blue" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-text-primary dark:text-slate-200 outline-none cursor-pointer"
+              className="bg-transparent text-xs font-semibold text-text-primary outline-none cursor-pointer"
             >
               <option value="Most relevant" className="bg-surface text-text-primary">Most Relevant</option>
               <option value="Newest" className="bg-surface text-text-primary">Newest First</option>
@@ -344,19 +344,19 @@ export default function Opportunities() {
             placeholder="Search by title, skills, organization, or location..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface dark:bg-slate-900 border border-border-theme dark:border-slate-800 rounded-xl pl-11 pr-24 py-3 text-sm text-text-primary dark:text-white placeholder-[#8c7569] outline-none focus:border-primary-blue focus:ring-1 focus:ring-[#b56b37] transition-all shadow-2xs"
+            className="w-full bg-surface border border-border-theme rounded-xl pl-11 pr-24 py-3 text-sm text-text-primary placeholder-[#8c7569] outline-none focus:border-primary-blue focus:ring-1 focus:ring-[#b56b37] transition-all shadow-xs"
           />
           {searchQuery ? (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-muted hover:text-text-primary"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-muted hover:text-text-primary cursor-pointer"
             >
               Clear
             </button>
           ) : null}
         </div>
 
-        {/* Minimal Category Segmented Pills */}
+        {/* Category Segmented Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
           {categoryPills.map((pill) => {
             const isActive = activeCategoryPill === pill.val;
@@ -366,8 +366,8 @@ export default function Opportunities() {
                 onClick={() => setActiveCategoryPill(pill.val)}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-[#231f20] dark:bg-surface text-white dark:text-text-primary font-bold'
-                    : 'bg-surface dark:bg-slate-900 text-text-secondary dark:text-slate-400 border border-border-theme dark:border-slate-800 hover:bg-surface-secondary dark:hover:bg-slate-800'
+                    ? 'bg-primary-blue text-white font-bold shadow-xs'
+                    : 'bg-surface text-text-secondary border border-border-theme hover:bg-surface-secondary'
                 }`}
               >
                 {pill.label}
@@ -400,7 +400,7 @@ export default function Opportunities() {
             )}
             <button
               onClick={clearFilters}
-              className="text-primary-blue hover:underline font-bold text-xs ml-1"
+              className="text-primary-blue hover:underline font-bold text-xs ml-1 cursor-pointer"
             >
               Clear all
             </button>
@@ -412,11 +412,11 @@ export default function Opportunities() {
       <div className="flex items-start gap-6">
 
         {/* Minimal Left Filter Sidebar (Desktop) */}
-        <aside className="w-56 shrink-0 hidden md:block bg-surface dark:bg-slate-900 border border-border-theme dark:border-slate-800 rounded-xl p-4 shadow-2xs sticky top-6">
-          <div className="flex items-center justify-between pb-3 mb-4 border-b border-border-theme dark:border-slate-800">
-            <span className="text-xs font-bold uppercase tracking-wider text-text-primary dark:text-slate-200">Filters</span>
+        <aside className="w-56 shrink-0 hidden md:block bg-surface border border-border-theme rounded-xl p-4 shadow-xs sticky top-6">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-border-theme">
+            <span className="text-xs font-bold uppercase tracking-wider text-text-primary">Filters</span>
             {activeFiltersCount > 0 && (
-              <button onClick={clearFilters} className="text-[11px] font-semibold text-primary-blue hover:underline">
+              <button onClick={clearFilters} className="text-[11px] font-semibold text-primary-blue hover:underline cursor-pointer">
                 Reset
               </button>
             )}
@@ -426,11 +426,11 @@ export default function Opportunities() {
 
         {/* Opportunity List & Grid */}
         <main className="flex-1 min-w-0 space-y-4">
-          <div className="flex justify-between items-center text-xs text-text-muted dark:text-slate-400 font-medium">
-            <span>Showing <strong className="text-text-primary dark:text-slate-200">{totalItems}</strong> opportunities</span>
+          <div className="flex justify-between items-center text-xs text-text-muted font-medium">
+            <span>Showing <strong className="text-text-primary">{totalItems}</strong> opportunities</span>
             <button
               onClick={() => setIsMobileFilterOpen(true)}
-              className="md:hidden flex items-center gap-1 font-bold text-primary-blue"
+              className="md:hidden flex items-center gap-1 font-bold text-primary-blue cursor-pointer"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span>Filters ({activeFiltersCount})</span>
@@ -462,7 +462,7 @@ export default function Opportunities() {
 
           {/* Clean Pagination */}
           {!loading && filteredResults.length > 0 && totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border-theme dark:border-slate-800 text-xs">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border-theme text-xs">
               <span className="text-text-muted">
                 Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}</strong> - <strong>{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</strong> of <strong>{totalItems}</strong> opportunities (Page {currentPage} of {totalPages})
               </span>
@@ -471,10 +471,10 @@ export default function Opportunities() {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-1.5 rounded-lg border border-border-theme dark:border-slate-800 bg-surface dark:bg-slate-900 disabled:opacity-40 hover:bg-surface-secondary transition-colors"
+                  className="p-1.5 rounded-lg border border-border-theme bg-surface disabled:opacity-40 hover:bg-surface-secondary transition-colors cursor-pointer"
                   aria-label="Previous Page"
                 >
-                  <ChevronLeft className="w-4 h-4 text-text-primary dark:text-slate-300" />
+                  <ChevronLeft className="w-4 h-4 text-text-primary" />
                 </button>
 
                 {(() => {
@@ -493,9 +493,9 @@ export default function Opportunities() {
                       <button
                         key={`page-${pageNum}`}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-bold transition-colors ${
+                        className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
                           currentPage === pageNum
-                            ? 'bg-[#231f20] text-white'
+                            ? 'bg-primary-blue text-white shadow-xs'
                             : 'bg-surface border border-border-theme text-text-secondary hover:bg-surface-secondary'
                         }`}
                       >

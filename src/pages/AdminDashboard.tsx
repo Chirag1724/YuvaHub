@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AdminDataTable } from '../components/AdminDataTable';
 import { ReportModerationQueue } from '../components/admin/ReportModerationQueue';
-import { Users, Briefcase, TrendingUp } from 'lucide-react';
+import { Users, Briefcase, TrendingUp, AlertTriangle } from 'lucide-react';
 
 interface PlatformStats {
     totalUsers: number;
     activeOpportunities: number;
+    pendingReports?: number;
     dailySignups: { name: string; value: number }[];
 }
 
@@ -30,6 +31,7 @@ export const AdminDashboard: React.FC = () => {
                 setStats({
                     totalUsers: 1250,
                     activeOpportunities: 342,
+                    pendingReports: 8,
                     dailySignups: [
                         { name: 'Mon', value: 12 },
                         { name: 'Tue', value: 19 },
@@ -47,44 +49,47 @@ export const AdminDashboard: React.FC = () => {
         fetchStats();
     }, []);
 
-    if (loading) return <div className="p-8 text-center">Loading dashboard...</div>;
+    const handleAction = (id: number, action: string) => {
+        console.log(`Action ${action} on report ${id}`);
+    };
+
+    if (loading) return <div className="p-8 text-center text-text-secondary">Loading dashboard...</div>;
 
     return (
-        <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Admin Moderation Panel</h1>
+        <div className="p-8 bg-background min-h-screen transition-colors duration-300">
+            <h1 className="text-3xl font-serif font-bold text-text-primary mb-8">Admin Moderation Panel</h1>
 
             {/* Metric Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-surface dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex items-center">
-                    <Users className="w-10 h-10 text-blue-500 mr-4" />
+                <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-theme flex items-center">
+                    <Users className="w-10 h-10 text-primary-blue mr-4" />
                     <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Total Users</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalUsers}</p>
+                        <p className="text-sm text-text-muted">Total Users</p>
+                        <p className="text-2xl font-bold text-text-primary">{stats?.totalUsers}</p>
                     </div>
                 </div>
-                <div className="bg-surface dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex items-center">
-                    <Briefcase className="w-10 h-10 text-green-500 mr-4" />
+                <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-theme flex items-center">
+                    <Briefcase className="w-10 h-10 text-[#63703d] mr-4" />
                     <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Active Opportunities</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.activeOpportunities}</p>
+                        <p className="text-sm text-text-muted">Active Opportunities</p>
+                        <p className="text-2xl font-bold text-text-primary">{stats?.activeOpportunities}</p>
                     </div>
                 </div>
-                <div className="bg-surface dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex items-center">
-                    <TrendingUp className="w-10 h-10 text-purple-500 mr-4" />
+                <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-theme flex items-center">
+                    <AlertTriangle className="w-10 h-10 text-[#b56b37] mr-4" />
                     <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Daily Signups</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">20.6</p>
+                        <p className="text-sm text-text-muted">Pending Reports</p>
+                        <p className="text-2xl font-bold text-text-primary">{stats?.pendingReports}</p>
                     </div>
                 </div>
             </div>
 
             {/* Chart */}
-            <div className="bg-surface dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Daily Signups</h2>
+            <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-theme mb-8">
+                <h2 className="text-xl font-semibold text-text-primary mb-4">Daily Signups</h2>
                 <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={stats?.dailySignups}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                             <XAxis dataKey="name" stroke="#9CA3AF" />
                             <YAxis stroke="#9CA3AF" />
                             <Tooltip
@@ -97,8 +102,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Data Table */}
-            <div className="bg-surface dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Users</h2>
+            <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-theme mb-8">
+                <h2 className="text-xl font-semibold text-text-primary mb-4">Recent Users</h2>
                 <AdminDataTable
                     columns={['Name', 'Email', 'Reputation', 'Joined']}
                     data={[

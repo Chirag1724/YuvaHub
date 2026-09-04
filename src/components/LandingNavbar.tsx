@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Zap, Sun, Moon, Menu, X, ArrowLeft } from 'lucide-react';
+import { Zap, Menu, X, ArrowLeft } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import ThemeToggle from './ThemeToggle';
 
 interface LandingNavbarProps {
   /** Called when the user clicks Login */
@@ -93,12 +92,6 @@ export default function LandingNavbar({ onLoginClick, onNavClick }: LandingNavba
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          
-          {/* Desktop Theme Toggle */}
-          <div className="hidden md:block">
-            <ThemeToggle />
-          </div>
-
           <button
             onClick={onLoginClick}
             className="hidden md:block px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider bg-primary-blue text-white rounded-full shadow-md hover:opacity-90 transition-all cursor-pointer"
@@ -120,12 +113,6 @@ export default function LandingNavbar({ onLoginClick, onNavClick }: LandingNavba
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden bg-navbar border-b border-border-theme shadow-xl px-6 py-6 flex flex-col gap-4">
-          
-          {/* Mobile Theme Toggle */}
-          <div className="flex justify-between items-center pb-4 border-b border-border-theme/50">
-            <span className="text-sm font-bold uppercase tracking-wider text-text-secondary">Theme</span>
-            <ThemeToggle />
-          </div>
 
           {activeTab === 'dashboard' ? (
             NAV_LINKS.map((link) => (

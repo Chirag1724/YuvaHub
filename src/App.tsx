@@ -528,21 +528,21 @@ function App() {
 
   if ((activeTab === 'legal' || activeTab === 'security' || activeTab === 'support' || activeTab === 'about' || activeTab === 'guidelines') && !user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col font-sans">
+      <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans">
         {/* Public Header */}
-        <header className="sticky top-0 z-50 h-[60px] bg-surface dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 lg:px-12">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { clearSelectedOpportunity(); setActiveTab('dashboard'); }}>
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        <header className="sticky top-0 z-50 h-[64px] bg-navbar/90 backdrop-blur-md border-b border-border-theme flex items-center justify-between px-6 lg:px-12">
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { clearSelectedOpportunity(); setActiveTab('dashboard'); }}>
+            <div className="w-8 h-8 rounded-full bg-[#603620] flex items-center justify-center shadow-md">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#f3e4bd]"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
             </div>
-            <span className="font-bold text-[17px] tracking-tight text-gray-900 dark:text-white">YuvaHub</span>
+            <span className="font-serif font-bold text-xl tracking-tight text-text-primary">Yuva<span className="text-primary-blue italic">Hub</span></span>
           </div>
           
-          <nav className="hidden md:flex items-center gap-8 text-[14px] font-medium text-gray-600 dark:text-gray-300">
-            <button onClick={() => { clearSelectedOpportunity(); setActiveTab('opportunities'); }} className="hover:text-blue-600 dark:hover:text-blue-400 bg-transparent border-none cursor-pointer">Opportunities</button>
-            <button onClick={() => { clearSelectedOpportunity(); setActiveTab('about'); }} className="hover:text-blue-600 dark:hover:text-blue-400 bg-transparent border-none cursor-pointer">About Us</button>
-            <button onClick={() => { clearSelectedOpportunity(); setActiveTab('legal'); }} className="hover:text-blue-600 dark:hover:text-blue-400 bg-transparent border-none cursor-pointer">Legal Index</button>
-            <button onClick={() => { clearSelectedOpportunity(); setActiveTab('support'); }} className="hover:text-blue-600 dark:hover:text-blue-400 bg-transparent border-none cursor-pointer">Support</button>
+          <nav className="hidden md:flex items-center gap-8 text-[13px] font-bold uppercase tracking-wider text-text-secondary">
+            <button onClick={() => { clearSelectedOpportunity(); setActiveTab('opportunities'); }} className="hover:text-primary-blue bg-transparent border-none cursor-pointer">Opportunities</button>
+            <button onClick={() => { clearSelectedOpportunity(); setActiveTab('about'); }} className="hover:text-primary-blue bg-transparent border-none cursor-pointer">About Us</button>
+            <button onClick={() => { clearSelectedOpportunity(); setActiveTab('legal'); }} className="hover:text-primary-blue bg-transparent border-none cursor-pointer">Legal Index</button>
+            <button onClick={() => { clearSelectedOpportunity(); setActiveTab('support'); }} className="hover:text-primary-blue bg-transparent border-none cursor-pointer">Support</button>
           </nav>
           
           <div className="flex items-center gap-4">
@@ -645,14 +645,14 @@ function App() {
       )}
       
       {/* Sidebar Desktop - Fixed 240px */}
-      <aside className="hidden lg:flex w-60 border-r border-border-theme dark:border-gray-800 flex-col bg-background dark:bg-gray-900 z-10 shrink-0 relative">
+      <aside className="hidden lg:flex w-60 border-r border-border-theme flex-col bg-background z-10 shrink-0 relative">
         <div className="h-16 px-5 border-b border-border-theme flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-[#603620] flex items-center justify-center shadow-md">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#f3e4bd]"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
             </div>
-            <h1 className="text-xl font-serif font-bold tracking-tight text-text-primary dark:text-white">
-              Yuva<span className="text-primary-blue dark:text-blue-400 italic">Hub</span>
+            <h1 className="text-xl font-serif font-bold tracking-tight text-text-primary">
+              Yuva<span className="text-primary-blue italic">Hub</span>
             </h1>
           </div>
         </div>
@@ -660,7 +660,7 @@ function App() {
         <nav className="flex-1 p-3 space-y-4 overflow-y-auto scrollbar-none" role="tablist" aria-label="Main navigation">
           {NAVIGATION_GROUPS.map((group, groupIdx) => (
             <div key={groupIdx} className="space-y-1">
-              <div className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-text-secondary dark:text-gray-400 mb-1">
+              <div className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-text-secondary mb-1">
                 {group.title}
               </div>
               {group.items.map((tab) => {
@@ -680,16 +680,16 @@ function App() {
                     }}
                     className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-surface-secondary dark:bg-slate-800 text-primary-blue dark:text-blue-400 font-extrabold'
-                        : 'text-text-secondary dark:text-gray-400 hover:bg-surface-secondary/70 dark:hover:bg-gray-800/80 hover:text-text-primary dark:hover:text-white'
+                        ? 'bg-surface-secondary text-primary-blue font-extrabold shadow-xs'
+                        : 'text-text-secondary hover:bg-surface-secondary/70 hover:text-text-primary'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 truncate">
-                      <Icon aria-hidden="true" className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary-blue dark:text-blue-400' : 'text-text-muted dark:text-gray-500'}`} />
+                      <Icon aria-hidden="true" className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary-blue' : 'text-text-muted'}`} />
                       <span className="truncate">{tab.label}</span>
                     </div>
                     {tab.badge && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-black uppercase rounded bg-primary-blue dark:bg-blue-600 text-white">
+                      <span className="px-1.5 py-0.5 text-[9px] font-black uppercase rounded bg-primary-blue text-white shadow-xs">
                         {tab.badge}
                       </span>
                     )}
@@ -838,6 +838,12 @@ function App() {
               <NotificationDropdown profile={profile}/>
               {(() => {
                 const avatarSrc = profile?.avatarUrl || user?.photoURL;
+                const handleAvatarClick = () => {
+                  clearSelectedOpportunity();
+                  setActiveTab('profile');
+                  scrollContentToTop();
+                };
+
                 if (avatarSrc && !avatarError) {
                   return (
                     <img 
@@ -846,13 +852,13 @@ function App() {
                       className="w-8 h-8 rounded-full object-cover border border-border-theme shadow-xs cursor-pointer hover:opacity-90 transition-opacity" 
                       referrerPolicy="no-referrer"
                       onError={() => setAvatarError(true)}
-                      onClick={() => setActiveTab('profile')}
+                      onClick={handleAvatarClick}
                     />
                   );
                 }
                 return (
                   <div 
-                    onClick={() => setActiveTab('profile')}
+                    onClick={handleAvatarClick}
                     className="w-8 h-8 rounded-full bg-[#603620] text-[#f3e4bd] flex items-center justify-center font-extrabold text-xs shadow-xs border border-border-theme cursor-pointer hover:opacity-90 transition-opacity"
                   >
                     {profile?.name ? profile.name.charAt(0).toUpperCase() : (user?.displayName ? user.displayName.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U'))}
