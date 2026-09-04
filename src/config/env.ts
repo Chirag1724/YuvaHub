@@ -22,7 +22,7 @@ const envSchema = z.object({
 
   REDIS_URL: z.string().url().optional(),
 
-  FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().min(1, 'FIREBASE_SERVICE_ACCOUNT_BASE64 is required'),
+  FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().optional(),
   FIREBASE_PROJECT_ID: z.string().optional(),
   
   ENABLE_MOCK_AUTH: z.enum(['true', 'false']).default('false'),

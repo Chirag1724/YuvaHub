@@ -46,6 +46,7 @@ import studyRoomRoutes from "./studyRoomRoutes.js";
 import observabilityRoutes from "./observabilityRoutes.js";
 import employerRoutes from "./employerRoutes.js";
 import newsletterRoutes from "./newsletterRoutes.js";
+import publicRoutes from "./publicRoutes.js";
 import { errorHandler } from "../middlewares/errorHandler.js";
 import { apiVersionHeaders } from "../versioning/middleware.js";
 
@@ -101,6 +102,7 @@ const routes = [
   observabilityRoutes,
   employerRoutes,
   newsletterRoutes,
+  publicRoutes,
 ];
 
 // Mount all routes onto v1Router

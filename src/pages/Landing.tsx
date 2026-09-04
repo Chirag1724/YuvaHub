@@ -17,6 +17,30 @@ import Support from '../components/tabs/Support';
 import Legal from '../components/tabs/Legal';
 import FAQ from '../components/tabs/FAQ';
 
+// Live Platform Stats Hook
+interface PlatformStats {
+  verifiedListings: number;
+  activeStudents: number;
+  prizesGrantsLakhs: number;
+  topRecruiters: number;
+}
+const STAT_FALLBACK: PlatformStats = {
+  verifiedListings: 1000,
+  activeStudents: 5000,
+  prizesGrantsLakhs: 10,
+  topRecruiters: 40,
+};
+function usePlatformStats() {
+  const [stats, setStats] = React.useState<PlatformStats>(STAT_FALLBACK);
+  React.useEffect(() => {
+    fetch('/api/v1/public/stats')
+      .then(r => r.ok ? r.json() : null)
+      .then(json => { if (json?.data) setStats(json.data); })
+      .catch(() => {/* keep fallback */ });
+  }, []);
+  return stats;
+}
+
 // Reusable Animated Stat Counter Component
 function StatCounter({ targetNumber, suffix = '', prefix = '', duration = 2 }: { targetNumber: number; suffix?: string; prefix?: string; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -61,6 +85,7 @@ export default function Landing() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const platformStats = usePlatformStats();
 
   const openLoginModal = () => setIsModalOpen(true);
   const closeLoginModal = () => setIsModalOpen(false);
@@ -232,7 +257,7 @@ export default function Landing() {
               <div className="lg:col-span-7 space-y-7 text-left">
 
                 <div ref={heroBadgeRef} className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#f3e4bd] border border-border-theme text-text-secondary text-xs font-bold uppercase tracking-widest rounded-full shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-primary-blue" /> India's AI-Powered Student Ecosystem
+                  India's AI-Powered Student Ecosystem
                 </div>
 
                 <h1 ref={heroTitleRef} className="text-4xl sm:text-6xl font-serif font-normal tracking-tight text-text-primary leading-[1.12]">
@@ -339,19 +364,19 @@ export default function Landing() {
           <section id="stats" className="bg-[#603620] text-[#fcf9f2] py-16 px-6 border-y border-[#231f20]">
             <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div className="space-y-1">
-                <StatCounter targetNumber={100} suffix="K+" duration={2} />
+                <StatCounter targetNumber={platformStats.verifiedListings} suffix="+" duration={2} />
                 <div className="text-xs font-bold uppercase tracking-widest text-[#fcf9f2]/80 mt-1">Verified Listings</div>
               </div>
               <div className="space-y-1">
-                <StatCounter targetNumber={5} suffix="M+" duration={2} />
+                <StatCounter targetNumber={platformStats.activeStudents} suffix="+" duration={2} />
                 <div className="text-xs font-bold uppercase tracking-widest text-[#fcf9f2]/80 mt-1">Active Students</div>
               </div>
               <div className="space-y-1">
-                <StatCounter targetNumber={50} prefix="₹" suffix="Cr+" duration={2.2} />
-                <div className="text-xs font-bold uppercase tracking-widest text-[#fcf9f2]/80 mt-1">Prizes & Grants</div>
+                <StatCounter targetNumber={platformStats.prizesGrantsLakhs} prefix="₹" suffix="L+" duration={2.2} />
+                <div className="text-xs font-bold uppercase tracking-widest text-[#fcf9f2]/80 mt-1">Prizes &amp; Grants</div>
               </div>
               <div className="space-y-1">
-                <StatCounter targetNumber={2500} suffix="+" duration={2.5} />
+                <StatCounter targetNumber={platformStats.topRecruiters} suffix="+" duration={2.5} />
                 <div className="text-xs font-bold uppercase tracking-widest text-[#fcf9f2]/80 mt-1">Top Tech Recruiters</div>
               </div>
             </div>

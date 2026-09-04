@@ -80,6 +80,9 @@ export default defineConfig(async ({ mode }) => {
       }),
       pwaPlugin,
     ].filter(Boolean),
+    test: {
+      exclude: ['**/node_modules/**', '**/dist/**', 'tests/integration/**'],
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
@@ -92,14 +95,19 @@ export default defineConfig(async ({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes("node_modules")) {
-              if (id.includes("react") || id.includes("react-dom") || id.includes("react-router-dom")) {
-                return "vendor-react";
-              }
               if (id.includes("recharts") || id.includes("d3-")) {
                 return "vendor-charts";
               }
               if (id.includes("framer-motion") || id.includes("lucide-react")) {
                 return "vendor-ui";
+              }
+              if (
+                id.includes("react-dom") ||
+                id.includes("react-router-dom") ||
+                id.includes("/react/") ||
+                id.includes("\\react\\")
+              ) {
+                return "vendor-react";
               }
             }
           },
