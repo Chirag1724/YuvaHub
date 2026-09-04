@@ -274,10 +274,10 @@ export default function OpportunityDetail() {
       />
 
       {/* Navigation Header Bar - YuvaHub Brand Theme */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-surface dark:bg-slate-900 p-4 rounded-2xl border border-border-theme dark:border-slate-800 shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-4 rounded-2xl border border-border-theme shadow-xs">
         <button 
           onClick={onBack} 
-          className="inline-flex items-center gap-2 text-xs font-bold text-text-secondary dark:text-slate-300 hover:text-primary-blue transition-colors py-1.5 px-3 rounded-xl hover:bg-surface-secondary dark:hover:bg-slate-800 cursor-pointer"
+          className="inline-flex items-center gap-2 text-xs font-bold text-text-secondary hover:text-primary-blue transition-colors py-1.5 px-3 rounded-xl hover:bg-surface-secondary cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-primary-blue" /> Back to opportunities
         </button>
@@ -285,10 +285,10 @@ export default function OpportunityDetail() {
         <div className="flex items-center gap-2">
           <button 
             onClick={toggleBookmark}
-            className={`inline-flex items-center gap-1.5 text-xs font-bold py-1.5 px-3 rounded-xl transition-all border ${
+            className={`inline-flex items-center gap-1.5 text-xs font-bold py-1.5 px-3 rounded-xl transition-all border cursor-pointer ${
               isBookmarked 
-                ? 'text-white bg-primary-blue border-primary-blue shadow-sm' 
-                : 'text-text-secondary dark:text-slate-300 hover:text-primary-blue hover:bg-surface-secondary dark:hover:bg-slate-800 border-border-theme dark:border-slate-700'
+                ? 'text-white bg-primary-blue border-primary-blue shadow-xs' 
+                : 'text-text-secondary hover:text-primary-blue hover:bg-surface-secondary border-border-theme'
             }`}
           >
             <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} /> 
@@ -311,10 +311,10 @@ export default function OpportunityDetail() {
         
         {/* Left Primary Details Card */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-surface dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-border-theme dark:border-slate-800 shadow-sm space-y-6">
+          <div className="bg-surface p-6 md:p-8 rounded-3xl border border-border-theme shadow-xs space-y-6">
             
             {/* Header Metadata */}
-            <header className="space-y-3 pb-6 border-b border-border-theme dark:border-slate-800">
+            <header className="space-y-3 pb-6 border-b border-border-theme">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1 bg-[#603620] text-[#f3e4bd] text-xs font-extrabold rounded-lg uppercase tracking-wider">
                   {opp.category || opp.type || "Opportunity"}
@@ -327,40 +327,40 @@ export default function OpportunityDetail() {
                 )}
               </div>
 
-              <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-primary dark:text-white leading-tight">
+              <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-primary leading-tight">
                 {opp.title}
               </h1>
 
               <div className="flex items-center gap-2 pt-1">
                 <Building2 className="w-4 h-4 text-primary-blue" />
-                <span className="text-base font-bold text-text-secondary dark:text-slate-300">{displayOrg}</span>
+                <span className="text-base font-bold text-text-secondary">{displayOrg}</span>
               </div>
             </header>
 
             {/* Overview Body */}
             <article className="space-y-3">
-              <h2 className="text-base font-serif font-bold text-text-primary dark:text-slate-100 flex items-center gap-2">
+              <h2 className="text-base font-serif font-bold text-text-primary flex items-center gap-2">
                 <Award className="w-4 h-4 text-primary-blue" /> Executive Overview
               </h2>
-              <p className="text-sm text-text-primary/90 dark:text-slate-300 leading-relaxed whitespace-pre-line text-justify font-medium">
+              <p className="text-sm text-text-primary/90 leading-relaxed whitespace-pre-line text-justify font-medium">
                 {opp.description || "Refer to the original portal post for detailed eligibility parameters and submission rules."}
               </p>
             </article>
 
             {/* Private Note Panel */}
             {isBookmarked && (
-              <div className="pt-4 border-t border-border-theme dark:border-slate-800">
+              <div className="pt-4 border-t border-border-theme">
                 <OpportunityNotePanel opportunityId={opp.id || opp._id} />
               </div>
             )}
 
             {/* Tagged Keywords */}
             {opp.tags && opp.tags.length > 0 && (
-              <div className="space-y-2.5 pt-4 border-t border-border-theme dark:border-slate-800">
+              <div className="space-y-2.5 pt-4 border-t border-border-theme">
                 <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-wider">Tagged Keywords</h3>
                 <div className="flex flex-wrap gap-2">
                   {opp.tags.map((tag: string) => (
-                    <span key={tag} className="px-3 py-1 bg-surface-secondary dark:bg-slate-800 border border-border-theme dark:border-slate-700 text-text-secondary dark:text-slate-300 text-xs font-semibold rounded-lg">
+                    <span key={tag} className="px-3 py-1 bg-surface-secondary border border-border-theme text-text-secondary text-xs font-semibold rounded-lg">
                       #{tag}
                     </span>
                   ))}
@@ -388,7 +388,7 @@ export default function OpportunityDetail() {
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button 
                   onClick={handleApplyAssist}
-                  className="px-5 py-2.5 bg-primary-blue hover:bg-[#96552a] text-white rounded-xl text-xs font-bold transition-all shadow-md inline-flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 bg-primary-blue hover:opacity-90 text-white rounded-xl text-xs font-bold transition-all shadow-md inline-flex items-center gap-2 cursor-pointer"
                 >
                   <FileText className="w-4 h-4" /> Application Assistant
                 </button>
@@ -405,20 +405,20 @@ export default function OpportunityDetail() {
 
         {/* Right Sticky Sidebar */}
         <div className="space-y-6">
-          <div className="bg-surface dark:bg-slate-900 p-6 rounded-3xl border border-border-theme dark:border-slate-800 shadow-sm space-y-6 lg:sticky lg:top-6">
-            <h3 className="text-sm font-bold text-text-primary dark:text-slate-100 uppercase tracking-wider border-b border-border-theme dark:border-slate-800 pb-3">
+          <div className="bg-surface p-6 rounded-3xl border border-border-theme shadow-xs space-y-6 lg:sticky lg:top-6">
+            <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider border-b border-border-theme pb-3">
               Opportunity Details
             </h3>
             
             <div className="space-y-4 text-xs">
               {/* Location */}
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-surface-secondary dark:bg-slate-800 rounded-xl text-primary-blue">
+                <div className="p-2.5 bg-surface-secondary rounded-xl text-primary-blue">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Location / Venue</p>
-                  <p className="font-bold text-text-primary dark:text-slate-200 mt-0.5">{opp.location || "Remote / Online"}</p>
+                  <p className="font-bold text-text-primary mt-0.5">{opp.location || "Remote / Online"}</p>
                 </div>
               </div>
 
@@ -448,11 +448,11 @@ export default function OpportunityDetail() {
             </div>
 
             {/* AI Eligibility Predictor Widget */}
-            <div className="rounded-2xl border border-border-theme dark:border-slate-800 bg-background dark:bg-slate-800/50 p-4 space-y-3">
+            <div className="rounded-2xl border border-border-theme bg-background p-4 space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <h4 className="text-xs font-bold text-text-primary dark:text-slate-100">AI Match Predictor</h4>
-                  <p className="text-[11px] text-text-secondary dark:text-slate-400 font-medium">Evaluate match against your profile.</p>
+                  <h4 className="text-xs font-bold text-text-primary">AI Match Predictor</h4>
+                  <p className="text-[11px] text-text-secondary font-medium">Evaluate match against your profile.</p>
                 </div>
 
                 <button
@@ -482,10 +482,10 @@ export default function OpportunityDetail() {
             </div>
 
             {/* PREPARE ME (AI) BUTTON */}
-            <div className="pt-4 border-t border-border-theme dark:border-slate-800 space-y-2.5">
+            <div className="pt-4 border-t border-border-theme space-y-2.5">
               <button 
                 onClick={handlePrepareMe}
-                className="w-full py-3.5 bg-surface-secondary dark:bg-slate-800 hover:bg-[#e8ded1] dark:hover:bg-slate-700 text-text-secondary dark:text-slate-300 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all border border-border-theme dark:border-slate-700 cursor-pointer"
+                className="w-full py-3.5 bg-surface-secondary hover:bg-[#e8ded1] text-text-secondary font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all border border-border-theme cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-primary-blue" />
                 <span>Prepare Me (AI)</span>
@@ -493,13 +493,13 @@ export default function OpportunityDetail() {
             </div>
 
             {/* DIRECT OFFICIAL APPLICATION BUTTON - ALWAYS REDIRECTS TO REAL PORTAL */}
-            <div className="pt-4 border-t border-border-theme dark:border-slate-800 space-y-2.5">
+            <div className="pt-4 border-t border-border-theme space-y-2.5">
               <a 
                 href={realApplyUrl} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 onClick={() => trackInteraction(opp.id, 'apply')}
-                className="w-full py-3.5 bg-primary-blue hover:bg-[#96552a] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-[#b56b37]/20 uppercase tracking-wider cursor-pointer"
+                className="w-full py-3.5 bg-primary-blue hover:opacity-90 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-[#b56b37]/20 uppercase tracking-wider cursor-pointer"
               >
                 <span>Apply Directly</span>
                 <ChevronRight className="w-4 h-4" />
@@ -514,8 +514,8 @@ export default function OpportunityDetail() {
 
       {/* Related Opportunities Section */}
       {relatedOpps.length > 0 && (
-        <section className="pt-8 border-t border-border-theme dark:border-slate-800">
-          <h2 className="text-xl font-serif font-bold text-text-primary dark:text-white mb-6">
+        <section className="pt-8 border-t border-border-theme">
+          <h2 className="text-xl font-serif font-bold text-text-primary mb-6">
             You might also like...
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

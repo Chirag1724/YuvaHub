@@ -163,7 +163,7 @@ export function OpportunityCard({
                 aria-label={`${title} at ${orgName}`}
                 onClick={handleClick}
                 onKeyDown={handleKeyDown}
-                className="group relative flex flex-col justify-between h-full w-full min-w-0 cursor-pointer rounded-xl border border-border-theme dark:border-slate-800 bg-surface dark:bg-slate-900 p-5 transition-all duration-200 ease-out hover:border-primary-blue dark:hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b56b37]"
+                className="group relative flex flex-col justify-between h-full w-full min-w-0 cursor-pointer rounded-xl border border-border-theme bg-surface p-5 transition-all duration-200 ease-out hover:border-primary-blue hover:shadow-md hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b56b37]"
             >
                 <div className="space-y-3">
                     {/* Header Row: Logo, Company, Category Badge, Bookmark */}
@@ -173,24 +173,24 @@ export function OpportunityCard({
                                 <img
                                     src={opp.orgLogo}
                                     alt={`${orgName} logo`}
-                                    className="h-10 w-10 shrink-0 rounded-lg object-cover border border-border-theme dark:border-slate-800 bg-surface"
+                                    className="h-10 w-10 shrink-0 rounded-lg object-cover border border-border-theme bg-surface"
                                 />
                             ) : (
                                 <div
                                     aria-hidden="true"
-                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-secondary dark:bg-slate-800 text-text-secondary dark:text-slate-300 border border-border-theme dark:border-slate-700 text-xs font-bold"
+                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-secondary text-text-secondary border border-border-theme text-xs font-bold"
                                 >
                                     <Building2 className="w-5 h-5 text-primary-blue" />
                                 </div>
                             )}
                             <div className="min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-text-secondary dark:text-slate-400 truncate">{orgName}</span>
+                                    <span className="text-xs font-bold text-text-secondary truncate">{orgName}</span>
                                     {isVerified && (
                                         <button
                                             type="button"
                                             onClick={handleAuditBadgeClick}
-                                            className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#63703d] hover:underline"
+                                            className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#63703d] hover:underline cursor-pointer"
                                             title="View Verification Audit"
                                         >
                                             <Shield className="w-3 h-3 text-[#63703d] fill-[#63703d]/20" />
@@ -198,7 +198,7 @@ export function OpportunityCard({
                                         </button>
                                     )}
                                 </div>
-                                <span className="inline-block text-[10px] font-bold text-text-muted dark:text-slate-500 tracking-wider">
+                                <span className="inline-block text-[10px] font-bold text-text-muted tracking-wider">
                                     {typeLabel}
                                 </span>
                             </div>
@@ -210,11 +210,11 @@ export function OpportunityCard({
                                 onClick={handleAddToCalendar}
                                 aria-label="Add to Calendar"
                                 title="Add to Calendar"
-                                className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary dark:hover:bg-slate-800 transition-colors"
+                                className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary transition-colors cursor-pointer"
                             >
                                 <Calendar
                                     size={18}
-                                    className="text-text-muted dark:text-slate-500"
+                                    className="text-text-muted"
                                 />
                             </button>
                             <button
@@ -223,15 +223,15 @@ export function OpportunityCard({
                                 disabled={isSavingToTracker}
                                 aria-label={isSavedToTracker ? "Saved to Application Tracker" : "Save to Application Tracker"}
                                 title={isSavedToTracker ? "Saved to Tracker" : "Save to Tracker"}
-                                className={`p-1.5 rounded-lg transition-colors ${
+                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                                     isSavedToTracker 
                                         ? "text-emerald-500 bg-emerald-500/10" 
-                                        : "text-text-muted hover:text-primary-blue hover:bg-surface-secondary dark:hover:bg-slate-800"
+                                        : "text-text-muted hover:text-primary-blue hover:bg-surface-secondary"
                                 }`}
                             >
                                 <Briefcase
                                     size={18}
-                                    className={isSavedToTracker ? "text-emerald-500" : "text-text-muted dark:text-slate-500"}
+                                    className={isSavedToTracker ? "text-emerald-500" : "text-text-muted"}
                                 />
                             </button>
                             {compareCtx && (
@@ -240,11 +240,11 @@ export function OpportunityCard({
                                     onClick={handleCompareClick}
                                     aria-label={isComparing ? "Remove from comparison" : "Add to comparison"}
                                     title={isComparing ? "Remove from comparison" : "Add to comparison"}
-                                    className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary dark:hover:bg-slate-800 transition-colors"
+                                    className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary transition-colors cursor-pointer"
                                 >
                                     <Scale
                                         size={18}
-                                        className={isComparing ? "text-primary-blue" : "text-text-muted dark:text-slate-500"}
+                                        className={isComparing ? "text-primary-blue" : "text-text-muted"}
                                     />
                                 </button>
                             )}
@@ -253,11 +253,11 @@ export function OpportunityCard({
                                 onClick={handleBookmarkClick}
                                 aria-label={isBookmarked ? "Remove bookmark" : "Save bookmark"}
                                 aria-pressed={isBookmarked}
-                                className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary dark:hover:bg-slate-800 transition-colors"
+                                className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary transition-colors cursor-pointer"
                             >
                                 <Bookmark
                                     size={18}
-                                    className={isBookmarked ? "fill-[#b56b37] text-primary-blue" : "text-text-muted dark:text-slate-500"}
+                                    className={isBookmarked ? "fill-[#b56b37] text-primary-blue" : "text-text-muted"}
                                 />
                             </button>
                             <button
@@ -265,7 +265,7 @@ export function OpportunityCard({
                                 onClick={(e) => { e.stopPropagation(); setShowCoverLetterModal(true); }}
                                 aria-label="Generate AI Cover Letter"
                                 title="Generate tailored AI cover letter"
-                                className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary dark:hover:bg-slate-800 transition-colors"
+                                className="p-1.5 rounded-lg text-text-muted hover:text-primary-blue hover:bg-surface-secondary transition-colors cursor-pointer"
                             >
                                 <FileText size={18} />
                             </button>
@@ -274,7 +274,7 @@ export function OpportunityCard({
                                 onClick={(e) => { e.stopPropagation(); setShowReportModal(true); }}
                                 aria-label="Report Opportunity"
                                 title="Report this opportunity"
-                                className="p-1.5 rounded-lg text-text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                className="p-1.5 rounded-lg text-text-muted hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                             >
                                 <Flag size={18} />
                             </button>
@@ -284,27 +284,27 @@ export function OpportunityCard({
                     {/* Title */}
                     <h3
                         title={title}
-                        className="text-base font-semibold text-text-primary dark:text-slate-100 group-hover:text-primary-blue dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug"
+                        className="text-base font-semibold text-text-primary group-hover:text-primary-blue transition-colors line-clamp-2 leading-snug"
                     >
                         {title}
                     </h3>
 
                     {/* Specs / Meta Badges */}
                     <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
-                        <span className="inline-flex items-center gap-1 text-text-secondary dark:text-slate-300 font-medium px-2.5 py-1 rounded-md bg-surface-secondary dark:bg-slate-800 border border-border-theme dark:border-slate-700/60">
+                        <span className="inline-flex items-center gap-1 text-text-secondary font-medium px-2.5 py-1 rounded-md bg-surface-secondary border border-border-theme">
                             <MapPin className="w-3.5 h-3.5 text-primary-blue" />
                             {locationLabel}
                         </span>
 
                         {opp.stipend && (
-                            <span className="inline-flex items-center gap-1 text-[#63703d] dark:text-emerald-400 font-semibold px-2.5 py-1 rounded-md bg-[#63703d]/10 border border-[#63703d]/20">
+                            <span className="inline-flex items-center gap-1 text-[#63703d] font-semibold px-2.5 py-1 rounded-md bg-[#63703d]/10 border border-[#63703d]/20">
                                 <Coins className="w-3.5 h-3.5 text-[#63703d]" />
                                 {opp.stipend}
                             </span>
                         )}
 
                         {typeof (opp as any).matchScore === 'number' && (
-                            <span className="inline-flex items-center gap-1 text-text-primary dark:text-slate-200 font-bold px-2.5 py-1 rounded-md bg-[#f3e4bd] border border-border-theme">
+                            <span className="inline-flex items-center gap-1 text-text-primary font-bold px-2.5 py-1 rounded-md bg-[#f3e4bd] border border-border-theme">
                                 <Sparkles className="w-3 h-3 text-primary-blue" />
                                 {(opp as any).matchScore}% Match
                             </span>
@@ -321,7 +321,7 @@ export function OpportunityCard({
                     {opp.tags && opp.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 pt-1">
                             {opp.tags.slice(0, 3).map((tag, idx) => (
-                                <span key={idx} className="text-[11px] font-medium text-text-secondary dark:text-slate-400 px-2 py-0.5 rounded bg-background dark:bg-slate-800 border border-border-theme dark:border-slate-700/50">
+                                <span key={idx} className="text-[11px] font-medium text-text-secondary px-2 py-0.5 rounded bg-background border border-border-theme">
                                     #{tag}
                                 </span>
                             ))}
@@ -330,13 +330,13 @@ export function OpportunityCard({
                 </div>
 
                 {/* Footer */}
-                <div className="mt-4 pt-3 border-t border-border-theme dark:border-slate-800 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 text-text-muted dark:text-slate-400 font-medium">
+                <div className="mt-4 pt-3 border-t border-border-theme flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5 text-text-muted font-medium">
                         <Clock className="w-3.5 h-3.5 text-primary-blue" />
                         <span className="truncate max-w-[130px]">{deadlineLabel}</span>
                     </div>
 
-                    <div className="inline-flex items-center gap-1 text-xs font-bold text-primary-blue dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
+                    <div className="inline-flex items-center gap-1 text-xs font-bold text-primary-blue group-hover:translate-x-0.5 transition-transform">
                         <span>View Details</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                     </div>
@@ -359,17 +359,17 @@ export function OpportunityCard({
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="audit-modal-title"
-                        className="bg-surface dark:bg-slate-900 border border-border-theme dark:border-slate-800 rounded-xl p-6 max-w-md w-full shadow-xl space-y-4 animate-scale-up text-text-primary dark:text-slate-100"
+                        className="bg-surface border border-border-theme rounded-xl p-6 max-w-md w-full shadow-xl space-y-4 animate-scale-up text-text-primary"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex justify-between items-center border-b border-border-theme dark:border-slate-800 pb-3">
+                        <div className="flex justify-between items-center border-b border-border-theme pb-3">
                             <div className="flex items-center gap-2">
                                 <Shield className="w-5 h-5 text-[#63703d]" aria-hidden="true" />
-                                <h3 id="audit-modal-title" className="font-bold text-base text-text-primary dark:text-slate-100">Verification Audit Trail</h3>
+                                <h3 id="audit-modal-title" className="font-bold text-base text-text-primary">Verification Audit Trail</h3>
                             </div>
                             <button
                                 onClick={closeAuditModal}
-                                className="text-text-muted hover:text-text-primary dark:hover:text-white p-1 rounded-lg hover:bg-surface-secondary transition-colors"
+                                className="text-text-muted hover:text-text-primary p-1 rounded-lg hover:bg-surface-secondary transition-colors cursor-pointer"
                             >
                                 <X className="w-4 h-4" aria-hidden="true" />
                             </button>
@@ -379,19 +379,19 @@ export function OpportunityCard({
                             <div className="bg-[#63703d]/10 border border-[#63703d]/30 rounded-lg p-3 flex items-center gap-3 text-[#63703d] font-bold">
                                 <CheckCircle className="w-5 h-5 text-[#63703d] shrink-0" />
                                 <div>
-                                    <span className="font-bold block text-text-primary dark:text-slate-100">Audit Verification Passed</span>
-                                    <span className="font-normal text-xs text-text-secondary dark:text-slate-300">Listing audited & verified for authentic student application.</span>
+                                    <span className="font-bold block text-text-primary">Audit Verification Passed</span>
+                                    <span className="font-normal text-xs text-text-secondary">Listing audited & verified for authentic student application.</span>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-background dark:bg-slate-800 p-2.5 rounded-lg border border-border-theme dark:border-slate-700 space-y-0.5">
+                                <div className="bg-background p-2.5 rounded-lg border border-border-theme space-y-0.5">
                                     <span className="text-[10px] text-text-muted font-bold uppercase block">Audited By</span>
-                                    <span className="font-bold text-text-primary dark:text-slate-100">{auditInfo.verifiedBy}</span>
+                                    <span className="font-bold text-text-primary">{auditInfo.verifiedBy}</span>
                                 </div>
-                                <div className="bg-background dark:bg-slate-800 p-2.5 rounded-lg border border-border-theme dark:border-slate-700 space-y-0.5">
+                                <div className="bg-background p-2.5 rounded-lg border border-border-theme space-y-0.5">
                                     <span className="text-[10px] text-text-muted font-bold uppercase block">Audit Date</span>
-                                    <span className="font-bold text-text-primary dark:text-slate-100">{auditInfo.verifiedAt}</span>
+                                    <span className="font-bold text-text-primary">{auditInfo.verifiedAt}</span>
                                 </div>
                             </div>
 
@@ -401,7 +401,7 @@ export function OpportunityCard({
                                         href={auditInfo.auditSourceUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-full py-2 bg-primary-blue hover:bg-[#96552a] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors"
+                                        className="w-full py-2 bg-primary-blue hover:opacity-90 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                                     >
                                         Inspect Audit Source Page <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                                     </a>
