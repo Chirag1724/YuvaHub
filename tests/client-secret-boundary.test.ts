@@ -37,11 +37,17 @@ function collectClientFiles(directory: string): string[] {
     if (
       CLIENT_EXTENSIONS.has(extname(entry)) &&
       !absolutePath.includes(`${join("src", "api")}`) &&
+      !absolutePath.includes(`${join("src", "server")}`) &&
       !absolutePath.includes(`${join("src", "workers")}`) &&
       !absolutePath.includes(`${join("src", "consumers")}`) &&
       !absolutePath.endsWith("applicationGenerator.ts") &&
       !absolutePath.endsWith("embedding.ts") &&
       !absolutePath.endsWith("toxicity.ts") &&
+      !absolutePath.endsWith("accessibilityScanner.ts") &&
+      !absolutePath.endsWith("emailService.ts") &&
+      !absolutePath.endsWith("newsletter.service.ts") &&
+      !absolutePath.endsWith("piiRedactionService.ts") &&
+      !absolutePath.endsWith("plagiarismDetectionService.ts") &&
       !absolutePath.includes(`${join("services", "agent")}`)
     ) {
       files.push(absolutePath);

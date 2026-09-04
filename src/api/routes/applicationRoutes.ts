@@ -8,6 +8,11 @@ import {
   deleteApplication,
   getUserApplications
 } from "../controllers/applicationController.js";
+import {
+  getApplicationNote,
+  saveApplicationNote,
+  shareApplicationNote
+} from "../controllers/applicationNoteController.js";
 import { authMiddleware } from "../middlewares/auth.js";
 
 const router = Router();
@@ -15,6 +20,9 @@ const router = Router();
 router.post(["/applications/generate-draft", "/applications/draft", "/application/draft"], authMiddleware, generateDraft);
 router.post(["/applications/queue", "/application/queue"], authMiddleware, queueApplication);
 router.post(["/applications", "/application"], authMiddleware, createApplication);
+router.get("/applications/:applicationId/note", authMiddleware, getApplicationNote);
+router.post("/applications/:applicationId/note", authMiddleware, saveApplicationNote);
+router.post("/applications/notes/:noteId/share", authMiddleware, shareApplicationNote);
 router.patch("/applications/:id/status", authMiddleware, updateApplicationStatus);
 router.patch("/applications/:id", authMiddleware, updateApplication);
 router.put("/applications/:id", authMiddleware, updateApplication);
@@ -22,3 +30,4 @@ router.delete("/applications/:id", authMiddleware, deleteApplication);
 router.get(["/applications", "/application"], authMiddleware, getUserApplications);
 
 export default router;
+

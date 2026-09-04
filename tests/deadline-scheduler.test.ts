@@ -1,11 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const enqueueEmail = vi.fn().mockResolvedValue(undefined);
-const enqueuePushNotification = vi.fn().mockResolvedValue(undefined);
-const emit = vi.fn();
-const getSocketIO = vi.fn(() => ({ emit }));
-const generateDeadlineReminderHtml = vi.fn(() => "<p>deadline</p>");
-const generateWeeklyDigestHtml = vi.fn(() => "<p>digest</p>");
+const {
+  enqueueEmail,
+  enqueuePushNotification,
+  emit,
+  getSocketIO,
+  generateDeadlineReminderHtml,
+  generateWeeklyDigestHtml,
+} = vi.hoisted(() => {
+  const emitFn = vi.fn();
+  return {
+    enqueueEmail: vi.fn().mockResolvedValue(undefined),
+    enqueuePushNotification: vi.fn().mockResolvedValue(undefined),
+    emit: emitFn,
+    getSocketIO: vi.fn(() => ({ emit: emitFn })),
+    generateDeadlineReminderHtml: vi.fn(() => "<p>deadline</p>"),
+    generateWeeklyDigestHtml: vi.fn(() => "<p>digest</p>"),
+  };
+});
 
 vi.mock("../src/queues/emailQueue", () => ({ enqueueEmail }));
 vi.mock("../src/queues/pushQueue", () => ({ enqueuePushNotification }));

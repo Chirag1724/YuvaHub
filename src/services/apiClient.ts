@@ -1638,6 +1638,45 @@ export async function bulkGetOpportunityNotes(opportunityIds: string[]) {
   }
 }
 
+// ─── Application Workspace Notes ──────────────────────────────────────────────────
+
+export async function fetchApplicationNote(applicationId: string) {
+  try {
+    const response = await fetchWithRetry(`${API_BASE_URL}/applications/${applicationId}/note`, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error("Failed to fetch application note");
+    }
+    const data = await response.json();
+    return data.data?.note || data.note || null;
+  } catch (error) {
+    console.warn("fetchApplicationNote failed", error);
+    return null;
+  }
+}
+
+export async function saveApplicationNote(applicationId: string, payload: { title?: string; blocks?: any[] }) {
+  const response = await fetchWithRetry(`${API_BASE_URL}/applications/${applicationId}/note`, {
+    method: "POST",
+    body: JSON.stringify({ applicationId, ...payload })
+  });
+  if (!response.ok) throw new Error("Failed to save application note");
+  const data = await response.json();
+  return data.data?.note || data.note;
+}
+
+export async function shareApplicationNote(noteId: string, payload: { addEmail?: string; removeUserId?: string }) {
+  const response = await fetchWithRetry(`${API_BASE_URL}/applications/notes/${noteId}/share`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) throw new Error("Failed to share application note");
+  const data = await response.json();
+  return data.data?.note || data.note;
+}
+
 // ─── Saved Searches ────────────────────────────────────────────────────────────
 
 export async function fetchSavedSearches() {
