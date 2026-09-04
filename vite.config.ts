@@ -98,14 +98,11 @@ export default defineConfig(async ({ mode }) => {
               if (id.includes("recharts") || id.includes("d3-")) {
                 return "vendor-charts";
               }
-              if (id.includes("framer-motion") || id.includes("lucide-react")) {
-                return "vendor-ui";
-              }
               if (
-                id.includes("react-dom") ||
-                id.includes("react-router-dom") ||
-                id.includes("/react/") ||
-                id.includes("\\react\\")
+                id.includes("react") ||
+                id.includes("scheduler") ||
+                id.includes("framer-motion") ||
+                id.includes("lucide-react")
               ) {
                 return "vendor-react";
               }
